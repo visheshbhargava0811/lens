@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "title": "Lens",
+    "description": "See how India's news outlets cover the same story."
+  },
+  "nav": {
+    "primary": "Primary",
+    "home": "Home",
+    "forYou": "For you",
+    "blindspot": "Blindspot",
+    "local": "Local",
+    "ask": "Ask",
+    "profile": "Profile",
+    "search": "Search",
+    "signIn": "Sign in",
+    "topics": "Topics",
+    "language": "Language",
+    "skipToContent": "Skip to content"
+  },
+  "topics": {
+    "top": "Top",
+    "politics": "Politics",
+    "business": "Business",
+    "world": "World",
+    "sports": "Sports",
+    "tech": "Tech",
+    "health": "Health",
+    "science": "Science",
+    "entertainment": "Entertainment"
+  },
+  "home": {
+    "heading": "Top stories",
+    "hero": "Lead story",
+    "more": "More stories",
+    "empty": "No stories yet. Stories appear here once sources are ingested and clustered.",
+    "loadMore": "Load more stories",
+    "loadingMore": "Loading more stories",
+    "loadMoreError": "Couldn't load more stories. Check your connection and try again.",
+    "end": "You've reached the end of the feed.",
+    "railBlindspots": "Blindspot",
+    "railTopics": "Topics to follow",
+    "seeAllBlindspots": "See all blindspots"
+  },
+  "topic": {
+    "heading": "{topic} stories",
+    "empty": "No {topic} stories yet. Try another topic, or check back later."
+  },
+  "stance": {
+    "label": {
+      "critical": "{target, select, state_govt {Critical of the state government} opposition {Critical of the opposition} other {Critical of the government}}",
+      "balanced": "Balanced",
+      "supportive": "{target, select, state_govt {Supportive of the state government} opposition {Supportive of the opposition} other {Supportive of the government}}",
+      "unclassified": "Unclassified",
+      "not_applicable": "No government stance"
+    },
+    "phrase": {
+      "critical": "critical of the government",
+      "balanced": "balanced",
+      "supportive": "supportive of the government",
+      "unclassified": "unclassified"
+    }
+  },
+  "coverage": {
+    "title": "Coverage",
+    "sources": "{count, plural, one {# source} other {# sources}}",
+    "alt": "Coverage by {total, plural, one {# source} other {# sources}}: {parts}. Confidence {confidence}.",
+    "altPart": "{pct} percent {phrase}",
+    "tooltip": "{sources, plural, one {# source} other {# sources}}, {pct}%, {phrase}",
+    "limited": "Limited coverage: only {count, plural, one {# source} other {# sources}} so far. A coverage split needs at least {min}.",
+    "confidence": "Confidence: {level}",
+    "howCalculated": "How this is calculated",
+    "legend": "Stance of coverage"
+  },
+  "confidence": {
+    "low": "low",
+    "medium": "medium",
+    "high": "high"
+  },
+  "status": {
+    "developing": "Developing",
+    "stable": "Stable",
+    "archived": "Archived"
+  },
+  "story": {
+    "updated": "Updated {time}",
+    "languages": "Languages",
+    "languageCount": "{language} {count}",
+    "notFound": "This story doesn't exist or was removed.",
+    "loadError": "Couldn't load this story. Check your connection and try again.",
+    "limitations": "Limitations",
+    "factChecks": "Fact-checks",
+    "factCheckRating": "Rating: {rating}",
+    "factCheckBy": "Checked by {checker}",
+    "readFactCheck": "Read the fact-check",
+    "noFactChecks": "No fact-checks matched this story yet."
+  },
+  "flag": {
+    "stance": "Mostly covered by outlets {phrase}",
+    "language": "Covered mostly in {language}, little in {other}",
+    "otherThanEnglish": "Hindi and regional languages"
+  },
+  "summary": {
+    "title": "Summary",
+    "verified": "Verified against sources",
+    "unavailable": "A summary isn't ready yet. The sources below are listed as reported.",
+    "agreements": "Where outlets agree",
+    "disagreements": "Where they differ",
+    "framing": "How headlines frame it",
+    "translated": "Translated from {language}"
+  },
+  "citation": {
+    "label": "Source {n}: {source}",
+    "showInList": "Show in source list",
+    "readAt": "Read at {source}",
+    "noPassage": "Only the headline and link can be shown for this source."
+  },
+  "factuality": {
+    "title": "Factuality of sources",
+    "high": "High",
+    "mixed": "Mixed",
+    "low": "Low",
+    "notRated": "Not rated",
+    "chip": "Factuality: {value}",
+    "ratedBy": "Rated by {rater}. Confidence {confidence}.",
+    "alt": "Source factuality: {high} high, {mixed} mixed, {low} low, {unrated} not rated. Confidence {confidence}."
+  },
+  "ownership": {
+    "title": "Ownership",
+    "unknown": "Unknown",
+    "owner": "Owner: {owner}",
+    "evidence": "Evidence for {owner}"
+  },
+  "sources": {
+    "title": "Sources",
+    "filterStance": "Filter by stance",
+    "filterLanguage": "Filter by language",
+    "all": "All",
+    "count": "{count, plural, one {# article} other {# articles}}",
+    "empty": "No articles match these filters.",
+    "readAt": "Read at {source}",
+    "newTab": "(opens in a new tab)",
+    "depthSnippet": "Based on headline and summary.",
+    "depthHeadline": "Based on headline only.",
+    "alsoCarried": "Also carried by {count, plural, one {# outlet} other {# outlets}}",
+    "syndicated": "Syndicated copy",
+    "stanceConfidence": "{label}, confidence {confidence}",
+    "howLabeled": "How stance is labeled"
+  },
+  "blindspot": {
+    "heading": "Blindspot",
+    "intro": "Stories covered mostly by one group of outlets, grouped by stance or by language. Neither group is assumed to be right.",
+    "byStance": "By stance",
+    "byLanguage": "By language",
+    "tabs": "Blindspot type",
+    "empty": "No blindspots right now. Check back later.",
+    "methodology": "How blindspots are found"
+  },
+  "methodology": {
+    "heading": "How Lens works",
+    "intro": "Every bar, label and rating in Lens links here. This page explains how each is made and where it falls short.",
+    "draft": "This page is a draft. Rater lists, validation results and the changelog are added before launch.",
+    "sections": {
+      "coverage": {
+        "title": "Coverage bar",
+        "body": "The bar counts distinct outlets that covered a story, after merging copies of the same wire report. Each outlet counts once. We show the bar only when at least 4 outlets have covered the story; below that we say coverage is limited."
+      },
+      "stance": {
+        "title": "Stance",
+        "body": "Each article gets a stance toward the government it is about: critical, balanced or supportive. Articles we can't label with enough confidence count as unclassified, and we always show that share. Stance describes one article on one story, not a permanent label for an outlet. Colors and patterns are chosen to avoid party colors."
+      },
+      "factuality": {
+        "title": "Factuality",
+        "body": "Outlet factuality comes from named third-party raters. We show the rater, their method and the date for every rating. Outlets without a rating are shown as Not rated."
+      },
+      "ownership": {
+        "title": "Ownership",
+        "body": "Ownership is shown only with a link to evidence. Where we have no verified evidence, the owner is listed as Unknown."
+      },
+      "blindspots": {
+        "title": "Blindspots",
+        "body": "A stance blindspot is a story where most classified outlets fall in one stance group. A language blindspot is a story covered widely in one language and barely in another, for example Hindi and English."
+      },
+      "summaries": {
+        "title": "How summaries are verified",
+        "body": "Every summary sentence cites the articles it comes from. Quotes are checked word for word against the stored text, and a separate model checks that each cited article supports its sentence. We show Verified against sources only when both checks pass."
+      },
+      "languages": {
+        "title": "Languages",
+        "body": "Headlines are always shown in their original language and script. Translated summaries are labeled with the language they were translated from."
+      },
+      "limits": {
+        "title": "Limits",
+        "body": "For most outlets we can only analyze headlines and short summaries, not full articles. Each story says when that is the case."
+      },
+      "corrections": {
+        "title": "Corrections",
+        "body": "If a story is grouped wrongly, a stance label looks wrong or a rating is out of date, report it. We review every report and record changes in the changelog."
+      }
+    }
+  },
+  "errors": {
+    "tryAgain": "Try again",
+    "feed": "Couldn't load stories. Check your connection and try again.",
+    "notFound": "We couldn't find that page.",
+    "goHome": "Go to Home"
+  },
+  "states": {
+    "loading": "Loading"
+  }
+}

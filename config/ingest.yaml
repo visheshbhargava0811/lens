@@ -1,0 +1,34 @@
+# Ingestion settings (docs/04 sections 1-2). Starting values; tune on real data and record changes.
+fetch:
+  default_interval_min: 15      # docs/04: start at 10 to 15 minutes
+  max_backoff_min: 360           # cap for exponential backoff after failures
+  dead_letter_after_failures: 5  # consecutive failures before a dead_letters row
+  max_item_age_hours: 72         # skip older items in feeds and sitemaps (no historical backfill)
+  max_items_per_fetch: 500
+  robots_cache_min: 60
+  snippet_max_chars: 600         # snippet_only: store at most this much feed summary
+  future_tolerance_min: 10       # publish times later than fetch time + this are not trusted
+  ist_offset_min: 330            # some feeds label India time as UTC ("...Z"); corrected when it fits
+syndication:
+  window_hours: 72               # docs/04: near-duplicate check against the last 72 h
+  # Two-step near-duplicate test: SimHash is a cheap pre-filter, word-set Jaccard confirms.
+  # Short headlines make SimHash alone noisy (one extra word moved a 14-word headline 9 bits).
+  max_hamming: 16                # 64-bit unigram SimHash distance to consider a pair
+  min_jaccard: 0.75              # word-set overlap required to call it the same copy
+  min_tokens: 8                  # texts shorter than this are too short to call near-duplicates
+  wire_markers:                  # byline/dateline markers -> agency name (docs/04 section 2)
+    PTI: ["pti", "(pti)", "press trust of india", "भाषा", "(भाषा)"]
+    ANI: ["ani", "(ani)", "asian news international"]
+    IANS: ["ians", "(ians)", "indo-asian news service"]
+    Reuters: ["reuters", "(reuters)"]
+    AP: ["associated press", "(ap)"]
+    AFP: ["afp", "(afp)", "agence france-presse"]
+    UNI: ["uni", "(uni)", "united news of india"]
+language:
+  min_confidence: 0.5            # below this, keep the code but flag low confidence
+news_filter:
+  # URL path segments and title prefixes that mark non-news items (docs/04: drop horoscopes,
+  # sponsored content, listicles; keep opinion flagged rather than dropped).
+  drop_url_patterns: ["/horoscope", "/rashifal", "/astrology", "/web-stories", "/webstories", "/photo-gallery", "/photos/", "/videos/", "/video/", "/brand-stories", "/sponsored", "/spotlight/", "/partner-content", "/lottery", "/quiz"]
+  drop_title_patterns: ["horoscope", "राशिफल", "आज का राशिफल", "lottery result", "sponsored", "in pics", "in photos", "quiz:"]
+  opinion_url_patterns: ["/opinion", "/editorial", "/blogs/", "/columns/", "/op-ed"]

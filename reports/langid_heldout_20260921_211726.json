@@ -1,0 +1,50 @@
+{
+  "n": 100,
+  "accuracy": 0.97,
+  "per_label": {
+    "en": {
+      "correct": 30,
+      "n": 30,
+      "accuracy": 1.0
+    },
+    "hi": {
+      "correct": 30,
+      "n": 30,
+      "accuracy": 1.0
+    },
+    "hi-Latn": {
+      "correct": 8,
+      "n": 10,
+      "accuracy": 0.8
+    },
+    "mr": {
+      "correct": 29,
+      "n": 30,
+      "accuracy": 0.9667
+    }
+  },
+  "confusion": {
+    "hi-Latn->en": 2,
+    "mr->hi": 1
+  },
+  "errors": [
+    {
+      "id": "heldout-feed-056",
+      "label": "mr",
+      "pred": "hi",
+      "text": "ऊर्जा प्रबोधन मोहीम"
+    },
+    {
+      "id": "heldout-hinglish-04",
+      "label": "hi-Latn",
+      "pred": "en",
+      "text": "Is scheme ka fayda kise milega"
+    },
+    {
+      "id": "heldout-hinglish-08",
+      "label": "hi-Latn",
+      "pred": "en",
+      "text": "Kya school kal band rahenge"
+    }
+  ]
+}

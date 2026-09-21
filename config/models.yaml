@@ -1,0 +1,13 @@
+# Model tier -> provider/model id (docs/02). Fill IDs after benchmarking; do not guess.
+tiers:
+  embedding:           { provider: local, model: BAAI/bge-m3 }   # benchmark vs multilingual-e5, LaBSE (Phase 2)
+  reranker:            { provider: TBD, model: TBD }
+  triage:              { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
+  query_understanding: { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
+  analysis:            { provider: TBD, model: TBD, max_tokens: 2048, temperature: 0 }
+  synthesis:           { provider: TBD, model: TBD, max_tokens: 2048, temperature: 0.2 }
+  judge:               { provider: TBD, model: TBD, max_tokens: 1024, temperature: 0 }   # different family than synthesis
+  translation:         { provider: TBD, model: TBD }
+  tts:                 { provider: TBD, model: TBD }
+fallbacks:
+  synthesis: [analysis]     # used by the circuit breaker

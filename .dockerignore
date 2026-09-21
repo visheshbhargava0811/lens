@@ -1,0 +1,12 @@
+**/node_modules
+**/.venv
+**/.next
+**/__pycache__
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+frontend
+graphify-out
+.git
+.env
+*.zip

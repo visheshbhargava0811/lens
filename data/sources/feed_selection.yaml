@@ -1,0 +1,53 @@
+# Which discovered feeds to ingest, per outlet. Chosen 2026-09-21 from reports/feed_discovery.md:
+# general, national or latest-news feeds first; sections like lifestyle, sport and web stories skipped.
+# Every URL here must exist in data/sources/discovery.json (the seed generator checks).
+selected:
+  times-of-india:
+    - http://timesofindia.indiatimes.com/rssfeedstopstories.cms
+    - http://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms
+  the-hindu:
+    - https://www.thehindu.com/news/national/feeder/default.rss
+    - https://www.thehindu.com/news/feeder/default.rss
+  indian-express:
+    - https://indianexpress.com/section/india/feed/
+  hindustan-times:
+    - https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml
+  india-today:
+    - https://www.indiatoday.in/news-it-sitemap.xml
+  republic-world:
+    - https://www.republicworld.com/sitemaps/sitemaps-news.xml
+  the-print:
+    - https://theprint.in/googlenews.xml
+  scroll:
+    - https://feeds.feedburner.com/ScrollinArticles.rss
+  economic-times:
+    - https://economictimes.indiatimes.com/rssfeedsdefault.cms
+    - https://economictimes.indiatimes.com/news/rssfeeds/1715249553.cms
+  deccan-herald:
+    - https://www.deccanherald.com/news_sitemap.xml
+    - https://www.deccanherald.com/feed/
+  aaj-tak:
+    - https://www.aajtak.in/rssfeeds/?id=home
+  dainik-bhaskar:
+    - https://www.bhaskar.com/sitemaps-v1--sitemap-google-news-1.xml
+  dainik-jagran:
+    - https://www.jagran.com/news-sitemap.xml
+  amar-ujala:
+    - https://www.amarujala.com/sitemap-news-v1.xml
+    - https://www.amarujala.com/rss/breaking-news.xml
+  hindustan-hindi:
+    # The api.livehindustan.com RSS host disallows all crawling in its robots.txt; the news sitemap is allowed.
+    - https://www.livehindustan.com/news-sitemap.xml
+  sakal:
+    - https://www.esakal.com/news_sitemap.xml
+  loksatta:
+    - https://www.loksatta.com/news-sitemap.xml
+
+# Outlets with no usable machine-readable access on 2026-09-21. Seeded inactive with the reason.
+inactive:
+  ndtv: "Homepage and robots.txt return HTTP 403 to automated clients (checked with an honest user agent). Needs publisher permission, a license or a licensed news API."
+  news18: "Returns HTTP 403 to our crawler's user agent; robots.txt also disallows AI crawlers (GPTBot, ChatGPT-User, CCBot). Treat as no permission."
+  business-standard: "Homepage and robots.txt return HTTP 403 (Akamai) to automated clients. Needs publisher permission, a license or a licensed news API."
+  the-telegraph: "Homepage and robots.txt return HTTP 403 (Akamai) to automated clients. Needs publisher permission, a license or a licensed news API."
+  the-wire: "Site reachable, but no RSS feed or news sitemap advertised on the homepage or in robots.txt."
+  lokmat: "Site reachable, but no RSS feed or news sitemap advertised on the homepage or in robots.txt."

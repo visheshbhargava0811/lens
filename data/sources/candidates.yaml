@@ -1,0 +1,30 @@
+# Outlets named by the project owner on 2026-09-21. `homepage` is a starting point to try,
+# NOT evidence: `make discover-feeds` fetches it and records what the site itself serves.
+# Only discovery results (with evidence URLs) may be copied into sources.seed.yaml.
+english:
+  - { slug: ndtv, name: NDTV, homepage: "https://www.ndtv.com/" }
+  - { slug: times-of-india, name: The Times of India, homepage: "https://timesofindia.indiatimes.com/" }
+  - { slug: the-hindu, name: The Hindu, homepage: "https://www.thehindu.com/" }
+  - { slug: indian-express, name: The Indian Express, homepage: "https://indianexpress.com/" }
+  - { slug: hindustan-times, name: Hindustan Times, homepage: "https://www.hindustantimes.com/" }
+  - { slug: india-today, name: India Today, homepage: "https://www.indiatoday.in/" }
+  - { slug: news18, name: News18, homepage: "https://www.news18.com/" }
+  - { slug: republic-world, name: Republic, homepage: "https://www.republicworld.com/" }
+  - { slug: the-print, name: ThePrint, homepage: "https://theprint.in/" }
+  - { slug: the-wire, name: The Wire, homepage: "https://thewire.in/" }
+  - { slug: scroll, name: Scroll, homepage: "https://scroll.in/" }
+  - { slug: economic-times, name: The Economic Times, homepage: "https://economictimes.indiatimes.com/" }
+  - { slug: business-standard, name: Business Standard, homepage: "https://www.business-standard.com/" }
+  - { slug: deccan-herald, name: Deccan Herald, homepage: "https://www.deccanherald.com/" }
+  - { slug: the-telegraph, name: The Telegraph (India), homepage: "https://www.telegraphindia.com/" }
+hindi:
+  - { slug: aaj-tak, name: Aaj Tak, homepage: "https://www.aajtak.in/" }
+  - { slug: dainik-bhaskar, name: Dainik Bhaskar, homepage: "https://www.bhaskar.com/" }
+  - { slug: dainik-jagran, name: Dainik Jagran, homepage: "https://www.jagran.com/" }
+  - { slug: amar-ujala, name: Amar Ujala, homepage: "https://www.amarujala.com/" }
+  - { slug: hindustan-hindi, name: Hindustan, homepage: "https://www.livehindustan.com/" }
+regional:
+  # Marathi, chosen by the project owner on 2026-09-21 (ADR-0012).
+  - { slug: lokmat, name: Lokmat, language: mr, homepage: "https://www.lokmat.com/" }
+  - { slug: sakal, name: Sakal, language: mr, homepage: "https://www.esakal.com/" }
+  - { slug: loksatta, name: Loksatta, language: mr, homepage: "https://www.loksatta.com/" }

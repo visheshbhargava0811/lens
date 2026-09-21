@@ -1,0 +1,119 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Lens tokens as Tailwind utilities: bg-paper, text-ink, bg-stance-critical, rounded-card ... */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-link: var(--link);
+  --color-stance-critical: var(--stance-critical);
+  --color-stance-balanced: var(--stance-balanced);
+  --color-stance-supportive: var(--stance-supportive);
+  --color-stance-unclassified: var(--stance-unclassified);
+  --color-flag-bg: var(--flag-bg);
+  --color-flag-ink: var(--flag-ink);
+  --color-factuality-high: var(--factuality-high);
+  --color-factuality-mixed: var(--factuality-mixed);
+  --color-factuality-low: var(--factuality-low);
+
+  --radius-chip: var(--radius-chip);
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-modal: var(--radius-modal);
+  --shadow-float: var(--shadow-float);
+
+  --font-sans: var(--font-noto-sans), var(--font-noto-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Type scale (px): 12 14 16 18 20 24 30 40 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.5rem;
+  /* Line heights resolve per element, so :lang() Indic overrides in tokens.css apply. */
+  --text-xs--line-height: var(--leading-body);
+  --text-sm--line-height: var(--leading-body);
+  --text-base--line-height: var(--leading-body);
+  --text-lg--line-height: var(--leading-body);
+  --text-xl--line-height: var(--leading-headline);
+  --text-2xl--line-height: var(--leading-headline);
+  --text-3xl--line-height: var(--leading-headline);
+  --text-4xl--line-height: var(--leading-headline);
+
+  /* shadcn/ui semantic colors, pointed at Lens tokens */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--paper);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--paper);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--ink);
+  --color-primary-foreground: var(--paper);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--ink-muted);
+  --color-accent: var(--surface);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: #b42318;
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--link);
+  --radius-sm: 6px;
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-control);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: var(--radius-modal);
+}
+
+@layer base {
+  * {
+    @apply border-line outline-link/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper text-ink font-sans text-base antialiased;
+    line-height: var(--leading-body);
+  }
+  h1, h2, h3 {
+    line-height: var(--leading-headline);
+    font-weight: 700;
+  }
+  :focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Stance patterns: color is never the only signal (docs/10). */
+@layer utilities {
+  .pattern-hatch {
+    background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.4) 0 1.5px, transparent 1.5px 5px);
+  }
+  .pattern-dots {
+    background-image: radial-gradient(rgb(255 255 255 / 0.55) 0.9px, transparent 1.2px);
+    background-size: 4px 4px;
+  }
+  .pattern-light-hatch {
+    background-image: repeating-linear-gradient(135deg, rgb(22 24 29 / 0.14) 0 1px, transparent 1px 4px);
+  }
+}

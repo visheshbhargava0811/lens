@@ -1,0 +1,31 @@
+import { EyeOff } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+
+import type { Blindspot } from "@/lib/api/types";
+import { languageName } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+/** Plain-language blindspot note in flag colors. Neutral: no group is implied to be wrong. */
+export function FlagChip({ blindspot, className }: { blindspot: Blindspot; className?: string }) {
+  const t = useTranslations();
+  const locale = useLocale();
+  let text: string;
+  if (blindspot.type === "stance") {
+    text = t("flag.stance", { phrase: t(`stance.phrase.${blindspot.skew}`) });
+  } else {
+    const other = blindspot.skew === "en" ? t("flag.otherThanEnglish") : languageName("en", locale);
+    text = t("flag.language", { language: languageName(blindspot.skew, locale), other });
+  }
+  return (
+    <p
+      className={cn(
+        "relative z-10 inline-flex items-center gap-1.5 rounded-chip bg-flag-bg px-2.5 py-1 text-xs font-medium text-flag-ink",
+        className,
+      )}
+      data-testid="flag-chip"
+    >
+      <EyeOff aria-hidden className="size-3.5 shrink-0" />
+      {text}
+    </p>
+  );
+}

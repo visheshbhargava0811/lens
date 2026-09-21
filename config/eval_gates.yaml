@@ -1,0 +1,11 @@
+# CI gates from docs/08. Enforced from Phase 7; suites fill in as phases land.
+gates:
+  quote_match_rate:          { min: 1.00 }
+  citation_presence:         { min: 1.00 }
+  faithfulness_judge:        { min: 0.95 }
+  adversarial_pass_rate:     { min: 0.95 }
+  benign_false_block_rate:   { max: 0.03 }
+  retrieval_recall_at_10:    { min_delta_vs_baseline: -0.02 }
+  clustering_bcubed_f1:      { min_delta_vs_baseline: -0.02 }
+  stance_masked_consistency: { min: 0.95 }
+  p95_ask_latency_s:         { max: 15 }

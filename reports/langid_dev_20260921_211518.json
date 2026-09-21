@@ -1,0 +1,28 @@
+{
+  "n": 140,
+  "accuracy": 1.0,
+  "per_label": {
+    "en": {
+      "correct": 50,
+      "n": 50,
+      "accuracy": 1.0
+    },
+    "hi": {
+      "correct": 40,
+      "n": 40,
+      "accuracy": 1.0
+    },
+    "hi-Latn": {
+      "correct": 20,
+      "n": 20,
+      "accuracy": 1.0
+    },
+    "mr": {
+      "correct": 30,
+      "n": 30,
+      "accuracy": 1.0
+    }
+  },
+  "confusion": {},
+  "errors": []
+}

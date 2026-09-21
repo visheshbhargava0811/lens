@@ -1,0 +1,36 @@
+# secrets
+.env
+!infra/.env.example
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+.next/
+
+# local
+.DS_Store
+.claude/settings.local.json
+
+# graphify
+graphify-out/
+
+# Leftover `uv init` scaffold and duplicate spec copies from before the repo layout existed.
+# The real projects are backend/ and frontend/; the specs live in docs/.
+/pyproject.toml
+/uv.lock
+/requirements.txt
+/src/
+/.python-version
+/10_UI_SPEC.md
+/12_BUILD_PLAN.md
+
+# test output
+frontend/test-results/
+frontend/playwright-report/

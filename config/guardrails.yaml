@@ -1,0 +1,12 @@
+# Starting values from docs/07.
+sensitive_topics:
+  - communal_violence
+  - election_model_code_period
+  - sub_judice_court_matter
+  - sexual_offence_case
+  - minor_involved
+  - health_scare
+  - terror_incident
+route_to_review_for: all     # precomputed + reviewed summaries only
+min_sources_for_bar: 4
+min_sources_for_blindspot: 6

@@ -1,0 +1,58 @@
+# Local development stack. Host ports avoid clashing with a locally installed
+# Postgres (5432) and Redis (6379).
+name: lens
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lens
+      POSTGRES_PASSWORD: lens   # dev only
+      POSTGRES_DB: lens
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lens -d lens"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.0
+    ports: ["6333:6333", "6334:6334"]
+    volumes: [qdrantdata:/qdrant/storage]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6380:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Ingestion worker (Phase 1A). Start with `make ingest-up`; it keeps running across restarts.
+  worker:
+    profiles: ["ingest"]
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    command: >-
+      sh -c "alembic upgrade head && python -m lens.ingest.registry && arq lens.worker.WorkerSettings"
+    environment:
+      DATABASE_URL: postgresql+psycopg://lens:lens@postgres:5432/lens
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      APP_ENV: dev
+      LOG_LEVEL: INFO
+      LANGSMITH_TRACING: "false"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+
+  # api and web services are added when they are deployed (Phase 10).
+
+volumes:
+  pgdata:
+  qdrantdata:

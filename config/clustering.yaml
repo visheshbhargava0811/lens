@@ -1,0 +1,7 @@
+# Starting values from docs/04. Tune on the clustering eval set.
+window_hours: 72
+weights: { cos: 0.6, entity_jaccard: 0.2, time: 0.1, event_type: 0.1 }
+thresholds: { high: 0.82, low: 0.68 }
+story_centroid_update: running_mean
+lifecycle: { stable_after_hours: 24, archive_after_days: 7 }
+min_sources_for_bar: 4
