@@ -78,9 +78,7 @@ def test_etag_is_sent_and_304_stores_nothing(db: Session) -> None:
         (404, "", True),  # RFC 9309: no robots.txt means no restrictions
     ],
 )
-def test_robots_is_checked_at_fetch_time(
-    db: Session, robots_status: int, robots_body: str, allowed: bool
-) -> None:
+def test_robots_is_checked_at_fetch_time(db: Session, robots_status: int, robots_body: str, allowed: bool) -> None:
     fetched: list[str] = []
 
     def handler(req: httpx.Request) -> httpx.Response:

@@ -34,9 +34,7 @@ def evaluate(split: str = "dev") -> dict[str, object]:
     return {
         "n": len(rows),
         "accuracy": round(correct / len(rows), 4),
-        "per_label": {
-            k: {"correct": c, "n": n, "accuracy": round(c / n, 4)} for k, (c, n) in sorted(per.items())
-        },
+        "per_label": {k: {"correct": c, "n": n, "accuracy": round(c / n, 4)} for k, (c, n) in sorted(per.items())},
         "confusion": {f"{a}->{b}": n for (a, b), n in confusion.most_common()},
         "errors": errors,
     }

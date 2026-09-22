@@ -52,9 +52,7 @@ def test_smoke_trace_reaches_langsmith() -> None:
         try:
             # In langsmith 0.13 `client.runs` is async even on the sync Client.
             run = asyncio.run(
-                client.runs.retrieve(
-                    str(run_id), project_id=project_id, selects=["NAME", "OUTPUTS", "STATUS"]
-                )
+                client.runs.retrieve(str(run_id), project_id=project_id, selects=["NAME", "OUTPUTS", "STATUS"])
             )
             break
         except Exception:

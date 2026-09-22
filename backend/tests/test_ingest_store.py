@@ -54,16 +54,11 @@ def test_rerunning_ingestion_is_idempotent(db: Session) -> None:
     ]
     first = store_items(db, src, items, NOW)
     # Same items again, plus tracking-parameter and trailing-slash variants of the same URLs.
-    variants = [
-        _item(f"https://idem.example/story-{i}/", f"Headline number {i} about the budget") for i in range(5)
-    ]
+    variants = [_item(f"https://idem.example/story-{i}/", f"Headline number {i} about the budget") for i in range(5)]
     second = store_items(db, src, items + variants, NOW)
     assert first.inserted == 5
     assert second.inserted == 0 and second.duplicates == 10
-    assert (
-        db.execute(select(func.count()).select_from(Article).where(Article.source_id == src.id)).scalar_one()
-        == 5
-    )
+    assert db.execute(select(func.count()).select_from(Article).where(Article.source_id == src.id)).scalar_one() == 5
 
 
 @pytest.mark.parametrize("mode", ["snippet_only", "link_only"])
@@ -95,9 +90,7 @@ def test_no_full_text_stored_for_snippet_or_link_only(db: Session, mode: str) ->
 
 def test_headline_only_when_feed_has_no_snippet(db: Session) -> None:
     src = _source(db, "sitemap-like")
-    store_items(
-        db, src, [_item("https://sitemap-like.example/a", "Rain lashes Mumbai again", snippet=None)], NOW
-    )
+    store_items(db, src, [_item("https://sitemap-like.example/a", "Rain lashes Mumbai again", snippet=None)], NOW)
     art = db.execute(select(Article).where(Article.source_id == src.id)).scalar_one()
     assert art.analysis_depth == "headline_only"
 
@@ -145,9 +138,7 @@ KNOWN_COPIES = [
 def test_known_wire_copies_are_linked_to_the_earliest(db: Session, first: str, second: str) -> None:
     a, b = _source(db, "outlet-a"), _source(db, "outlet-b")
     store_items(db, a, [_item("https://outlet-a.example/1", first, snippet=None, minutes_ago=60)], NOW)
-    stats = store_items(
-        db, b, [_item("https://outlet-b.example/1", second, snippet=None, minutes_ago=30)], NOW
-    )
+    stats = store_items(db, b, [_item("https://outlet-b.example/1", second, snippet=None, minutes_ago=30)], NOW)
     assert stats.syndicated == 1
     orig = db.execute(select(Article).where(Article.source_id == a.id)).scalar_one()
     copy = db.execute(select(Article).where(Article.source_id == b.id)).scalar_one()
@@ -189,9 +180,7 @@ UNRELATED = [
 def test_similar_but_different_stories_are_not_linked(db: Session, first: str, second: str) -> None:
     a, b = _source(db, "outlet-c"), _source(db, "outlet-d")
     store_items(db, a, [_item("https://outlet-c.example/1", first, snippet=None, minutes_ago=60)], NOW)
-    stats = store_items(
-        db, b, [_item("https://outlet-d.example/1", second, snippet=None, minutes_ago=30)], NOW
-    )
+    stats = store_items(db, b, [_item("https://outlet-d.example/1", second, snippet=None, minutes_ago=30)], NOW)
     assert stats.syndicated == 0
 
 

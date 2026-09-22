@@ -22,9 +22,7 @@ def main() -> int:
     with Session(get_engine()) as session, make_client() as client:
         states = (
             session.execute(
-                select(SourceFetchState)
-                .join(Source, Source.id == SourceFetchState.source_id)
-                .where(Source.active)
+                select(SourceFetchState).join(Source, Source.id == SourceFetchState.source_id).where(Source.active)
             )
             .scalars()
             .all()

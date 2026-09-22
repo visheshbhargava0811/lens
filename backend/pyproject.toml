@@ -16,6 +16,7 @@ dependencies = [
     "langgraph>=1.2.12",
     "langsmith>=0.13.0",
     "lingua-language-detector>=2.2.0",
+    "numpy>=2.5.3",
     "protego>=0.7.0",
     "psycopg[binary]>=3.3.6",
     "pydantic>=2.13.5",
@@ -23,9 +24,16 @@ dependencies = [
     "pyyaml>=6.0.3",
     "qdrant-client>=1.19.1",
     "redis>=5.3.1",
+    "scikit-learn>=1.9.1",
     "sqlalchemy[asyncio]>=2.0.54",
     "structlog>=26.1.0",
     "uvicorn[standard]>=0.53.0",
+]
+
+[project.optional-dependencies]
+ml = [
+    "flagembedding>=1.4.2",
+    "torch>=2.14.0",
 ]
 
 [build-system]
@@ -43,7 +51,7 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py312"
 extend-exclude = ["alembic/versions"]
 
@@ -68,7 +76,7 @@ module = ["lens.schemas.*", "lens.guardrails.*", "lens.retrieval.*"]
 strict = true
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "feedparser.*"]
+module = ["arq.*", "feedparser.*", "sklearn.*", "FlagEmbedding.*", "torch.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

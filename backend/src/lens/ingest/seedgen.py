@@ -29,9 +29,7 @@ def build() -> list[dict[str, Any]]:
     selection = yaml.safe_load((data / "feed_selection.yaml").read_text(encoding="utf-8"))
     candidates = yaml.safe_load((data / "candidates.yaml").read_text(encoding="utf-8"))
     langs = {"english": "en", "hindi": "hi"}
-    cand = {
-        c["slug"]: (c, c.get("language") or langs.get(group)) for group, cs in candidates.items() for c in cs
-    }
+    cand = {c["slug"]: (c, c.get("language") or langs.get(group)) for group, cs in candidates.items() for c in cs}
 
     out: list[dict[str, Any]] = []
     for slug, (c, lang) in cand.items():
@@ -62,9 +60,7 @@ def build() -> list[dict[str, Any]]:
         homepage = c["homepage"]
         robots_status = d.get("robots_status")
         # Conservative: a robots.txt we could not read (any 4xx/5xx, incl. 403 blocks) is not permission.
-        robots_ok = (
-            bool(d.get("homepage_robots_allowed")) and robots_status is not None and robots_status < 400
-        )
+        robots_ok = bool(d.get("homepage_robots_allowed")) and robots_status is not None and robots_status < 400
         out.append(
             {
                 "slug": slug,

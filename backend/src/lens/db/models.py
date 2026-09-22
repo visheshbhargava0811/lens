@@ -128,9 +128,7 @@ class Source(Base):
     country: Mapped[str] = mapped_column(Text, server_default="IN")
     region: Mapped[str | None] = mapped_column(Text)
     feed_urls: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
-    license_mode: Mapped[LicenseMode] = mapped_column(
-        license_mode_t, server_default=LicenseMode.snippet_only.value
-    )
+    license_mode: Mapped[LicenseMode] = mapped_column(license_mode_t, server_default=LicenseMode.snippet_only.value)
     image_policy: Mapped[ImagePolicy] = mapped_column(image_policy_t, server_default=ImagePolicy.none.value)
     robots_ok: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
     is_wire: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))

@@ -41,9 +41,7 @@ def test_real_seed_file_validates() -> None:
 
 
 def test_ownership_without_evidence_is_rejected() -> None:
-    bad = _with(
-        ownership=[{"owner_name": "Some Group", "retrieved_at": "2026-09-21T00:00:00Z", "confidence": "low"}]
-    )
+    bad = _with(ownership=[{"owner_name": "Some Group", "retrieved_at": "2026-09-21T00:00:00Z", "confidence": "low"}])
     with pytest.raises(ValidationError, match="evidence_url"):
         SeedSource.model_validate(bad)
 

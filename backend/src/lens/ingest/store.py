@@ -113,9 +113,7 @@ def store_items(session: Session, source: Source, items: list[RawItem], now: dat
     return stats
 
 
-def mark_near_duplicates(
-    session: Session, article_ids: list[uuid.UUID], now: datetime, cfg: dict[str, Any]
-) -> int:
+def mark_near_duplicates(session: Session, article_ids: list[uuid.UUID], now: datetime, cfg: dict[str, Any]) -> int:
     """Flag copies of the same text across different sources (docs/04: SimHash, last 72 h).
 
     The earliest published copy is the representative; later copies point to it, so stats

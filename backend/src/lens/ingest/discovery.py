@@ -183,9 +183,7 @@ def _check_feed(client: httpx.Client, fc: FeedCheck, *, follow_index: bool = Tru
         fc.error = "not a feed or news sitemap"
 
 
-def discover_source(
-    client: httpx.Client, slug: str, name: str, language: str, homepage: str
-) -> SourceDiscovery:
+def discover_source(client: httpx.Client, slug: str, name: str, language: str, homepage: str) -> SourceDiscovery:
     token = get_settings().ingest_robots_token
     sd = SourceDiscovery(
         slug=slug,
@@ -328,8 +326,7 @@ def _report(results: list[SourceDiscovery]) -> str:
             lines.append(f"Terms link found: {sd.terms_url}")
         for f in sd.usable_feeds:
             lines.append(
-                f"- `{f.url}` ({f.kind}, {f.items} items, "
-                f"summaries: {'yes' if f.has_summaries else 'no'}) {f.label}"
+                f"- `{f.url}` ({f.kind}, {f.items} items, summaries: {'yes' if f.has_summaries else 'no'}) {f.label}"
             )
         if not sd.usable_feeds:
             lines.append("- none")
@@ -359,9 +356,7 @@ def main(argv: list[str]) -> int:
             results.append(sd)
             existing[sd.slug] = asdict(sd)
     out_json.write_text(json.dumps(existing, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    all_results = [
-        SourceDiscovery(**{**v, "feeds": [FeedCheck(**f) for f in v["feeds"]]}) for v in existing.values()
-    ]
+    all_results = [SourceDiscovery(**{**v, "feeds": [FeedCheck(**f) for f in v["feeds"]]}) for v in existing.values()]
     (REPO_ROOT / "reports/feed_discovery.md").write_text(_report(all_results) + "\n", encoding="utf-8")
     return 0
 

@@ -3,9 +3,11 @@ SHELL := /bin/bash
 COMPOSE := docker compose -f infra/docker-compose.yml
 # The repo root holds a stray uv project; make sure backend commands use backend/.venv.
 UV := cd backend && env -u VIRTUAL_ENV uv run
+# Embedding and clustering need the optional ML stack (PyTorch, FlagEmbedding).
+UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -46,6 +48,19 @@ ingest-health:
 
 reprocess:
 	$(UV) python -m lens.ingest.reprocess
+
+# Phase 2: chunk + embed stored articles into Qdrant, then the clustering eval loop.
+index:
+	$(UVML) python -m lens.pipeline.index
+
+cluster-label-export:
+	$(UVML) python -m lens.evals.clustering_labeling export $(ARGS)
+
+cluster-label-import:
+	$(UV) python -m lens.evals.clustering_labeling import ../$(FILE) --annotator $(ANNOTATOR) --name $(NAME)
+
+eval-clustering:
+	$(UVML) python -m lens.evals.clustering_run --name $(or $(NAME),baseline) $(if $(GOLD),--gold $(GOLD),)
 
 backend-dev:
 	$(UV) uvicorn lens.api.app:app --reload --port 8000

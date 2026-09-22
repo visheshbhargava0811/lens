@@ -139,9 +139,7 @@ def upsert_sources(session: Session, sources: list[SeedSource]) -> dict[str, int
             "evidence": s.evidence.model_dump(mode="json"),
         }
         stmt = insert(Source).values(**values)
-        stmt = stmt.on_conflict_do_update(
-            index_elements=[Source.slug], set_={k: stmt.excluded[k] for k in values}
-        )
+        stmt = stmt.on_conflict_do_update(index_elements=[Source.slug], set_={k: stmt.excluded[k] for k in values})
         source_id = session.execute(stmt.returning(Source.id)).scalar_one()
         counts["sources"] += 1
 
