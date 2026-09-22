@@ -44,6 +44,5 @@ _Last updated: 2026-09-21_
 
 ## Open items needing the owner
 
-- A person to check the language-ID labels in `data/evals/langid/`.
 - After the Phase 1A acceptance run: export and label 100+ clustering stories (including 30 cross-lingual, 20 hard-negative, and 10 developing stories), then run the Phase 2 baseline.
 - The JS budget is over target (about 163 KB gzipped vs 150).

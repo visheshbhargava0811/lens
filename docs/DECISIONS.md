@@ -100,7 +100,8 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - **Results:**
   - Held-out accuracy 0.97 (`reports/langid_baseline.md`).
   - `hi-Latn` is 0.80. Revisit it in Phase 6 with the `query_understanding` model.
-  - The labels were written by Claude and still need a person to check them.
+  - The labels were written by Claude and checked by the owner (native Hindi speaker) on 2026-09-22: all 160 non-English labels confirmed (`data/evals/langid/review_v1.csv`).
+  - Code-mixed headlines are labeled by their main language. 53 of 130 Hindi/Marathi rows contain English words ("Lucknow News …", "JSSC-CGL"); all 53 are classified correctly.
 
 ## ADR-0016: Phase 1A soak run shortened to 24 hours (2026-09-22) — owner decision
 

@@ -219,6 +219,8 @@
     "goHome": "Go to Home"
   },
   "states": {
-    "loading": "Loading"
+    "loading": "Loading",
+    "comingSoon": "Coming soon",
+    "comingSoonBody": "This page is still being built. Until then, the top stories are on the home page."
   }
 }
