@@ -15,7 +15,7 @@ export function MethodologyLink({
   return (
     <Link
       href={href}
-      className={cn("relative z-10 text-xs font-medium text-link underline-offset-2 hover:underline", className)}
+      className={cn("relative z-10 text-xs font-medium text-ink underline decoration-ink/40 hover:decoration-ink", className)}
     >
       {children}
     </Link>

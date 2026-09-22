@@ -1,3 +1,4 @@
+import { EyeOff } from "lucide-react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -23,25 +24,30 @@ export default async function BlindspotPage({
   ] as const;
 
   return (
-    <div className="space-y-6">
-      <header className="max-w-[68ch]">
-        <h1 className="text-3xl">{t("heading")}</h1>
-        <p className="mt-2 text-ink-muted">{t("intro")}</p>
-        <MethodologyLink href={data.methodology_url} className="mt-2 inline-block text-sm">
-          {t("methodology")}
-        </MethodologyLink>
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 border-b border-ink/15 pb-8 md:flex-row md:items-center md:gap-8">
+        <h1 className="flex shrink-0 items-center gap-3 text-4xl md:text-5xl">
+          <EyeOff aria-hidden className="size-10 md:size-12" strokeWidth={2.5} />
+          {t("heading")}
+        </h1>
+        <div className="max-w-[56ch] md:border-s md:border-ink/20 md:ps-8">
+          <p className="text-lg">{t("intro")}</p>
+          <MethodologyLink href={data.methodology_url} className="mt-2 inline-block text-sm">
+            {t("methodology")}
+          </MethodologyLink>
+        </div>
       </header>
 
       <nav aria-label={t("tabs")}>
-        <ul className="flex gap-1 border-b">
+        <ul className="inline-flex gap-1 rounded-control bg-surface p-1">
           {tabs.map((tab) => (
             <li key={tab.key}>
               <Link
                 href={tab.href}
                 aria-current={type === tab.key ? "page" : undefined}
                 className={cn(
-                  "-mb-px inline-flex h-10 items-center border-b-2 px-3 text-sm font-medium",
-                  type === tab.key ? "border-ink text-ink" : "border-transparent text-ink-muted hover:text-ink",
+                  "inline-flex h-9 items-center rounded-[2px] px-4 text-sm font-bold",
+                  type === tab.key ? "bg-card text-ink" : "text-ink-muted hover:text-ink",
                 )}
               >
                 {tab.label}
@@ -54,9 +60,11 @@ export default async function BlindspotPage({
       {data.items.length === 0 ? (
         <EmptyState>{t("empty")}</EmptyState>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
           {data.items.map((s) => (
-            <StoryCard key={s.id} story={s} strongBar />
+            <div key={s.id} className="border-t border-ink/15 py-6">
+              <StoryCard story={s} strongBar />
+            </div>
           ))}
         </div>
       )}

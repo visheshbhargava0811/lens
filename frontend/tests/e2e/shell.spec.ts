@@ -15,8 +15,8 @@ for (const locale of ["en", "hi"] as const) {
       );
 
       const body = page.locator("body");
-      await expect(body).toHaveCSS("background-color", "rgb(255, 255, 255)");
-      await expect(body).toHaveCSS("color", "rgb(22, 24, 29)");
+      await expect(body).toHaveCSS("background-color", "rgb(236, 237, 230)");
+      await expect(body).toHaveCSS("color", "rgb(29, 30, 27)");
       const family = await body.evaluate((el) => getComputedStyle(el).fontFamily);
       expect(family).toMatch(/Noto Sans/);
       expect(family).toMatch(/Noto Sans Devanagari/);

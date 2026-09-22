@@ -60,12 +60,12 @@ export function SourceList({ articles, methodologyUrl }: { articles: ArticleRowD
 
   const chip = (active: boolean) =>
     cn(
-      "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-chip px-3 text-sm font-medium",
+      "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-chip px-3 text-sm font-bold",
       active ? "bg-ink text-paper" : "bg-surface text-ink hover:bg-line",
     );
 
   return (
-    <section aria-labelledby="sources-heading" className="scroll-mt-32">
+    <section aria-labelledby="sources-heading" className="scroll-mt-40 border-t-[3px] border-ink pt-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="sources-heading" className="text-2xl">
           {t("sources.title")}
@@ -109,7 +109,7 @@ export function SourceList({ articles, methodologyUrl }: { articles: ArticleRowD
         {t("sources.count", { count: visible.length })}
       </p>
       {visible.length === 0 ? (
-        <p className="mt-2 rounded-control bg-surface px-3 py-4 text-sm">{t("sources.empty")}</p>
+        <p className="mt-2 rounded-card bg-surface px-4 py-4 text-sm">{t("sources.empty")}</p>
       ) : (
         <ul className="mt-1">
           {visible.map((a) => (

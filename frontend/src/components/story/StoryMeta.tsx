@@ -4,7 +4,15 @@ import type { StoryCard } from "@/lib/api/types";
 import { languageName, sortedLanguages } from "@/lib/format";
 
 /** Source count, updated time, language mix. Separate labeled elements, not a dotted string. */
-export function StoryMeta({ story, maxLanguages = 3 }: { story: StoryCard; maxLanguages?: number }) {
+export function StoryMeta({
+  story,
+  maxLanguages = 3,
+  showStatus = false,
+}: {
+  story: StoryCard;
+  maxLanguages?: number;
+  showStatus?: boolean;
+}) {
   const t = useTranslations();
   const format = useFormatter();
   const now = useNow();
@@ -14,12 +22,15 @@ export function StoryMeta({ story, maxLanguages = 3 }: { story: StoryCard; maxLa
   const rest = langs.length - shown.length;
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-muted">
-      <span className="font-medium text-ink">{t("coverage.sources", { count: story.counts.sources })}</span>
+      <span className="font-bold text-ink tabular-nums">{t("coverage.sources", { count: story.counts.sources })}</span>
+      {showStatus && story.status === "developing" && (
+        <span className="font-bold text-ink">{t("status.developing")}</span>
+      )}
       <time dateTime={story.updated_at}>
         {t("story.updated", { time: format.relativeTime(new Date(story.updated_at), now) })}
       </time>
       {maxLanguages > 0 && (
-        <span className="flex flex-wrap gap-x-2">
+        <span className="flex flex-wrap gap-x-2 tabular-nums">
           <span className="sr-only">{t("story.languages")}</span>
           {shown.map(([code, count]) => (
             <span key={code}>{t("story.languageCount", { language: languageName(code, locale), count })}</span>

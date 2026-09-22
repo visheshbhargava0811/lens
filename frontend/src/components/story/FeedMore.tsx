@@ -44,20 +44,22 @@ export function FeedMore({ initialCursor, topic }: { initialCursor: string | nul
   return (
     <>
       {items.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((s) => (
-            <StoryCard key={s.id} story={s} />
+            <div key={s.id} className="border-b border-ink/15 py-5">
+              <StoryCard story={s} />
+            </div>
           ))}
         </div>
       )}
-      <div ref={sentinel} className="mt-6 flex flex-col items-center gap-2 text-sm" aria-live="polite">
+      <div ref={sentinel} className="mt-8 flex flex-col items-center gap-2 text-sm" aria-live="polite">
         {failed && <p role="alert">{t("loadMoreError")}</p>}
         {cursor ? (
           <button
             type="button"
             onClick={load}
             disabled={pending}
-            className="h-10 rounded-control border px-4 font-medium hover:bg-surface disabled:opacity-60"
+            className="h-11 rounded-control border border-ink px-6 font-bold hover:bg-ink hover:text-paper disabled:opacity-60"
           >
             {pending ? t("loadingMore") : t("loadMore")}
           </button>

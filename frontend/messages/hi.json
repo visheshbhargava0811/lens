@@ -15,7 +15,8 @@
     "signIn": "साइन इन",
     "topics": "विषय",
     "language": "भाषा",
-    "skipToContent": "मुख्य सामग्री पर जाएँ"
+    "skipToContent": "मुख्य सामग्री पर जाएँ",
+    "today": "आज"
   },
   "topics": {
     "top": "प्रमुख",
@@ -38,8 +39,9 @@
     "loadMoreError": "और ख़बरें लोड नहीं हो सकीं। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
     "end": "आपने सभी ख़बरें देख लीं।",
     "railBlindspots": "ब्लाइंडस्पॉट",
-    "railTopics": "फ़ॉलो करने के लिए विषय",
-    "seeAllBlindspots": "सभी ब्लाइंडस्पॉट देखें"
+    "railTopics": "विषय देखें",
+    "seeAllBlindspots": "सभी ब्लाइंडस्पॉट देखें",
+    "railBlindspotsIntro": "वे ख़बरें जिन्हें ज़्यादातर माध्यमों के एक ही समूह ने कवर किया, रुख़ या भाषा के अनुसार।"
   },
   "topic": {
     "heading": "{topic} की ख़बरें",
@@ -58,6 +60,12 @@
       "balanced": "संतुलित",
       "supportive": "सरकार के समर्थक",
       "unclassified": "अवर्गीकृत"
+    },
+    "short": {
+      "critical": "आलोचक",
+      "balanced": "संतुलित",
+      "supportive": "समर्थक",
+      "unclassified": "अवर्गीकृत"
     }
   },
   "coverage": {
@@ -69,7 +77,8 @@
     "limited": "सीमित कवरेज: अभी सिर्फ़ {count, plural, one {# स्रोत} other {# स्रोत}}। कवरेज का बँटवारा दिखाने के लिए कम से कम {min} स्रोत चाहिए।",
     "confidence": "भरोसा: {level}",
     "howCalculated": "यह कैसे गिना जाता है",
-    "legend": "कवरेज का रुख़"
+    "legend": "कवरेज का रुख़",
+    "dominant": "{pct}% {phrase}"
   },
   "confidence": {
     "low": "कम",
@@ -92,7 +101,12 @@
     "factCheckRating": "रेटिंग: {rating}",
     "factCheckBy": "{checker} ने जाँचा",
     "readFactCheck": "फ़ैक्ट-चेक पढ़ें",
-    "noFactChecks": "इस ख़बर से अभी कोई फ़ैक्ट-चेक नहीं मिला।"
+    "noFactChecks": "इस ख़बर से अभी कोई फ़ैक्ट-चेक नहीं मिला।",
+    "coverageDetails": "कवरेज का ब्योरा",
+    "totalSources": "कुल स्रोत",
+    "lastUpdated": "पिछला अपडेट",
+    "status": "स्थिति",
+    "distribution": "रुख़ का बँटवारा"
   },
   "flag": {
     "stance": "ज़्यादातर कवरेज {phrase} माध्यमों से",

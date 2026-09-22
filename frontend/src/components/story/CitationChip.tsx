@@ -22,7 +22,7 @@ export function CitationChip({ citation, article }: { citation: Citation; articl
         aria-label={t("label", { n: citation.n, source: citation.source_name })}
         data-testid="citation-chip"
         data-article-id={citation.article_id}
-        className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-[5px] bg-surface px-1 align-[0.15em] text-[11px] font-medium tabular-nums text-ink-muted hover:bg-line hover:text-ink data-[popup-open]:bg-ink data-[popup-open]:text-paper"
+        className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-[2px] bg-surface px-1 align-[0.15em] text-[11px] font-bold tabular-nums text-ink hover:bg-ink hover:text-paper data-[popup-open]:bg-ink data-[popup-open]:text-paper"
       >
         {citation.n}
       </PopoverTrigger>
@@ -40,7 +40,7 @@ export function CitationChip({ citation, article }: { citation: Citation; articl
           <button
             type="button"
             onClick={() => showArticle(citation.article_id)}
-            className="text-sm font-medium text-link underline-offset-2 hover:underline"
+            className="text-sm font-bold underline decoration-ink/40 hover:decoration-ink"
           >
             {t("showInList")}
           </button>
@@ -49,7 +49,7 @@ export function CitationChip({ citation, article }: { citation: Citation; articl
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-link underline-offset-2 hover:underline"
+              className="text-sm font-bold underline decoration-ink/40 hover:decoration-ink"
             >
               {t("readAt", { source: citation.source_name })}
               <span className="sr-only"> {tSources("newTab")}</span>

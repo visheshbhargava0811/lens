@@ -43,18 +43,18 @@ export function SummaryBlock({
           {t("title")}
         </h2>
         {summary?.verified && (
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-stance-supportive" data-testid="verified">
-            <ShieldCheck aria-hidden className="size-4" />
+          <span className="inline-flex items-center gap-1 text-sm font-bold text-ink" data-testid="verified">
+            <ShieldCheck aria-hidden className="size-4" strokeWidth={2.25} />
             {t("verified")}
           </span>
         )}
       </div>
       {summary && summary.sentences.length > 0 ? (
-        <div className="mt-3 max-w-[68ch] space-y-2 text-lg">
-          <CitedText sentences={summary.sentences} lang={summary.lang} articles={articles} />
-        </div>
+        <ul className="mt-3 max-w-[68ch] list-disc space-y-2.5 ps-5 text-lg marker:text-ink-muted">
+          <CitedText sentences={summary.sentences} lang={summary.lang} articles={articles} as="li" />
+        </ul>
       ) : (
-        <p className="mt-3 rounded-control bg-surface px-3 py-3 text-ink-muted">{t("unavailable")}</p>
+        <p className="mt-3 rounded-card bg-surface px-4 py-3 text-ink-muted">{t("unavailable")}</p>
       )}
     </section>
   );

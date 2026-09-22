@@ -27,15 +27,15 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
       data-testid="article-row"
       data-highlighted={highlighted || undefined}
       className={cn(
-        "scroll-mt-32 border-b py-4 outline-none transition-colors last:border-b-0",
-        highlighted && "rounded-control bg-flag-bg/60 px-3",
+        "scroll-mt-40 border-b border-ink/15 py-5 outline-none transition-colors last:border-b-0",
+        highlighted && "rounded-card bg-flag-bg/70 px-4",
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <span className="font-medium" lang={article.source.language}>
+        <span className="font-extrabold" lang={article.source.language}>
           {article.source.name}
         </span>
-        <span className="rounded-chip bg-surface px-2 py-0.5 text-xs text-ink-muted">
+        <span className="rounded-chip bg-surface px-1.5 py-0.5 text-xs font-medium text-ink-muted">
           {languageName(article.source.language, locale)}
         </span>
         <time dateTime={article.published_at} className="text-xs text-ink-muted">
@@ -43,16 +43,16 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
         </time>
       </div>
 
-      <p lang={article.headline_lang} className="mt-1.5 text-lg font-medium" style={{ lineHeight: "var(--leading-headline)" }}>
+      <p lang={article.headline_lang} className="mt-2 text-lg font-bold" style={{ lineHeight: "var(--leading-headline)" }}>
         {article.headline}
       </p>
 
-      <ul className="mt-2 flex flex-wrap gap-2 text-xs">
-        <li className="inline-flex items-center gap-1.5 rounded-chip border px-2 py-0.5">
-          <span aria-hidden className={cn("size-2.5 rounded-full", stanceFill[bucket])} />
+      <ul className="mt-2.5 flex flex-wrap gap-1.5 text-xs font-medium">
+        <li className="inline-flex items-center gap-1.5 rounded-chip bg-surface px-2 py-1">
+          <span aria-hidden className={cn("size-3 rounded-[1px] ring-1 ring-ink/20", stanceFill[bucket])} />
           {t("sources.stanceConfidence", { label: stanceLabel, confidence })}
         </li>
-        <li className="rounded-chip border px-2 py-0.5">
+        <li className="rounded-chip bg-surface px-2 py-1">
           {article.source_factuality ? (
             <a
               href={article.source_factuality.method_url}
@@ -78,7 +78,7 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
             t("factuality.chip", { value: t("factuality.notRated") })
           )}
         </li>
-        <li className="rounded-chip border px-2 py-0.5">
+        <li className="rounded-chip bg-surface px-2 py-1">
           {article.source_ownership ? (
             <a
               href={article.source_ownership.evidence_url}
@@ -114,7 +114,7 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-link underline-offset-2 hover:underline"
+          className="font-bold underline decoration-ink/40 hover:decoration-ink"
         >
           {t("sources.readAt", { source: article.source.name })}
           <span className="sr-only"> {t("sources.newTab")}</span>

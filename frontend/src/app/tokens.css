@@ -1,64 +1,90 @@
 /*
  * Lens design tokens (docs/10_UI_SPEC.md). Mapped into Tailwind in globals.css.
+ * Tone: newsprint-grey ground, near-black ink, flat tinted panels, squared corners.
  * Stance colors are deliberately not red, green, saffron or sky blue (party colors).
  * Every stance segment also gets a pattern, so color is never the only signal.
  */
 :root {
-  --paper: #ffffff;
-  --surface: #f5f6f8;
-  --line: #e3e5ea;
-  --ink: #16181d;
-  --ink-muted: #5b6270;
-  --link: #1d4ed8;
+  --paper: #ecede6;
+  --card: #f8f8f4;
+  --surface: #e1e2da;
+  --line: #cbccc2;
+  --ink: #1d1e1b;
+  --ink-muted: #54564e;
+  --link: #1d1e1b;
 
-  --stance-critical: #6a4c9c;
-  --stance-balanced: #8a919e;
-  --stance-supportive: #0e7c86;
-  --stance-unclassified: #d5d8de;
+  /* Dark utility strip above the header */
+  --strip: #1d1e1b;
+  --strip-ink: #d8d9d0;
 
-  --flag-bg: #fff4d6;
-  --flag-ink: #6b4a00;
+  /* Stance: violet / paper-light / teal / grey. Text inside a segment uses the -ink pair. */
+  --stance-critical: #4a3a78;
+  --stance-critical-ink: #ffffff;
+  --stance-balanced: #fbfbf8;
+  --stance-balanced-ink: #1d1e1b;
+  --stance-supportive: #0f5c62;
+  --stance-supportive-ink: #ffffff;
+  --stance-unclassified: #c3c4ba;
+  --stance-unclassified-ink: #1d1e1b;
 
-  --factuality-high: #1f2937;
-  --factuality-mixed: #6b7280;
-  --factuality-low: #d1d5db;
+  --flag-bg: #e3d9bd;
+  --flag-ink: #4a3c12;
 
-  /* Radius scale: chips and bar, inputs and buttons, cards, modals */
-  --radius-chip: 999px;
-  --radius-control: 8px;
-  --radius-card: 12px;
-  --radius-modal: 16px;
+  --factuality-high: #1d1e1b;
+  --factuality-mixed: #6e7066;
+  --factuality-low: #c3c4ba;
 
-  --shadow-float: 0 4px 16px rgb(22 24 29 / 0.08), 0 1px 3px rgb(22 24 29 / 0.06);
+  --radius-chip: 3px;
+  --radius-control: 3px;
+  --radius-card: 4px;
+  --radius-modal: 6px;
+
+  --shadow-float: 0 6px 20px rgb(29 30 27 / 0.14), 0 1px 3px rgb(29 30 27 / 0.1);
 
   --leading-body: 1.5;
   --leading-headline: 1.25;
+  --tracking-headline: -0.015em;
 }
 
-/* Indic scripts get +0.1 line height for taller glyphs and matras. */
+/* Indic scripts get taller lines for matras, and no negative tracking. */
 :lang(hi), :lang(mr), :lang(bn), :lang(ta), :lang(te), :lang(gu),
 :lang(kn), :lang(ml), :lang(pa), :lang(or) {
   --leading-body: 1.6;
   --leading-headline: 1.35;
+  --tracking-headline: 0;
 }
 
-/* Dark mode mirrors the light tokens. Values are provisional until contrast-checked in Phase 1B. */
+/* Latin text inside a Hindi page resets to Latin metrics (the variables inherit from <html lang>). */
+:lang(en) {
+  --leading-body: 1.5;
+  --leading-headline: 1.25;
+  --tracking-headline: -0.015em;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --paper: #111317;
-    --surface: #1b1e24;
-    --line: #2c3038;
-    --ink: #eceef2;
-    --ink-muted: #a3aab6;
-    --link: #8fb0ff;
-    --stance-critical: #a58bd3;
-    --stance-balanced: #9aa1ad;
-    --stance-supportive: #3fb3bd;
-    --stance-unclassified: #4a4f59;
-    --flag-bg: #3a2f12;
-    --flag-ink: #f5d98a;
-    --factuality-high: #e5e7eb;
-    --factuality-mixed: #9ca3af;
-    --factuality-low: #4b5563;
+    --paper: #161714;
+    --card: #1d1e1a;
+    --surface: #23241f;
+    --line: #373930;
+    --ink: #e9eae2;
+    --ink-muted: #a7a99e;
+    --link: #e9eae2;
+    --strip: #0c0d0b;
+    --strip-ink: #c9cac0;
+    --stance-critical: #6552a3;
+    --stance-critical-ink: #ffffff;
+    --stance-balanced: #dcddd4;
+    --stance-balanced-ink: #161714;
+    --stance-supportive: #1a747a;
+    --stance-supportive-ink: #ffffff;
+    --stance-unclassified: #4b4d44;
+    --stance-unclassified-ink: #e9eae2;
+    --flag-bg: #3b3420;
+    --flag-ink: #eadcae;
+    --factuality-high: #e9eae2;
+    --factuality-mixed: #9c9e93;
+    --factuality-low: #4b4d44;
+    --shadow-float: 0 6px 20px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.4);
   }
 }

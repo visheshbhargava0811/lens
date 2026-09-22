@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T11:55:50+00:00",
+  "title": "Design System: Lens",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Newsprint Paper",
+        "canonical": "#ecede6",
+        "dark": "#161714",
+        "tonalRamp": [
+          "#2b2c20",
+          "#4a4d38",
+          "#696e4f",
+          "#898e66",
+          "#a3a785",
+          "#bbbfa6",
+          "#d6d9ca",
+          "#f4f4f0"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#f8f8f4",
+        "dark": "#1d1e1a",
+        "tonalRamp": [
+          "#2f2f1e",
+          "#515134",
+          "#737349",
+          "#96965f",
+          "#aeae7f",
+          "#c3c3a2",
+          "#dbdbc7",
+          "#f5f5ef"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Tint Panel",
+        "canonical": "#e1e2da",
+        "dark": "#23241f",
+        "tonalRamp": [
+          "#2a2b22",
+          "#484a3a",
+          "#676a53",
+          "#86896c",
+          "#a0a38a",
+          "#b9bca9",
+          "#d5d7cc",
+          "#f3f4f1"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#cbccc2",
+        "dark": "#373930",
+        "tonalRamp": [
+          "#292a23",
+          "#47483c",
+          "#656756",
+          "#83856f",
+          "#9ea08d",
+          "#b8b9ac",
+          "#d4d5cd",
+          "#f3f3f1"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Newsprint Ink",
+        "canonical": "#1d1e1b",
+        "dark": "#e9eae2",
+        "tonalRamp": [
+          "#272824",
+          "#43463f",
+          "#606359",
+          "#7d8174",
+          "#989c91",
+          "#b4b7ae",
+          "#d2d4cf",
+          "#f2f3f2"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#54564e",
+        "dark": "#a7a99e",
+        "tonalRamp": [
+          "#272824",
+          "#44463f",
+          "#61635a",
+          "#7d8074",
+          "#999c91",
+          "#b4b6af",
+          "#d2d3cf",
+          "#f3f3f2"
+        ]
+      },
+      "strip": {
+        "role": "neutral",
+        "displayName": "Night Strip",
+        "canonical": "#1d1e1b",
+        "dark": "#0c0d0b",
+        "tonalRamp": [
+          "#272824",
+          "#43463f",
+          "#606359",
+          "#7d8174",
+          "#989c91",
+          "#b4b7ae",
+          "#d2d4cf",
+          "#f2f3f2"
+        ]
+      },
+      "strip-ink": {
+        "role": "neutral",
+        "displayName": "Night Strip Ink",
+        "canonical": "#d8d9d0",
+        "dark": "#c9cac0",
+        "tonalRamp": [
+          "#292a22",
+          "#48493b",
+          "#666854",
+          "#84876d",
+          "#9fa28b",
+          "#b9bbaa",
+          "#d5d6cc",
+          "#f3f4f1"
+        ]
+      },
+      "stance-critical": {
+        "role": "secondary",
+        "displayName": "Critical Violet",
+        "canonical": "#4a3a78",
+        "dark": "#6552a3",
+        "tonalRamp": [
+          "#201934",
+          "#372b59",
+          "#4e3d7f",
+          "#6650a5",
+          "#8572bb",
+          "#a698cd",
+          "#c9c1e1",
+          "#f0eef7"
+        ]
+      },
+      "stance-critical-ink": {
+        "role": "secondary",
+        "displayName": "Critical Label White",
+        "canonical": "#ffffff",
+        "dark": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "stance-balanced": {
+        "role": "neutral",
+        "displayName": "Balanced Paper",
+        "canonical": "#fbfbf8",
+        "dark": "#dcddd4",
+        "tonalRamp": [
+          "#31311c",
+          "#545430",
+          "#787845",
+          "#9c9c59",
+          "#b3b37a",
+          "#c7c79e",
+          "#dedec5",
+          "#f6f6ef"
+        ]
+      },
+      "stance-balanced-ink": {
+        "role": "neutral",
+        "displayName": "Balanced Label Ink",
+        "canonical": "#1d1e1b",
+        "dark": "#161714",
+        "tonalRamp": [
+          "#272824",
+          "#43463f",
+          "#606359",
+          "#7d8174",
+          "#989c91",
+          "#b4b7ae",
+          "#d2d4cf",
+          "#f2f3f2"
+        ]
+      },
+      "stance-supportive": {
+        "role": "secondary",
+        "displayName": "Supportive Teal",
+        "canonical": "#0f5c62",
+        "dark": "#1a747a",
+        "tonalRamp": [
+          "#0a3e42",
+          "#126c73",
+          "#199aa4",
+          "#20c7d4",
+          "#4ad8e3",
+          "#7ae3eb",
+          "#afeef3",
+          "#e9fafc"
+        ]
+      },
+      "stance-supportive-ink": {
+        "role": "secondary",
+        "displayName": "Supportive Label White",
+        "canonical": "#ffffff",
+        "dark": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "stance-unclassified": {
+        "role": "neutral",
+        "displayName": "Unclassified Grey",
+        "canonical": "#c3c4ba",
+        "dark": "#4b4d44",
+        "tonalRamp": [
+          "#292923",
+          "#46473d",
+          "#646657",
+          "#828471",
+          "#9d9f8e",
+          "#b7b8ad",
+          "#d4d5ce",
+          "#f3f3f1"
+        ]
+      },
+      "stance-unclassified-ink": {
+        "role": "neutral",
+        "displayName": "Unclassified Label Ink",
+        "canonical": "#1d1e1b",
+        "dark": "#e9eae2",
+        "tonalRamp": [
+          "#272824",
+          "#43463f",
+          "#606359",
+          "#7d8174",
+          "#989c91",
+          "#b4b7ae",
+          "#d2d4cf",
+          "#f2f3f2"
+        ]
+      },
+      "flag-bg": {
+        "role": "tertiary",
+        "displayName": "Ochre Flag",
+        "canonical": "#e3d9bd",
+        "dark": "#3b3420",
+        "tonalRamp": [
+          "#362e17",
+          "#5d4f27",
+          "#847038",
+          "#ac9249",
+          "#c1aa6c",
+          "#d1c194",
+          "#e4dabf",
+          "#f7f5ed"
+        ]
+      },
+      "flag-ink": {
+        "role": "tertiary",
+        "displayName": "Ochre Flag Ink",
+        "canonical": "#4a3c12",
+        "dark": "#eadcae",
+        "tonalRamp": [
+          "#3e320f",
+          "#6b561a",
+          "#987b25",
+          "#c5a030",
+          "#d6b657",
+          "#e1ca84",
+          "#eddfb5",
+          "#faf6ea"
+        ]
+      },
+      "factuality-high": {
+        "role": "neutral",
+        "displayName": "Factuality High",
+        "canonical": "#1d1e1b",
+        "dark": "#e9eae2",
+        "tonalRamp": [
+          "#272824",
+          "#43463f",
+          "#606359",
+          "#7d8174",
+          "#989c91",
+          "#b4b7ae",
+          "#d2d4cf",
+          "#f2f3f2"
+        ]
+      },
+      "factuality-mixed": {
+        "role": "neutral",
+        "displayName": "Factuality Mixed",
+        "canonical": "#6e7066",
+        "dark": "#9c9e93",
+        "tonalRamp": [
+          "#272824",
+          "#44453f",
+          "#61635a",
+          "#7e8075",
+          "#999b92",
+          "#b5b6af",
+          "#d2d3cf",
+          "#f3f3f2"
+        ]
+      },
+      "factuality-low": {
+        "role": "neutral",
+        "displayName": "Factuality Low",
+        "canonical": "#c3c4ba",
+        "dark": "#4b4d44",
+        "tonalRamp": [
+          "#292923",
+          "#46473d",
+          "#646657",
+          "#828471",
+          "#9d9f8e",
+          "#b7b8ad",
+          "#d4d5ce",
+          "#f3f3f1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Story page H1; 34px mobile, 48px desktop; max 26ch, balanced wrap."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Home lead story; 32px mobile, 44px desktop."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Section heads under the 3px ink rule; rail titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Standard feed card headlines and panel titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default reading text. Indic scripts use leading 1.6 via --leading-body."
+      },
+      "body-lead": {
+        "displayName": "Body Lead",
+        "purpose": "Lead-story dek and summary bullets, max 62-68ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, buttons, controls."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Confidence lines, methodology links, small-bar summaries."
+      },
+      "segment-label": {
+        "displayName": "Segment Label",
+        "purpose": "Text set inside coverage-bar segments; tabular figures."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 6px 20px rgb(29 30 27 / 0.14), 0 1px 3px rgb(29 30 27 / 0.1)",
+        "purpose": "Transient overlays only: coverage-bar tooltip, popovers. Dark: 0 6px 20px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.4)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Headline underline reveal, 160ms."
+      },
+      {
+        "name": "tooltip",
+        "value": "150ms ease-out",
+        "purpose": "Coverage tooltip opacity and 4px rise."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "All animation and transition durations under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "container",
+        "value": "1280px"
+      }
+    ],
+    "patterns": [
+      {
+        "name": "pattern-hatch",
+        "value": "repeating-linear-gradient(135deg, rgb(255 255 255 / 0.2) 0 1.5px, transparent 1.5px 6px)",
+        "purpose": "Critical segment."
+      },
+      {
+        "name": "pattern-dots",
+        "value": "radial-gradient(rgb(255 255 255 / 0.3) 1px, transparent 1.3px) / 5px 5px",
+        "purpose": "Supportive segment."
+      },
+      {
+        "name": "pattern-light-hatch",
+        "value": "repeating-linear-gradient(135deg, rgb(29 30 27 / 0.16) 0 1px, transparent 1px 5px)",
+        "purpose": "Unclassified segment."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink button for the one primary action (Sign in, Retry).",
+      "html": "<button class=\"ds-btn-primary\">Sign in</button>",
+      "css": ".ds-btn-primary { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; height: 40px; padding: 0 20px; background: var(--ink); color: var(--paper); border: none; border-radius: var(--radius-control); font-size: 0.875rem; font-weight: 700; cursor: pointer; } .ds-btn-primary:hover { background: color-mix(in srgb, var(--ink) 85%, transparent); } .ds-btn-primary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Header search entry: card fill, faint ink stroke.",
+      "html": "<a class=\"ds-search\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><span>Search stories</span></a>",
+      "css": ".ds-search { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; display: flex; align-items: center; gap: 10px; height: 40px; width: 256px; padding: 0 12px; background: var(--card); color: var(--ink-muted); border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); border-radius: var(--radius-control); font-size: 0.875rem; text-decoration: none; } .ds-search svg { color: var(--ink); } .ds-search:hover { border-color: color-mix(in srgb, var(--ink) 60%, transparent); } .ds-search:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Nav",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Header nav with a 3px ink underline on the active section.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Home</a><a href=\"#\">Blindspot</a><a href=\"#\">Methodology</a></nav>",
+      "css": ".ds-nav { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; display: flex; gap: 24px; height: 64px; align-items: stretch; font-size: 0.9375rem; font-weight: 500; } .ds-nav a { display: flex; align-items: center; padding-top: 3px; border-bottom: 3px solid transparent; color: color-mix(in srgb, var(--ink) 75%, transparent); text-decoration: none; } .ds-nav a:hover { color: var(--ink); } .ds-nav a[aria-current=page] { border-bottom-color: var(--ink); color: var(--ink); } .ds-nav a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }"
+    },
+    {
+      "name": "Topic Chips",
+      "kind": "chip",
+      "refersTo": "topic-chip",
+      "description": "Squared topic chips; active chip is ink.",
+      "html": "<div class=\"ds-chips\"><a class=\"ds-chip\" aria-current=\"page\" href=\"#\">Top stories</a><a class=\"ds-chip\" href=\"#\">Politics</a><a class=\"ds-chip\" href=\"#\">Economy</a></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; } .ds-chip { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: var(--radius-chip); background: var(--surface); color: var(--ink); font-size: 0.8125rem; font-weight: 700; text-decoration: none; } .ds-chip:hover { background: var(--line); } .ds-chip[aria-current=page] { background: var(--ink); color: var(--paper); } .ds-chip:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }"
+    },
+    {
+      "name": "Flag Chip",
+      "kind": "chip",
+      "refersTo": "flag-chip",
+      "description": "Blindspot note in ochre; marks a coverage gap, not an error.",
+      "html": "<p class=\"ds-flag\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68\"/><path d=\"M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61\"/><path d=\"M14.12 14.12a3 3 0 1 1-4.24-4.24\"/><line x1=\"2\" x2=\"22\" y1=\"2\" y2=\"22\"/></svg>Mostly covered by sources critical of the government</p>",
+      "css": ".ds-flag { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 2px 8px; border-radius: var(--radius-chip); background: var(--flag-bg); color: var(--flag-ink); font-size: 0.75rem; font-weight: 700; }"
+    },
+    {
+      "name": "Coverage Bar (labelled)",
+      "kind": "custom",
+      "refersTo": "coverage-bar-lg",
+      "description": "Signature stance bar: patterned squared segments, labels inside via per-segment container queries, always followed by confidence and methodology.",
+      "html": "<div class=\"ds-cov\"><div class=\"ds-bar\" role=\"img\" aria-label=\"20 sources: 56% critical, 24% balanced, 15% supportive, 5% unclassified\"><span class=\"ds-seg ds-crit\" style=\"width:56%\"><span class=\"ds-l\"><span class=\"ds-w\">Critical </span>56%</span></span><span class=\"ds-seg ds-bal\" style=\"width:24%\"><span class=\"ds-l\"><span class=\"ds-w\">Balanced </span>24%</span></span><span class=\"ds-seg ds-sup\" style=\"width:15%\"><span class=\"ds-l\"><span class=\"ds-w\">Supportive </span>15%</span></span><span class=\"ds-seg ds-unc\" style=\"width:5%\"><span class=\"ds-l\"><span class=\"ds-w\">Unclassified </span>5%</span></span></div><div class=\"ds-meta\"><span>Confidence: medium</span><a href=\"#\">How we calculate this</a></div></div>",
+      "css": ".ds-cov { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; } .ds-bar { display: flex; gap: 2px; height: 28px; overflow: hidden; border-radius: 2px; background: var(--paper); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 15%, transparent); } .ds-seg { container-type: inline-size; display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-l, .ds-w { display: none; } @container (min-width: 2.25rem) { .ds-l { display: inline; } } @container (min-width: 7.5rem) { .ds-w { display: inline; } } .ds-crit { background-color: var(--stance-critical); color: var(--stance-critical-ink); background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.2) 0 1.5px, transparent 1.5px 6px); } .ds-bal { background: var(--stance-balanced); color: var(--stance-balanced-ink); } .ds-sup { background-color: var(--stance-supportive); color: var(--stance-supportive-ink); background-image: radial-gradient(rgb(255 255 255 / 0.3) 1px, transparent 1.3px); background-size: 5px 5px; } .ds-unc { background-color: var(--stance-unclassified); color: var(--stance-unclassified-ink); background-image: repeating-linear-gradient(135deg, rgb(29 30 27 / 0.16) 0 1px, transparent 1px 5px); } .ds-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 0.75rem; color: var(--ink-muted); } .ds-meta a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent); text-underline-offset: 0.2em; } .ds-meta a:hover { text-decoration-color: var(--ink); } .ds-meta a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }"
+    },
+    {
+      "name": "Story Card (feed)",
+      "kind": "card",
+      "refersTo": "coverage-bar-sm",
+      "description": "Containerless feed card: 800 headline as stretched link, small bar with inline summary, meta line.",
+      "html": "<article class=\"ds-story\"><h3><a href=\"#\" class=\"ds-hl\">Parliament passes the new data protection amendment</a></h3><div class=\"ds-row\"><div class=\"ds-sbar\"><span style=\"width:56%;background:var(--stance-critical)\"></span><span style=\"width:24%;background:var(--stance-balanced)\"></span><span style=\"width:20%;background:var(--stance-supportive)\"></span></div><p>56% critical of the government</p></div><p class=\"ds-src\">18 sources · Hindi, English</p></article>",
+      "css": ".ds-story { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; gap: 12px; padding: 20px 0; border-bottom: 1px solid color-mix(in srgb, var(--ink) 15%, transparent); max-width: 380px; } .ds-story h3 { margin: 0; font-size: 1.25rem; font-weight: 800; line-height: var(--leading-headline, 1.25); letter-spacing: var(--tracking-headline, -0.015em); color: var(--ink); } .ds-hl { color: inherit; text-decoration: underline 2px transparent; text-underline-offset: 0.16em; transition: text-decoration-color 160ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-story:hover .ds-hl, .ds-hl:focus-visible { text-decoration-color: currentColor; } .ds-row { display: flex; align-items: center; gap: 12px; } .ds-row p { margin: 0; font-size: 0.75rem; font-weight: 500; color: var(--ink); } .ds-sbar { display: flex; gap: 2px; width: 80px; height: 6px; border-radius: 2px; overflow: hidden; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 15%, transparent); } .ds-src { margin: 0; font-size: 0.875rem; color: var(--ink-muted); }"
+    },
+    {
+      "name": "Tint Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat surface panel for rails and details; no border, no shadow.",
+      "html": "<section class=\"ds-panel\"><h2>Coverage details</h2><dl><div><dt>Total sources</dt><dd>18</dd></div><div><dt>Critical of the government</dt><dd>10</dd></div><div><dt>Supportive of the government</dt><dd>4</dd></div></dl></section>",
+      "css": ".ds-panel { font-family: var(--font-noto-sans, 'Noto Sans'), var(--font-noto-devanagari, 'Noto Sans Devanagari'), ui-sans-serif, system-ui, sans-serif; padding: 20px; border-radius: var(--radius-card); background: var(--surface); color: var(--ink); max-width: 360px; } .ds-panel h2 { margin: 0; font-size: 1.25rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.015em; } .ds-panel dl { margin: 12px 0 0; font-size: 0.9375rem; } .ds-panel dl div { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent); } .ds-panel dl div:first-child { border-top: none; } .ds-panel dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Comparison Desk",
+    "overview": "Lens is a news-comparison desk played straight: the Ground News category pattern (story feed, stance coverage bar, blindspots, per-story source lists) adapted for India, at full craft. That lineage is owner-pinned canon for interaction patterns only; Ground News's logo, copy, icons and exact colors are never borrowed (docs/10). The world is warm grey-green newsprint with near-black ink. Everything reads as print: flat tinted panels instead of cards, thin ink rules instead of borders, heavy sans headlines with tight leading, and a stance bar that behaves like a chart in a paper, not a widget.\n\nDensity is high but ruled. The feed is a newspaper front: a lead story with a wide labelled bar, a rail, then a three-column ruled grid. Colour is reserved for data. The only chromatic hues on screen are the stance violet and teal and the ochre flag tint; chrome, links, buttons and selection are ink.\n\nThe system is bilingual from the metrics up. Noto Sans and Noto Sans Devanagari share one stack; Indic text gets taller line heights and no negative tracking, and Latin runs inside a Hindi page reset to Latin metrics.",
+    "keyCharacteristics": [
+      "Newsprint ground (paper), ink text, flat surface-tinted panels with no borders or shadows at rest.",
+      "Squared corners (2-4px) everywhere.",
+      "Heavy 800 headlines, tight leading, slight negative tracking in Latin only.",
+      "Links are ink with a faint underline, never blue.",
+      "Stance is violet / paper-light / teal / grey, each patterned; colour is never the only signal.",
+      "Every bar or rating carries a confidence line and a methodology link."
+    ],
+    "rules": [
+      {
+        "name": "The No Party Colors Rule",
+        "body": "Stance hues never use red, green, saffron or sky blue; in India those read as party colors. Any new stance or data hue is checked against that list first.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pattern Always Rule",
+        "body": "Every stance segment carries both a colour and a pattern (hatch, none on the light middle, dots, light hatch). Colour alone never encodes stance.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Links Rule",
+        "body": "Links are ink with a 1px underline at ink/40, rising to full ink on hover. There is no link blue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Script Metrics Rule",
+        "body": "Latin body 1.5 / headlines 1.25 with -0.015em headline tracking; Indic (hi, mr, bn, ta, te, gu, kn, ml, pa, or) body 1.6 / headlines 1.35 with zero tracking. `:lang(en)` resets Latin metrics inside Hindi pages. Line heights come from `--leading-*` variables, never hard-coded per component.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight Carries It Rule",
+        "body": "Hierarchy comes from weight and size, not from a second family, uppercase or letter-spacing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled Section Rule",
+        "body": "Major sections (More stories, Sources, Fact checks) open with a 3px ink rule above the heading, not a box.",
+        "section": "layout"
+      },
+      {
+        "name": "The Tone Not Shadow Rule",
+        "body": "Panels separate by tint, never by border or shadow. Shadows are reserved for transient overlays.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do follow every stance, bias or factuality figure with a confidence level and a methodology link.",
+      "Do pattern every stance segment: hatch on critical, dots on supportive, light hatch on unclassified.",
+      "Do separate panels by tint (surface on paper) and open major sections with the 3px ink rule.",
+      "Do set `lang` on every headline and summary so the Indic line heights apply.",
+      "Do keep all interactive chrome in ink: buttons, active chips, focus rings, selection."
+    ],
+    "donts": [
+      "Don't use red, green, saffron or sky blue for any stance or data encoding.",
+      "Don't copy Ground News's logo, copy, icons or exact colors; borrow its patterns only.",
+      "Don't use blue links, pill chips, rounded bordered cards or resting shadows.",
+      "Don't use negative tracking on Indic scripts or hard-code line heights that bypass `--leading-*`.",
+      "Don't show a bar or rating without its methodology link."
+    ]
+  }
+}

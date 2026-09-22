@@ -27,7 +27,9 @@ export function LanguageSwitcher({ label }: { label: string }) {
   }
 
   return (
-    <div role="group" aria-label={label} className="flex items-center rounded-control bg-surface p-0.5">
+    <div role="group" aria-label={label} className="flex items-center gap-2">
+      <span aria-hidden className="hidden sm:inline">{label}</span>
+      <div className="flex items-center rounded-control border border-strip-ink/30 p-0.5">
       {options.map((o) => (
         <button
           key={o.locale}
@@ -37,13 +39,14 @@ export function LanguageSwitcher({ label }: { label: string }) {
           disabled={pending}
           onClick={() => select(o.locale)}
           className={cn(
-            "h-8 min-w-9 rounded-[6px] px-2 text-sm font-medium",
-            current === o.locale ? "bg-paper text-ink shadow-sm" : "text-ink-muted hover:text-ink",
+            "h-6 min-w-9 rounded-[2px] px-2 text-xs font-bold",
+            current === o.locale ? "bg-strip-ink text-strip" : "text-strip-ink hover:bg-strip-ink/15",
           )}
         >
           {o.label}
         </button>
       ))}
+      </div>
     </div>
   );
 }

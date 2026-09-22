@@ -19,12 +19,12 @@ export function FlagChip({ blindspot, className }: { blindspot: Blindspot; class
   return (
     <p
       className={cn(
-        "relative z-10 inline-flex items-center gap-1.5 rounded-chip bg-flag-bg px-2.5 py-1 text-xs font-medium text-flag-ink",
+        "relative z-10 inline-flex items-center gap-1.5 rounded-chip bg-flag-bg px-2 py-0.5 text-xs font-bold text-flag-ink",
         className,
       )}
       data-testid="flag-chip"
     >
-      <EyeOff aria-hidden className="size-3.5 shrink-0" />
+      <EyeOff aria-hidden className="size-3.5 shrink-0" strokeWidth={2.25} />
       {text}
     </p>
   );

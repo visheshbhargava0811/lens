@@ -25,7 +25,7 @@ export function FactualityMeter({ factuality }: { factuality: FactualityCounts }
   return (
     <div>
       {rated > 0 && (
-        <div role="img" aria-label={alt} className="flex h-2 w-full gap-px overflow-hidden rounded-chip">
+        <div role="img" aria-label={alt} className="flex h-2.5 w-full gap-[2px] overflow-hidden rounded-[2px]">
           {levels.map((l, i) =>
             counts[i] > 0 ? <span key={l.key} className={cn("h-full", l.fill)} style={{ width: `${pcts[i]}%` }} /> : null,
           )}
@@ -35,18 +35,18 @@ export function FactualityMeter({ factuality }: { factuality: FactualityCounts }
         {levels.map((l) => (
           <div key={l.key} className="flex items-center justify-between gap-2">
             <dt className="flex items-center gap-2">
-              <span aria-hidden className={cn("size-2.5 rounded-full", l.fill)} />
+              <span aria-hidden className={cn("size-3 rounded-[1px]", l.fill)} />
               {t(l.key)}
             </dt>
-            <dd className="tabular-nums">{factuality[l.key]}</dd>
+            <dd className="font-bold tabular-nums">{factuality[l.key]}</dd>
           </div>
         ))}
         <div className="flex items-center justify-between gap-2">
           <dt className="flex items-center gap-2">
-            <span aria-hidden className="size-2.5 rounded-full border border-ink-muted" />
+            <span aria-hidden className="size-3 rounded-[1px] border border-ink-muted" />
             {t("notRated")}
           </dt>
-          <dd className="tabular-nums">{factuality.unrated}</dd>
+          <dd className="font-bold tabular-nums">{factuality.unrated}</dd>
         </div>
       </dl>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 text-xs text-ink-muted">

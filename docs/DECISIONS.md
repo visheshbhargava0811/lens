@@ -107,3 +107,9 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Context: The Phase 1A acceptance asked for 48 hours of continuous ingestion. The owner wants to unblock Phase 2 labeling sooner.
 - Decision: 24 hours of continuous ingestion is enough for acceptance. It still covers a full day-night publishing cycle and every source's schedule at least once.
 - Consequences: Multi-day failures (feeds breaking on the second day, slow memory leaks, weekend-only issues) may not show up before acceptance. The worker keeps running after acceptance, so check `make ingest-health` again before the Phase 2 baseline. The clock counts from the worker container's start, 2026-09-21 22:38 UTC.
+
+## ADR-0017: Visual redesign in a Ground News tone (2026-09-22) — owner request
+
+- Context: The owner found the Phase 1B UI generic ("looks AI generated") and asked for a look close in tone to Ground News.
+- Decision: Newsprint-grey ground, near-black ink, flat tinted panels, squared corners, Noto Sans 800 headlines, a dark date/language strip, and a flat stance bar with labels set inside the segments. Stance colors stay violet/teal with patterns (no party colors). Only interaction patterns are borrowed, never Ground News assets or exact colors (docs/10). The design system is recorded in `DESIGN.md`; product context in `PRODUCT.md`.
+- Consequences: Line heights stay at the docs/10 values. Compact story cards now show confidence and a methodology link like every other card. The rail heading "Topics to follow" became "Browse topics" until following exists. Nav links to unbuilt routes (For you, Local, Ask, Search, Sign in) still 404; the owner decides whether to hide them or add placeholders.

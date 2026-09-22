@@ -26,7 +26,7 @@ export function StanceLegend({
     >
       {segments.map((s) => (
         <li key={s.key} className="flex items-center gap-2">
-          <span aria-hidden className={cn("size-3 shrink-0 rounded-[3px]", stanceFill[s.key])} />
+          <span aria-hidden className={cn("size-3.5 shrink-0 rounded-[1px] ring-1 ring-ink/20", stanceFill[s.key])} />
           <span className={compact ? "" : "flex-1"}>{t(`stance.label.${s.key}`, { target })}</span>
           <span className="tabular-nums text-ink-muted">
             {compact ? `${s.pct}%` : `${t("coverage.sources", { count: s.sources })}, ${s.pct}%`}

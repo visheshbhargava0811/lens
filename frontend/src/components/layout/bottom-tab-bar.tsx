@@ -9,7 +9,7 @@ const icons = { home: House, blindspot: EyeOff, ask: MessageCircleQuestion, loca
 export async function BottomTabBar() {
   const t = await getTranslations("nav");
   return (
-    <nav aria-label={t("primary")} className="fixed inset-x-0 bottom-0 z-40 border-t bg-paper md:hidden">
+    <nav aria-label={t("primary")} className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/20 bg-paper md:hidden">
       <ul className="grid grid-cols-5 pb-[env(safe-area-inset-bottom)]">
         {mobileTabs.map((tab) => {
           const Icon = icons[tab.key];
@@ -17,9 +17,9 @@ export async function BottomTabBar() {
             <li key={tab.key}>
               <Link
                 href={tab.href}
-                className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium text-ink-muted"
+                className="flex h-14 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-bold text-ink"
               >
-                <Icon aria-hidden className="size-5" />
+                <Icon aria-hidden className="size-5" strokeWidth={2.25} />
                 {t(tab.key)}
               </Link>
             </li>

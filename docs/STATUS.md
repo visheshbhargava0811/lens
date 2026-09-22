@@ -9,7 +9,7 @@ _Last updated: 2026-09-21_
 | Phase | State | Notes |
 |---|---|---|
 | 0 Scaffold | Done | `make up && make migrate && make test && make lint` green. The LangSmith smoke trace is verified (`make trace-smoke`) |
-| 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 accepted |
+| 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 accepted. Redesigned in a Ground News tone (ADR-0017, `DESIGN.md`) |
 | 1A Sources and ingestion | Built. 24 h acceptance run in progress (ADR-0016) | Worker container (re)started 2026-09-21 22:38 UTC. Confirm with `make ingest-health` after 2026-09-22 22:38 UTC |
 | 2 Chunk, embed, cluster | Implementation underway; eval blocked on human labels | Chunking, BGE-M3 wrapper, Qdrant indexing, incremental clustering, lifecycle, merge proposals, and labeling import/export are locally verified. After Phase 1A is accepted, export 100+ stories for human labeling, then run and record the baseline. |
 

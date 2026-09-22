@@ -15,7 +15,8 @@
     "signIn": "Sign in",
     "topics": "Topics",
     "language": "Language",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "today": "Today"
   },
   "topics": {
     "top": "Top",
@@ -38,8 +39,9 @@
     "loadMoreError": "Couldn't load more stories. Check your connection and try again.",
     "end": "You've reached the end of the feed.",
     "railBlindspots": "Blindspot",
-    "railTopics": "Topics to follow",
-    "seeAllBlindspots": "See all blindspots"
+    "railTopics": "Browse topics",
+    "seeAllBlindspots": "See all blindspots",
+    "railBlindspotsIntro": "Stories covered mostly by one group of outlets, by stance or by language."
   },
   "topic": {
     "heading": "{topic} stories",
@@ -58,6 +60,12 @@
       "balanced": "balanced",
       "supportive": "supportive of the government",
       "unclassified": "unclassified"
+    },
+    "short": {
+      "critical": "Critical",
+      "balanced": "Balanced",
+      "supportive": "Supportive",
+      "unclassified": "Unclassified"
     }
   },
   "coverage": {
@@ -69,7 +77,8 @@
     "limited": "Limited coverage: only {count, plural, one {# source} other {# sources}} so far. A coverage split needs at least {min}.",
     "confidence": "Confidence: {level}",
     "howCalculated": "How this is calculated",
-    "legend": "Stance of coverage"
+    "legend": "Stance of coverage",
+    "dominant": "{pct}% {phrase}"
   },
   "confidence": {
     "low": "low",
@@ -92,7 +101,12 @@
     "factCheckRating": "Rating: {rating}",
     "factCheckBy": "Checked by {checker}",
     "readFactCheck": "Read the fact-check",
-    "noFactChecks": "No fact-checks matched this story yet."
+    "noFactChecks": "No fact-checks matched this story yet.",
+    "coverageDetails": "Coverage details",
+    "totalSources": "Total sources",
+    "lastUpdated": "Last updated",
+    "status": "Status",
+    "distribution": "Stance distribution"
   },
   "flag": {
     "stance": "Mostly covered by outlets {phrase}",
