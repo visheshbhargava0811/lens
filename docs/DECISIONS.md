@@ -41,11 +41,11 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Decision: `src/instrumentation.ts` starts MSW's node server when `NEXT_PUBLIC_API_MOCKING=enabled`; Playwright and local mock runs set it. Every outlet, owner, rater, fact-checker and event in `src/mocks/fixtures.ts` is invented. Coverage numbers are derived from the article rows with the same `lib/coverage.ts` math the UI uses.
 - Consequences: Fixture types are hand-written from docs/09 until Phase 3 generates them from the backend's Pydantic models.
 
-## ADR-0008: `confidence` on story-level `factuality` (2026-09-21) — needs owner sign-off
+## ADR-0008: `confidence` on story-level `factuality` (2026-09-21) — accepted by owner 2026-09-22
 
 - Context: G-BIAS-01 requires a confidence label on every factuality figure, but the docs/09 `StoryCard.factuality` example has only counts and `methodology_url`.
 - Decision: Add `factuality.confidence` (`low | medium | high`). Additive; nothing else in the shape changes.
-- Consequences: The backend must emit it in Phase 3. docs/09 should be amended if accepted.
+- Consequences: The backend must emit it in Phase 3. docs/09 amended.
 
 ## ADR-0009: Envelope shapes not fixed by docs/09 (2026-09-21)
 
@@ -101,3 +101,9 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
   - Held-out accuracy 0.97 (`reports/langid_baseline.md`).
   - `hi-Latn` is 0.80. Revisit it in Phase 6 with the `query_understanding` model.
   - The labels were written by Claude and still need a person to check them.
+
+## ADR-0016: Phase 1A soak run shortened to 24 hours (2026-09-22) — owner decision
+
+- Context: The Phase 1A acceptance asked for 48 hours of continuous ingestion. The owner wants to unblock Phase 2 labeling sooner.
+- Decision: 24 hours of continuous ingestion is enough for acceptance. It still covers a full day-night publishing cycle and every source's schedule at least once.
+- Consequences: Multi-day failures (feeds breaking on the second day, slow memory leaks, weekend-only issues) may not show up before acceptance. The worker keeps running after acceptance, so check `make ingest-health` again before the Phase 2 baseline. The clock counts from the worker container's start, 2026-09-21 22:38 UTC.

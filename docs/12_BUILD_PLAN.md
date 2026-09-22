@@ -60,7 +60,7 @@ Tasks
 - Ingest lag and per-source health metrics
 
 Acceptance
-- At least 15 sources across English, Hindi, and one regional language ingest continuously for 48 hours
+- At least 15 sources across English, Hindi, and one regional language ingest continuously for 24 hours (ADR-0016; originally 48)
 - Re-running ingestion is idempotent (no duplicate articles)
 - No `full_text` stored for `snippet_only` or `link_only` sources (test)
 - Language ID accuracy measured on a small labeled sample and recorded

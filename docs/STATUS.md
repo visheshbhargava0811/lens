@@ -9,9 +9,9 @@ _Last updated: 2026-09-21_
 | Phase | State | Notes |
 |---|---|---|
 | 0 Scaffold | Done | `make up && make migrate && make test && make lint` green. The LangSmith smoke trace is verified (`make trace-smoke`) |
-| 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 needs the owner's sign-off |
-| 1A Sources and ingestion | Built. 48 h acceptance run in progress | Worker started 2026-09-21 21:20 UTC. Confirm with `make ingest-health` after 2026-09-23 21:20 UTC |
-| 2 Chunk, embed, cluster | Not started | Needs 100+ stories labeled by a person (docs/04). Build the labeling export first |
+| 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 accepted |
+| 1A Sources and ingestion | Built. 24 h acceptance run in progress (ADR-0016) | Worker container (re)started 2026-09-21 22:38 UTC. Confirm with `make ingest-health` after 2026-09-22 22:38 UTC |
+| 2 Chunk, embed, cluster | Implementation underway; eval blocked on human labels | Chunking, BGE-M3 wrapper, Qdrant indexing, incremental clustering, lifecycle, merge proposals, and labeling import/export are locally verified. After Phase 1A is accepted, export 100+ stories for human labeling, then run and record the baseline. |
 
 ## What is running
 
@@ -44,8 +44,6 @@ _Last updated: 2026-09-21_
 
 ## Open items needing the owner
 
-- Sign-off on ADR-0008 (`confidence` on story-level factuality).
-- A native speaker to review the Hindi UI strings.
 - A person to check the language-ID labels in `data/evals/langid/`.
-- Labeled clustering stories for Phase 2.
+- After the Phase 1A acceptance run: export and label 100+ clustering stories (including 30 cross-lingual, 20 hard-negative, and 10 developing stories), then run the Phase 2 baseline.
 - The JS budget is over target (about 163 KB gzipped vs 150).

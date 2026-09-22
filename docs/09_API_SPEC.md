@@ -64,7 +64,7 @@ Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue
     "confidence": "medium",
     "methodology_url": "/methodology#stance"
   },
-  "factuality": { "high": 30, "mixed": 8, "low": 1, "unrated": 3, "methodology_url": "/methodology#factuality" },
+  "factuality": { "high": 30, "mixed": 8, "low": 1, "unrated": 3, "confidence": "medium", "methodology_url": "/methodology#factuality" },
   "blindspot": { "type": "stance", "skew": "supportive", "score": 0.81 },
   "summary_preview": "Two-line cited summary excerpt."
 }
