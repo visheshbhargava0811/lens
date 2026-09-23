@@ -175,3 +175,12 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 
 - Decision: `GROQ_API_KEY_2` is supported through `account: 2` entries in `config/models.yaml`. Each tier falls back first to the **same model on the second key**, then to the other gpt-oss model on each key, then to Gemini (the judge: Qwen on key 2, then Gemini, then Sarvam). The model and key actually used are recorded per call (`meta.account`). A missing key fails fast without a request.
 - Consequences: If the key belongs to a separate organization, this roughly doubles free-tier throughput (about 20–30 stories a day instead of 10–15). Groq's limits are per organization, and using extra accounts to exceed them may conflict with Groq's terms; the owner accepted that risk. Groq's paid Dev Tier remains the clean route to more throughput.
+
+## ADR-0026: Summary prompt v1.1 and the scope guard G-GEN-08 (2026-09-23)
+
+- Context: The owner's judge-calibration labels showed 12 of 20 unsupported sentences were over-generalization ("all/each/multiple articles…"). The owner then adjudicated 21 disagreements in the judge's favour (`gold_v2`, kappa 0.944, not blind); the judge prompt stays at v1.0.
+- Evals (same 12 stories, seed 11, same judge, first try; `reports/summary_ab_*`):
+  - Candidate v1.1, which named the words to avoid: **lost** (judge pass 0.636 vs 0.667, sentences supported 0.859 vs 0.906, over-general sentences 26 vs 18). Naming the words primed the model to use them.
+  - Candidate v1.2, the same rules stated positively ("write about what happened, not about the coverage"): **won on every metric** (judge pass 0.727 vs 0.636, sentences supported 0.914 vs 0.897, over-general sentences 13 vs 21) while writing *longer* summaries (6.36 vs 5.27 sentences). Promoted to live as `synthesis_system` v1.1.
+- Decision: also add **G-GEN-08**, a deterministic scope guard before the judge (a sentence saying all/each/every must cite every evidence article, "most" more than half, "multiple/several" at least two; violators are dropped and recorded as pruned). It catches the failure whatever the prompt does, at no token cost.
+- Consequences: n is small (11 judged summaries per variant) and the live score varies between runs by about ±0.03, so the gain is modest but directionally consistent. Re-measure on the next A/B with a larger sample.

@@ -1,0 +1,439 @@
+{
+  "generated_at": "2026-09-23T15:12:18.404821+00:00",
+  "n": 12,
+  "seed": 11,
+  "live": {
+    "version": "synthesis_system@1.0+evidence_rules@1.0",
+    "judged": 11,
+    "errors": 1,
+    "citation_failures": 0,
+    "judge_pass_rate": 0.636,
+    "sentence_supported_rate": 0.897,
+    "sentences_per_summary": 5.27,
+    "scope_word_sentences": 21
+  },
+  "candidate": {
+    "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+    "judged": 11,
+    "errors": 1,
+    "citation_failures": 0,
+    "judge_pass_rate": 0.727,
+    "sentence_supported_rate": 0.914,
+    "sentences_per_summary": 6.36,
+    "scope_word_sentences": 13
+  },
+  "rows": [
+    {
+      "story": "xi-rolls-into-trump-summit-with-china-s-dcdae5fb",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 8,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "Chinese President Xi Jinping is scheduled to arrive in Washington for a high‑stakes state visit with U.S. President Donald Trump, focusing on trade and security issues.",
+          "The summit is expected to cover topics such as trade, artificial intelligence, Iran and Taiwan, with Xi likely to press Trump to halt arms sales to Taiwan under the 1982 agreement.",
+          "China has warned the United States of four \"red lines\" – Taiwan, democracy, China’s development path and development rights – ahead of the meeting.",
+          "U.S. Senator Roger Wicker criticized the planned warm reception and state dinner for Xi, urging Trump to address China’s military buildup and human‑rights concerns.",
+          "Xi’s visit began with a rare planeside welcome by Trump, marking a notable diplomatic gesture.",
+          "All articles agree that the summit is a high‑profile meeting between Trump and Xi centered on trade and broader strategic issues.",
+          "The presence of Taiwan as a key discussion point is mentioned across multiple sources.",
+          "Artificial intelligence is consistently listed as one of the major topics of the talks."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 8,
+        "citations_ok": true,
+        "scope_words": 0,
+        "texts": [
+          "Chinese President Xi Jinping is scheduled to arrive in Washington for a high‑stakes state visit with U.S. President Donald Trump, focusing on trade and security issues.",
+          "The summit is expected to cover topics such as trade, artificial intelligence, Iran and Taiwan, with Xi reportedly planning to press Trump to halt arms sales to Taiwan under the 1982 agreement.",
+          "Chinese diplomat She Feng has outlined four \"red lines\" – Taiwan, democracy, China’s development path and development rights – ahead of the meeting.",
+          "U.S. Senator Roger Wicker publicly criticized the planned warm reception and state dinner for Xi, urging Trump to address China’s military buildup and human‑rights concerns.",
+          "Xi’s visit includes a rare planeside welcome ceremony as part of the state visit.",
+          "Trade is a central topic of the Trump‑Xi summit.",
+          "Artificial intelligence is listed among the issues to be discussed.",
+          "Taiwan is highlighted as a key point of contention in the talks."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "dj-93306452",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "A girl died after falling ill in a classroom in Balrampur during a Ganesh immersion procession where a DJ was playing loudly.",
+          "Police arrived at the school and opened an investigation into the incident.",
+          "All reports state that the death occurred while a DJ was playing at high volume as part of the Ganesh immersion (visarjan) procession near the school.",
+          "The incident prompted police action and a formal inquiry.",
+          "The age of the girl is reported as 12 years in some Hindi articles (A1, A2) and as 7 years in other reports (A4, A8).",
+          "While several sources attribute the death to the loud DJ sound, the English article (A5) notes that the family blames the sound but does not confirm it as the cause."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 8,
+        "citations_ok": true,
+        "scope_words": 0,
+        "texts": [
+          "A girl died after falling ill in a classroom while a loud DJ was playing during a Ganesh immersion procession in Balrampur, Uttar Pradesh.",
+          "The school manager said the DJ’s high volume was the cause of the girl’s death.",
+          "Police have opened an investigation into the incident.",
+          "The death occurred in a school classroom while a DJ was playing loudly as part of a Ganesh immersion (visarjan) procession.",
+          "Family members blamed the loud DJ sound for the girl’s death.",
+          "Authorities have launched an investigation into the incident.",
+          "The age of the girl is reported as 12 years in A1, A2 and A5, but as 7 years in A8.",
+          "A8 identifies the girl as Vaishnavi Tiwari, a second‑grade student, while other articles do not name the child."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "udp-8-bjp-2-10-6eedc24e",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "Eight United Democratic Party (UDP) legislators joined the Bharatiya Janata Party (BJP) in Meghalaya.",
+          "The switch raised the number of BJP MLAs in the state assembly from two to ten, making the BJP the second‑largest party in the legislature.",
+          "All articles report that eight UDP MLAs transferred to the BJP.",
+          "They agree that the BJP’s strength in the Meghalaya assembly increased to ten seats, positioning it as the second‑largest party."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 3,
+        "texts": [
+          "Eight United Democratic Party (UDP) legislators joined the Bharatiya Janata Party (BJP) in Meghalaya.",
+          "The defections increased the BJP’s strength in the state assembly from two members to ten.",
+          "With ten seats, the BJP became the second‑largest party in the Meghalaya Legislative Assembly.",
+          "All articles report that eight UDP MLAs switched to the BJP.",
+          "All articles note that the BJP’s assembly strength rose to ten members after the switch.",
+          "All articles state that the BJP is now the second‑largest party in the Meghalaya assembly."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "watch-syrian-president-busy-scrolling-instagram-reels-as-ef0676a2",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 2,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "During the United Nations General Assembly, Syrian President Ahmad Al‑Shara was seen scrolling Instagram Reels on his phone while Turkish President Recep Tayyip Erdoğan delivered his speech.",
+          "All articles report that the Syrian president was occupied with Instagram Reels during the speech."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "During the United Nations General Assembly, Syrian President Ahmad al‑Shara was seen scrolling Instagram Reels on his phone while Turkish President Recep Tayyip Erdoğan delivered his speech.",
+          "Multiple reports note that the Syrian president was busy with Instagram Reels as leaders spoke at the UNGA.",
+          "The incident occurred specifically during President Erdoğan's address.",
+          "The video of the president scrolling Instagram went viral online."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "labourers-least-paid-cared-for-society-undervalues-physical-4edfbe4d",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "The Delhi High Court observed that labourers are the lowest‑paid workers in India and that society does not value their physical work.",
+          "While hearing an appeal, the court reduced the convicted offender’s sentence for assaulting a labourer from five years to three years imprisonment, noting that the intention to commit murder was not established.",
+          "All articles report the court’s comment that labourers receive the lowest wages and lack societal appreciation.",
+          "Each source states that the offender’s sentence was lowered from five to three years."
+        ],
+        "passed": false,
+        "unsupported": 2
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "The Delhi High Court observed that labourers are the lowest paid and least cared for in India and that their physical work is undervalued.",
+          "While deciding an appeal, the court reduced a conviction for assaulting a labourer from five years to three years imprisonment because intent to murder was not established.",
+          "The assault involved a man who attacked a labourer who objected to a nuisance created while the labourer was trying to sleep, and the incident occurred in March 2002.",
+          "Multiple reports note the court’s comment that labourers receive the lowest wages and lack societal appreciation for physical work.",
+          "All articles state that the court reduced the offender’s sentence from five years to three years.",
+          "The case concerned an assault on a labourer who objected to a nuisance while trying to sleep, with the incident dated March 2002."
+        ],
+        "passed": false,
+        "unsupported": 1
+      }
+    },
+    {
+      "story": "bjp-mla-327ecaca",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "A BJP MLA said that Muslim men should bring their sisters and daughters to Garba, adding that “our boys are also ready”.",
+          "Congress MLA Masood responded by calling the remark “very low‑grade” and urging Muslims to improve their behavior.",
+          "All reports note that the BJP MLA’s comment linked Muslim men’s participation in Garba with bringing female relatives.",
+          "All reports mention that Congress MLA Masood criticized the BJP MLA’s statement as inappropriate."
+        ],
+        "error": "judge: judge: every provider failed: groq/qwen/qwen3.8-27b returned 429 (retry-after 582s) | groq/qwen/qwen3.8-27b (key 2) returned 429 (retry-after 11s) | gemini/gemini-3.6-flash: skipped (family gemini excluded) | gemini/gemini-3.5-flash: skipped (family gemini excluded) | sarvam/sarvam-105b: skip"
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 0,
+        "texts": [
+          "BJP MLA Ramashwar Sharma said that Muslims should bring their sisters and daughters to Garba, adding that \"our boys are ready\".",
+          "Congress MLA Masood responded by calling the remark \"very low\" and urging Muslims to improve their behaviour.",
+          "The statements sparked a public row, with criticism also coming from the Congress and MIM parties.",
+          "BJP MLA Ramashwar Sharma urged Muslims to bring sisters and daughters to Garba.",
+          "Congress MLA Masood criticised the BJP MLA's remarks as low and called for improvement.",
+          "The remarks generated controversy and a row among political parties."
+        ],
+        "passed": false,
+        "unsupported": 4
+      }
+    },
+    {
+      "story": "manipur-teen-shot-dead-while-out-to-buy-45510cb2",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "A 17-year-old Naga boy was shot dead in an alleged ambush in Manipur's Tamenglong district while walking alone from Upper Nkou village to buy essentials.",
+          "The incident occurred on Monday morning and was attributed to suspected Kuki militants by some reports.",
+          "The killing has heightened tensions between the Naga and Kuki communities, with reports of additional deaths and houses torched in both groups' areas.",
+          "All articles agree that the victim was a 17-year-old Naga youth.",
+          "All sources place the incident in Tamenglong district of Manipur.",
+          "The victim was shot while traveling alone to obtain essential supplies."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "A 17-year-old Naga boy was killed in an ambush in Manipur's Tamenglong district on Monday morning while he was out to buy essentials.",
+          "The victim, identified as N.K. Wiphenbou, was found by Naga village volunteers on a narrow path after walking alone from Upper Nkou village.",
+          "Chief Minister Yumnam Khemchand Singh and former chief minister N. Biren Singh condemned the incident.",
+          "All reports state that the victim was a 17-year-old Naga youth.",
+          "The killing occurred in Tamenglong district of Manipur.",
+          "The boy was shot by suspected militants while he was out to purchase essentials or walking alone."
+        ],
+        "error": "judge: judge: every provider failed: groq/qwen/qwen3.8-27b returned 429 (retry-after 233s) | groq/qwen/qwen3.8-27b (key 2) returned 429 (retry-after 40s) | gemini/gemini-3.6-flash: skipped (family gemini excluded) | gemini/gemini-3.5-flash: skipped (family gemini excluded) | sarvam/sarvam-105b: skip"
+      }
+    },
+    {
+      "story": "bombay-hc-warns-vijay-mallya-against-posting-court-3f1744fe",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "The Bombay High Court warned Vijay Mallya against posting court documents on social media while his money‑laundering case is pending.",
+          "The warning followed the Enforcement Directorate’s claim that Mallya had uploaded its affidavit on social media before the document was formally submitted for the hearing.",
+          "The court adjourned the matter to 13 October and directed the State Bank of India to file its reply.",
+          "All reported articles note that the Bombay High Court issued a stern warning to Vijay Mallya for sharing court documents on the platform X."
+        ],
+        "passed": false,
+        "unsupported": 1
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "The Bombay High Court warned Vijay Mallya against posting court documents on social media while his money‑laundering case is pending.",
+          "The warning followed the Enforcement Directorate’s claim that Mallya had uploaded its affidavit on social media before the document was formally submitted for the hearing.",
+          "The court adjourned the matter to 13 October and directed SBI to file its reply.",
+          "Multiple reports note that the Bombay High Court issued a stern warning to Vijay Mallya for sharing court documents on social media."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "tmc-rebel-mps-seek-four-more-weeks-for-cac8e10d",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 4,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "Twenty rebel Lok Sabha MPs who left the TMC for the NCPI asked the Speaker for a four‑week extension to respond to anti‑defection notices.",
+          "The request was mentioned in court records, with the Supreme Court noting the MPs’ four‑week request but not setting a deadline for the Speaker’s decision.",
+          "All articles report that the rebel MPs sought a four‑week extension to file their replies.",
+          "The Supreme Court’s proceedings referenced the MPs’ request but did not impose a specific time limit on the Speaker."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 5,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "Twenty Lok Sabha MPs who left the TMC for the Nationalist Congress Party of India (NCPI) have asked for a four‑week extension to respond to anti‑defection notices issued by Speaker Om Birla.",
+          "The Supreme Court noted the request but did not set a specific deadline for the speaker, commenting that the three‑month delay in deciding the disqualifications was a “red flag”.",
+          "All reports state that the MPs sought a four‑week extension to file their replies.",
+          "The number of rebel MPs is reported as twenty.",
+          "The MPs are described as having defected from the TMC to the NCPI."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "election-commissioners-flagged-issues-but-poll-body-unanimous-ee824f60",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 5,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "The Election Commission said that all decisions related to the Special Intensive Revision (SIR) of electoral rolls were taken unanimously, despite reports of dissent among officials.",
+          "The commission explained that differing views expressed by election commissioners are a normal part of the decision‑making process and no formal dissent was recorded.",
+          "Opposition leaders raised questions about the internal disagreements, but the EC maintained that all actions were within rules and law.",
+          "All articles agree that the EC asserts the SIR decisions were unanimous.",
+          "Multiple sources note that the commission described differing opinions as normal and part of deliberations."
+        ],
+        "passed": false,
+        "unsupported": 1
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 6,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "The Election Commission said that all decisions related to the Special Intensive Revision (SIR) of electoral rolls were taken unanimously, even though some commissioners had expressed differing views during internal deliberations.",
+          "The commission clarified that while commissioners Sukhbir Singh Sandhu and Vivek Joshi raised objections on issues such as voter deletions and database management, no formal dissent was recorded.",
+          "The EC described such differing opinions as a normal part of the decision‑making process and reaffirmed its commitment to constitutional duties.",
+          "All articles report that the EC maintains the SIR decisions were unanimous.",
+          "Multiple sources note that commissioners expressed differing views but no formal dissent was filed.",
+          "The commission characterises differing opinions as a normal part of deliberations."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "ind-vs-nz-new-zealand-announce-16-member-5046c82f",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 7,
+        "citations_ok": true,
+        "scope_words": 2,
+        "texts": [
+          "New Zealand announced a 16‑member squad for the upcoming T20I series against India.",
+          "Michel Santner will captain the side.",
+          "The five‑match series is scheduled to begin on 22 October at Hagley Oval in Christchurch.",
+          "Fast‑bowler Adam Milne and all‑rounder Michael Bracewell are returning after injury, while Rachin Ravindra is ruled out due to a shoulder injury.",
+          "The squad includes seven pace bowlers, with Finn Allen and Tim Seifert set to open the batting.",
+          "All articles agree that the squad consists of 16 players and that Michel Santner has been named captain.",
+          "All sources note the return of Adam Milne (and Michael Bracewell in the English report) and the exclusion of Rachin Ravindra because of injury."
+        ],
+        "passed": true,
+        "unsupported": 0
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 9,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "New Zealand announced a 16‑member squad for the five‑match T20I series against India, with Michael Santner named captain.",
+          "The series is scheduled to begin on 22 October at Hagley Oval in Christchurch.",
+          "Injured fast bowlers Adam Milne and Michael Bracewell are set to return to the squad, while all‑rounder Rachin Ravindra is ruled out due to a shoulder injury.",
+          "The squad includes seven pace bowlers, with Finn Allen and Tim Seifert expected to open the batting.",
+          "All articles report that the squad consists of 16 players.",
+          "Michael Santner is named as the captain of the New Zealand side.",
+          "Adam Milne is returning to the squad after injury.",
+          "A2 and A5 state that both Michael Bracewell and Adam Milne are returning, whereas A7 mentions only Milne’s return and does not reference Bracewell.",
+          "Only A2 provides the series start date (22 October) and venue (Hagley Oval), which are not mentioned in the other articles."
+        ],
+        "passed": true,
+        "unsupported": 0
+      }
+    },
+    {
+      "story": "story-3bc74a9e7a65",
+      "live": {
+        "version": "synthesis_system@1.0+evidence_rules@1.0",
+        "sentences": 8,
+        "citations_ok": true,
+        "scope_words": 3,
+        "texts": [
+          "Arvind Singh shot his wife and two priests dead during a dispute over a religious ritual in Azamgarh, Uttar Pradesh, and then locked himself inside the house with his three children, creating a hostage situation.",
+          "The standoff lasted about seven to eight hours before police launched an operation, during which Singh was killed in an encounter.",
+          "Police rescued the three children after the encounter; one report says the eight‑year‑old son later died from his injuries.",
+          "All articles agree that the man killed his wife and two priests before taking his three children hostage.",
+          "All sources report that police ended the incident with a lethal encounter that resulted in the suspect's death.",
+          "The incident took place in Azamgarh, Uttar Pradesh.",
+          "The reported duration of the standoff varies, with some articles stating it lasted seven hours and others eight hours.",
+          "The fate of the children differs: most reports say they were rescued unharmed, while one article notes that the eight‑year‑old son later died from his injuries."
+        ],
+        "passed": false,
+        "unsupported": 2
+      },
+      "candidate": {
+        "version": "synthesis_system.candidate@1.2-candidate+evidence_rules@1.0",
+        "sentences": 8,
+        "citations_ok": true,
+        "scope_words": 1,
+        "texts": [
+          "Arvind Singh shot his wife and two priests dead during a dispute over a religious ritual in Azamgarh, Uttar Pradesh, and then locked himself inside the house with his three children, creating a hostage situation.",
+          "The standoff lasted about seven to eight hours before police launched an operation that ended with Singh being killed in an encounter.",
+          "One of the children, an eight‑year‑old son, was critically injured during the incident and later died from his injuries, according to police reports.",
+          "Multiple reports state that the man killed his wife and two priests before taking his three children hostage.",
+          "Police eventually killed the suspect in an encounter after a several‑hour standoff.",
+          "The incident occurred in Azamgarh, Uttar Pradesh.",
+          "The length of the standoff is reported as seven hours in some articles (A1, A7, A9) and eight hours in others (A2).",
+          "Only A9 mentions that the eight‑year‑old son later died from his injuries; other articles do not report his death."
+        ],
+        "passed": false,
+        "unsupported": 1
+      }
+    }
+  ]
+}
