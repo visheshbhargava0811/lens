@@ -7,7 +7,7 @@ variant's top score, and per-outlet coverage of the evidence set with and withou
 
 Relevance is story-level (a chunk is relevant when its story is), which is what the labels carry.
 
-Usage: uv run --extra ml python -m lens.evals.retrieval_run [--queries FILE] [--name draft]
+Usage: uv run --extra ml python -m lens.evals.retrieval_run [--queries FILE] [--name v1]
 Writes reports/retrieval_ablation_<name>.md and .json.
 """
 
@@ -409,8 +409,8 @@ def render(s: dict[str, Any], queries_path: str) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--queries", default="data/evals/retrieval/queries_v1.draft.jsonl")
-    ap.add_argument("--name", default="draft")
+    ap.add_argument("--queries", default="data/evals/retrieval/queries_v1.jsonl")
+    ap.add_argument("--name", default="v1")
     args = ap.parse_args()
     path = REPO_ROOT / args.queries
     queries = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]

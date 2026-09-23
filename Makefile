@@ -89,9 +89,9 @@ cluster-label-import:
 eval-clustering:
 	$(UVML) python -m lens.evals.clustering_run --name $(or $(NAME),baseline) $(if $(GOLD),--gold $(GOLD),)
 
-# Phase 5: retrieval ablation (docs/05). QUERIES defaults to the draft set until the owner review lands.
+# Phase 5: retrieval ablation (docs/05). QUERIES defaults to queries_v1.jsonl.
 eval-retrieval:
-	$(UVML) python -m lens.evals.retrieval_run --name $(or $(NAME),draft) $(if $(QUERIES),--queries $(QUERIES),) $(ARGS)
+	$(UVML) python -m lens.evals.retrieval_run --name $(or $(NAME),v1) $(if $(QUERIES),--queries $(QUERIES),) $(ARGS)
 
 backend-dev:
 	$(UV) uvicorn lens.api.app:app --reload --port 8000

@@ -1,6 +1,6 @@
 # Retrieval ablation run
 
-Queries: `data/evals/retrieval/queries_v1.draft.jsonl`. Answerable 157, no-answer 15.
+Queries: `data/evals/retrieval/queries_v1.jsonl`. Answerable 157, no-answer 15.
 Types: {'entity': 41, 'paraphrase': 49, 'cross_lingual': 37, 'hinglish': 20, 'loaded': 10}. Languages: {'en': 109, 'hi': 23, 'hinglish': 20, 'mr': 5}.
 Relevance is story-level. Cross-encoder rerank dropped before measurement (owner decision, ADR).
 

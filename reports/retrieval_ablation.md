@@ -1,8 +1,8 @@
 # Retrieval ablation (Phase 5)
 
-Run: 2026-09-23, `make eval-retrieval` → full tables in [`retrieval_ablation_draft.md`](retrieval_ablation_draft.md), per-query data in `retrieval_ablation_draft.json`.
+Run: 2026-09-23, `make eval-retrieval` → full tables in [`retrieval_ablation_v1.md`](retrieval_ablation_v1.md), per-query data in `retrieval_ablation_v1.json`.
 
-**Read this first: the query set is a draft.** 172 queries (157 answerable, 15 no-answer) drafted by Claude from 119 real stories (`data/evals/retrieval/queries_v1.draft.jsonl`), not yet reviewed by the owner. Relevance is story-level: one labelled story per query. Decisions below are provisional until the reviewed set (`queries_v1.jsonl`) is re-run. Re-running needs no re-index: every vector type stays stored.
+Query set: `data/evals/retrieval/queries_v1.jsonl`, 172 queries (157 answerable, 15 no-answer) drafted by Claude from 119 real stories. The owner checked `to_review_v1.csv` and accepted it as is on 2026-09-23 with no corrections, so these results are on the accepted set. Relevance is story-level: one labelled story per query. Re-running needs no re-index: every vector type stays stored.
 
 Corpus: 32,484 chunks from 5 days (18–23 Sep 2026), `snippet_only` licensing. Hardware: Apple Silicon (MPS), with the pipeline worker running alongside, so latencies are indicative.
 
@@ -70,17 +70,17 @@ Balancing improves every coverage measure at about 0.05 ms. Gains are small beca
 | Component | Decision | Why |
 |---|---|---|
 | Dense chunk search (tier 2) | **Keep: default** | Best on every metric and type; 15 ms |
-| Sparse search + RRF fusion | **Drop from the query path**; keep sparse vectors stored | One win in 157; fusion costs 22 R@1 points; storage is 0.27 MB/1k, so the reviewed set can re-test it without re-indexing |
+| Sparse search + RRF fusion | **Drop from the query path**; keep sparse vectors stored | One win in 157; fusion costs 22 R@1 points; storage is 0.27 MB/1k, so a future query set can re-test it without re-indexing |
 | ColBERT rerank | **Drop**; do not store multivectors | No gain over dense, 10 s query-time or about 355 MB/1k stored |
 | Cross-encoder rerank | Dropped (ADR-0028) | Latency |
 | Tier 1 over story centroids (dense) | **Keep** | Matches dense chunks (1 win each way) and gives the best abstain signal |
-| `tier1.min_score` | **0.35 → 0.66 (provisional)** | 0.35 never abstains; 0.66 keeps 84% of answerable and 0% of no-answer on 15 drafted no-answer queries. Re-tune on the reviewed set |
+| `tier1.min_score` | **0.35 → 0.66** | 0.35 never abstains; 0.66 keeps 84% of answerable and 0% of no-answer on 15 no-answer queries. Re-tune when more no-answer queries exist |
 | Source-balanced selection | **Keep** | Improves outlet spread, language coverage and syndication at no cost |
 | Chunking strategy | N/A | One chunk per article under `snippet_only`; revisit only for `full_text` sources |
 
 ## Limits
 
-- The query set is Claude-drafted and unreviewed, and drafted queries may lean toward headline wording. Treat these numbers as directional until the reviewed set is re-run.
+- The queries were drafted by Claude, and the owner accepted them without row-level corrections. They may lean toward headline wording; a second, independently written set would test that.
 - There are only 15 no-answer queries, so the threshold is a starting point.
 - Marathi has n=5.
 - Latency was measured locally on MPS, sharing the machine with the pipeline worker.

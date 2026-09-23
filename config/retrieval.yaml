@@ -2,7 +2,7 @@
 tier1:
   window_days: 30
   top_stories: 3
-  min_score: 0.66            # story cosine; 0.35 never abstained. Provisional (ADR-0029)
+  min_score: 0.66            # story cosine; 0.35 never abstained (ADR-0029); re-tune with more no-answer queries
 tier2:
   mode: dense                # dense | hybrid. Hybrid lost the ablation (ADR-0029)
   dense_limit: 50
