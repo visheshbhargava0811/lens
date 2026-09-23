@@ -111,7 +111,8 @@
   "flag": {
     "stance": "Mostly covered by outlets {phrase}",
     "language": "Covered mostly in {language}, little in {other}",
-    "otherThanEnglish": "Hindi and regional languages"
+    "otherThanEnglish": "Hindi and regional languages",
+    "indianLanguages": "Hindi and other Indian languages"
   },
   "summary": {
     "title": "Summary",
@@ -210,6 +211,19 @@
         "title": "Corrections",
         "body": "If a story is grouped wrongly, a stance label looks wrong or a rating is out of date, report it. We review every report and record changes in the changelog."
       }
+    },
+    "current": {
+      "heading": "Current settings",
+      "note": "These numbers are read live from the system, so they always match what you see on story cards.",
+      "minSourcesForBar": "A coverage bar appears once {n} or more distinct outlets cover a story.",
+      "feedMinSources": "The feed and blindspot lists show stories covered by at least {n} outlets.",
+      "stanceBlindspot": "Stance blindspot: at least {pct}% of classified outlets in one stance group, with {n} or more classified outlets.",
+      "languageBlindspot": "Language blindspot: at least {pct}% of outlets in one language group (English or Indian languages), with {n} or more outlets.",
+      "raters": "Raters in use",
+      "rater": "{rater} rates {count, plural, one {# outlet} other {# outlets}} for {dimension}.",
+      "method": "Their method",
+      "noRaters": "No third-party ratings are loaded yet, so every outlet shows \"Not rated\".",
+      "unavailable": "The live settings could not be loaded right now."
     }
   },
   "errors": {

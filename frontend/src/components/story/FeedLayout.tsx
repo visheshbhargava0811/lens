@@ -20,7 +20,10 @@ type Props = {
 /** Lead story beside the rail, then a full-width ruled grid. On mobile the rail follows the lead. */
 export function FeedLayout({ heading, page, emptyMessage, blindspots, topicSlugs, topic }: Props) {
   const t = useTranslations("home");
-  const [hero, ...rest] = page.items;
+  // Lead with the newest story that has enough sources for a coverage bar; the newest story may be a
+  // two-source item that leaves the lead slot bare. Falls back to the newest when none qualifies.
+  const hero = page.items.find((s) => s.coverage.available) ?? page.items[0];
+  const rest = page.items.filter((s) => s !== hero);
   const rail = (
     <aside className="min-w-0">
       {blindspots.length > 0 && (

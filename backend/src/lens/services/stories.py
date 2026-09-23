@@ -51,20 +51,19 @@ def _visible() -> Any:
 
 def _card(story: Story, stats: StoryStats | None, g: dict[str, Any]) -> api.StoryCard:
     n = story.source_count
+    blind: api.StanceBlindspot | api.LanguageBlindspot | None = None
     if stats is None:  # stats not computed yet: everything unclassified and unrated
         stance = {**{b: 0 for b in STANCE_BUCKETS}, "unclassified": n}
         fact = {"high": 0, "mixed": 0, "low": 0, "unrated": n}
         conf: api.Confidence = "low"
         by_lang: dict[str, int] = {}
-        blind = None
     else:
         stance, fact, conf = stats.stance_counts, stats.factuality_counts, stats.coverage_confidence.value
         by_lang = stats.language_counts
-        blind = (
-            api.Blindspot(type=stats.blindspot_type, skew=stats.blindspot_skew or "", score=stats.blindspot_score or 0)
-            if stats.blindspot_type in ("stance", "language")
-            else None
-        )
+        if stats.blindspot_type == "stance" and stats.blindspot_skew in STANCE_BUCKETS:
+            blind = api.StanceBlindspot(skew=stats.blindspot_skew, score=stats.blindspot_score or 0)
+        elif stats.blindspot_type == "language":
+            blind = api.LanguageBlindspot(skew=stats.blindspot_skew or "", score=stats.blindspot_score or 0)
 
     coverage: api.CoverageAvailable | api.CoverageLimited
     if n < g["min_sources_for_bar"]:

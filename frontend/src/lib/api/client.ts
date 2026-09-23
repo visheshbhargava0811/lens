@@ -1,4 +1,4 @@
-import type { Blindspots, Page, StoryArticles, StoryCard, StoryDetail, Topic } from "./types";
+import type { Blindspots, Methodology, Page, StoryArticles, StoryCard, StoryDetail, Topic } from "./types";
 
 /** Base URL for the Lens API (docs/09). Paths are prefixed with /api/v1. */
 export const API_BASE = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1`;
@@ -63,4 +63,13 @@ export function getBlindspots(type: "stance" | "language", lang?: string) {
 
 export function getTopics(lang?: string) {
   return get<{ items: Topic[] }>("/topics", { lang });
+}
+
+/** Live methodology parameters and raters. Null when the API is unreachable: the page prose still renders. */
+export async function getMethodology(): Promise<Methodology | null> {
+  try {
+    return await get<Methodology>("/methodology");
+  } catch {
+    return null;
+  }
 }

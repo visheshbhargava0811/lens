@@ -24,6 +24,162 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feed */
+        get: operations["feed_api_v1_feed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{id_or_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Story */
+        get: operations["story_api_v1_stories__id_or_slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{id_or_slug}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Story Articles */
+        get: operations["story_articles_api_v1_stories__id_or_slug__articles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/blindspots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blindspots */
+        get: operations["blindspots_api_v1_blindspots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Topics */
+        get: operations["topics_api_v1_topics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sources */
+        get: operations["sources_api_v1_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{id_or_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source */
+        get: operations["source_api_v1_sources__id_or_slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/methodology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Methodology */
+        get: operations["methodology_api_v1_methodology_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sources/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Sources
+         * @description Body: the CSV itself (Content-Type: text/csv). Columns: see lens.ingest.source_import.
+         */
+        post: operations["import_sources_api_v1_admin_sources_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -48,6 +204,218 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ArticleRow */
+        ArticleRow: {
+            /** Id */
+            id: string;
+            source: components["schemas"]["ArticleSource"];
+            /** Headline */
+            headline: string;
+            /** Headline Lang */
+            headline_lang: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Url */
+            url: string;
+            stance: components["schemas"]["ArticleStance"];
+            /**
+             * Analysis Depth
+             * @enum {string}
+             */
+            analysis_depth: "headline_only" | "snippet" | "full_text";
+            source_factuality: components["schemas"]["SourceFactuality"] | null;
+            source_ownership: components["schemas"]["SourceOwnershipRef"] | null;
+            /** Is Syndicated */
+            is_syndicated: boolean;
+            /** Also Carried By */
+            also_carried_by: string[];
+        };
+        /** ArticleSource */
+        ArticleSource: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Language */
+            language: string;
+        };
+        /** ArticleStance */
+        ArticleStance: {
+            /**
+             * Value
+             * @enum {string}
+             */
+            value: "critical" | "balanced" | "supportive" | "not_applicable" | "unclassified";
+            /**
+             * Target
+             * @enum {string}
+             */
+            target: "central_govt" | "state_govt" | "opposition" | "none";
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+        };
+        /** Blindspots */
+        Blindspots: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "stance" | "language";
+            /** Items */
+            items: components["schemas"]["StoryCard"][];
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** Citation */
+        Citation: {
+            /** N */
+            n: number;
+            /** Article Id */
+            article_id: string;
+            /** Source Name */
+            source_name: string;
+            /** Chunk Id */
+            chunk_id: string;
+        };
+        /** CitedSentence */
+        CitedSentence: {
+            /** Text */
+            text: string;
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+        };
+        /** Counts */
+        Counts: {
+            /** Sources */
+            sources: number;
+            /** Articles */
+            articles: number;
+            /** By Language */
+            by_language: {
+                [key: string]: number;
+            };
+        };
+        /** CoverageAvailable */
+        CoverageAvailable: {
+            /**
+             * Available
+             * @default true
+             * @constant
+             */
+            available: true;
+            /**
+             * Basis
+             * @default article_stance
+             * @constant
+             */
+            basis: "article_stance";
+            /** Buckets */
+            buckets: components["schemas"]["CoverageBucket"][];
+            unclassified: components["schemas"]["SourcesPct"];
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** CoverageBucket */
+        CoverageBucket: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "critical" | "balanced" | "supportive";
+            /** Sources */
+            sources: number;
+            /** Pct */
+            pct: number;
+        };
+        /** CoverageLimited */
+        CoverageLimited: {
+            /**
+             * Available
+             * @default false
+             * @constant
+             */
+            available: false;
+            /**
+             * Reason
+             * @default limited_coverage
+             * @constant
+             */
+            reason: "limited_coverage";
+            /** Min Sources */
+            min_sources: number;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** ErrorBody */
+        ErrorBody: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+            /** Retry After S */
+            retry_after_s?: number | null;
+        };
+        /** ErrorResponse */
+        ErrorResponse: {
+            error: components["schemas"]["ErrorBody"];
+        };
+        /** FactCheckRef */
+        FactCheckRef: {
+            /** Claim */
+            claim: string;
+            /** Fact Checker */
+            fact_checker: string;
+            /** Rating */
+            rating: string;
+            /** Url */
+            url: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+        };
+        /** FactualityCounts */
+        FactualityCounts: {
+            /** High */
+            high: number;
+            /** Mixed */
+            mixed: number;
+            /** Low */
+            low: number;
+            /** Unrated */
+            unrated: number;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** Health */
         Health: {
             /**
@@ -60,6 +428,305 @@ export interface components {
             version: string;
             /** Env */
             env: string;
+        };
+        /** LanguageBlindspot */
+        LanguageBlindspot: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "language";
+            /** Skew */
+            skew: string;
+            /** Score */
+            score: number;
+        };
+        /** Methodology */
+        Methodology: {
+            /** Min Sources For Bar */
+            min_sources_for_bar: number;
+            /** Min Sources For Blindspot */
+            min_sources_for_blindspot: number;
+            /** Blindspot Stance Share */
+            blindspot_stance_share: number;
+            /** Blindspot Language Share */
+            blindspot_language_share: number;
+            /** Feed Min Sources */
+            feed_min_sources: number;
+            /** Raters */
+            raters: components["schemas"]["Rater"][];
+        };
+        /** Ownership */
+        Ownership: {
+            /** Groups */
+            groups: components["schemas"]["OwnershipGroup"][];
+            /** Unknown */
+            unknown: number;
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** OwnershipGroup */
+        OwnershipGroup: {
+            /** Name */
+            name: string;
+            /** Sources */
+            sources: number;
+        };
+        /** OwnershipRecord */
+        OwnershipRecord: {
+            /** Owner Name */
+            owner_name: string;
+            /** Owner Type */
+            owner_type: string | null;
+            /** Parent Group */
+            parent_group: string | null;
+            /** Evidence Url */
+            evidence_url: string;
+            /**
+             * Retrieved At
+             * Format: date-time
+             */
+            retrieved_at: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+        };
+        /** Rater */
+        Rater: {
+            /** Rater */
+            rater: string;
+            /** Dimension */
+            dimension: string;
+            /** Method Url */
+            method_url: string;
+            /** Sources Rated */
+            sources_rated: number;
+        };
+        /** RatingRecord */
+        RatingRecord: {
+            /** Dimension */
+            dimension: string;
+            /** Rater */
+            rater: string;
+            /** Value */
+            value: string;
+            /** Method Url */
+            method_url: string;
+            /** Evidence Url */
+            evidence_url: string | null;
+            /**
+             * Retrieved At
+             * Format: date-time
+             */
+            retrieved_at: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+        };
+        /** SourceDetail */
+        SourceDetail: {
+            source: components["schemas"]["SourceSummary"];
+            /** Ownership */
+            ownership: components["schemas"]["OwnershipRecord"][];
+            /** Ratings */
+            ratings: components["schemas"]["RatingRecord"][];
+            /** Recent Stories */
+            recent_stories: components["schemas"]["StoryCard"][];
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** SourceFactuality */
+        SourceFactuality: {
+            /** Rater */
+            rater: string;
+            /** Value */
+            value: string;
+            /** Method Url */
+            method_url: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+        };
+        /** SourceImportResult */
+        SourceImportResult: {
+            /** Ownership Added */
+            ownership_added: number;
+            /** Ratings Added */
+            ratings_added: number;
+            /** Unchanged */
+            unchanged: number;
+        };
+        /** SourceList */
+        SourceList: {
+            /** Items */
+            items: components["schemas"]["SourceSummary"][];
+        };
+        /** SourceOwnershipRef */
+        SourceOwnershipRef: {
+            /** Owner */
+            owner: string;
+            /** Evidence Url */
+            evidence_url: string;
+        };
+        /** SourceSummary */
+        SourceSummary: {
+            /** Id */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Homepage Url */
+            homepage_url: string;
+            /** Languages */
+            languages: string[];
+            /** Region */
+            region: string | null;
+            /** Is Wire */
+            is_wire: boolean;
+            /**
+             * License Mode
+             * @enum {string}
+             */
+            license_mode: "full_text" | "snippet_only" | "link_only";
+        };
+        /** SourcesPct */
+        SourcesPct: {
+            /** Sources */
+            sources: number;
+            /** Pct */
+            pct: number;
+        };
+        /** StanceBlindspot */
+        StanceBlindspot: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "stance";
+            /**
+             * Skew
+             * @enum {string}
+             */
+            skew: "critical" | "balanced" | "supportive";
+            /** Score */
+            score: number;
+        };
+        /** StoryArticles */
+        StoryArticles: {
+            /** Items */
+            items: components["schemas"]["ArticleRow"][];
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** StoryCard */
+        StoryCard: {
+            /** Id */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Headline */
+            headline: string;
+            /** Headline Lang */
+            headline_lang: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "developing" | "stable" | "archived";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Topic */
+            topic: string | null;
+            image: components["schemas"]["StoryImage"] | null;
+            counts: components["schemas"]["Counts"];
+            /** Coverage */
+            coverage: components["schemas"]["CoverageAvailable"] | components["schemas"]["CoverageLimited"];
+            factuality: components["schemas"]["FactualityCounts"];
+            /** Blindspot */
+            blindspot: (components["schemas"]["StanceBlindspot"] | components["schemas"]["LanguageBlindspot"]) | null;
+            /** Summary Preview */
+            summary_preview: string | null;
+        };
+        /** StoryCardPage */
+        StoryCardPage: {
+            /** Items */
+            items: components["schemas"]["StoryCard"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** StoryDetail */
+        StoryDetail: {
+            story: components["schemas"]["StoryCard"];
+            summary: components["schemas"]["StorySummary"] | null;
+            /** Framing Differences */
+            framing_differences: components["schemas"]["CitedSentence"][];
+            /** Fact Checks */
+            fact_checks: components["schemas"]["FactCheckRef"][];
+            ownership: components["schemas"]["Ownership"];
+            /** Limitations */
+            limitations: string[];
+        };
+        /** StoryImage */
+        StoryImage: {
+            /** Url */
+            url: string;
+            /** Source Name */
+            source_name: string;
+        };
+        /** StorySummary */
+        StorySummary: {
+            /** Lang */
+            lang: string;
+            /** Version */
+            version: number;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Verified */
+            verified: boolean;
+            /** Sentences */
+            sentences: components["schemas"]["CitedSentence"][];
+            /** Agreements */
+            agreements: components["schemas"]["CitedSentence"][];
+            /** Disagreements */
+            disagreements: components["schemas"]["CitedSentence"][];
+        };
+        /** Topic */
+        Topic: {
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+        };
+        /** Topics */
+        Topics: {
+            /** Items */
+            items: components["schemas"]["Topic"][];
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -86,6 +753,315 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    feed_api_v1_feed_get: {
+        parameters: {
+            query?: {
+                tab?: "home" | "blindspot" | "local";
+                topic?: string | null;
+                state?: string | null;
+                lang?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryCardPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    story_api_v1_stories__id_or_slug__get: {
+        parameters: {
+            query?: {
+                lang?: string | null;
+            };
+            header?: never;
+            path: {
+                id_or_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryDetail"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    story_articles_api_v1_stories__id_or_slug__articles_get: {
+        parameters: {
+            query?: {
+                group?: "stance" | "language" | "all";
+                stance?: string | null;
+                lang?: string | null;
+            };
+            header?: never;
+            path: {
+                id_or_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryArticles"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    blindspots_api_v1_blindspots_get: {
+        parameters: {
+            query?: {
+                type?: "stance" | "language";
+                lang?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Blindspots"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    topics_api_v1_topics_get: {
+        parameters: {
+            query?: {
+                lang?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Topics"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sources_api_v1_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceList"];
+                };
+            };
+        };
+    };
+    source_api_v1_sources__id_or_slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_or_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    methodology_api_v1_methodology_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Methodology"];
+                };
+            };
+        };
+    };
+    import_sources_api_v1_admin_sources_import_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "text/csv": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceImportResult"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

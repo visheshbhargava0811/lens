@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 
 import { API_BASE } from "@/lib/api/client";
-import type { Blindspots, Page, StoryArticles, StoryCard, Topic } from "@/lib/api/types";
+import type { Blindspots, Methodology, Page, StoryArticles, StoryCard, Topic } from "@/lib/api/types";
 
 import {
   articlesByStory,
@@ -69,6 +69,17 @@ export const handlers = [
       methodology_url: "/methodology#blindspots",
     });
   }),
+
+  http.get(`${API_BASE}/methodology`, () =>
+    HttpResponse.json<Methodology>({
+      min_sources_for_bar: 4,
+      min_sources_for_blindspot: 6,
+      blindspot_stance_share: 0.7,
+      blindspot_language_share: 0.9,
+      feed_min_sources: 2,
+      raters: [{ rater: "Example Rater", dimension: "factuality", method_url: "https://rater.example/method", sources_rated: 3 }],
+    }),
+  ),
 
   http.get(`${API_BASE}/topics`, ({ request }) => {
     const lang = new URL(request.url).searchParams.get("lang") === "hi" ? "hi" : "en";

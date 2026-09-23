@@ -7,9 +7,9 @@ G-BIAS-01: every coverage, stance and factuality figure carries `confidence`, an
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 Confidence = Literal["low", "medium", "high"]
 StanceKey = Literal["critical", "balanced", "supportive"]
@@ -56,10 +56,19 @@ class FactualityCounts(BaseModel):
     methodology_url: str
 
 
-class Blindspot(BaseModel):
-    type: Literal["stance", "language"]
-    skew: str
+class StanceBlindspot(BaseModel):
+    type: Literal["stance"] = "stance"
+    skew: StanceKey
     score: float
+
+
+class LanguageBlindspot(BaseModel):
+    type: Literal["language"] = "language"
+    skew: str  # language group, e.g. "en" or "indic"
+    score: float
+
+
+Blindspot = Annotated[StanceBlindspot | LanguageBlindspot, Field(discriminator="type")]
 
 
 class StoryImage(BaseModel):
