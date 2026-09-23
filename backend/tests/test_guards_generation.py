@@ -4,7 +4,14 @@ from datetime import UTC, datetime
 
 from lens.agents.offline.evidence import ArticleIn, EvidenceArticle
 from lens.core.config_files import load_yaml
-from lens.guardrails.generation import check_citations, check_faithfulness, check_quotes, check_sensitive
+from lens.guardrails.generation import (
+    check_citations,
+    check_faithfulness,
+    check_quotes,
+    check_scope,
+    check_sensitive,
+    scope_violation,
+)
 from lens.schemas.analysis import CitedSentence, Claim, FaithfulnessVerdict
 
 KEYWORDS = load_yaml("guardrails.yaml")["sensitive_keywords"]
@@ -57,3 +64,25 @@ def test_g_out_07_routes_sensitive_stories_in_any_language() -> None:
 
 def test_g_out_07_matches_whole_words_only() -> None:
     assert check_sensitive(["Metro line budget approved", "Territorial army recruitment"], KEYWORDS).passed
+
+
+def _s(text: str, n: int) -> CitedSentence:
+    return CitedSentence(text=text, citations=[f"A{i + 1}" for i in range(n)])
+
+
+def test_g_gen_08_scope_words_must_match_citations() -> None:
+    assert scope_violation(_s("All articles report the arrest.", 3), 12)  # "all" citing 3 of 12
+    assert scope_violation(_s("Each source says the vote is on Monday.", 12), 12) is None
+    assert scope_violation(_s("Most reports lead with the score.", 6), 12)  # half is not most
+    assert scope_violation(_s("Most reports lead with the score.", 7), 12) is None
+    assert scope_violation(_s("Several outlets name the victim.", 1), 12)
+    assert scope_violation(_s("Police arrested three men.", 1), 12) is None  # no scope claim
+
+
+def test_g_gen_08_drops_only_violating_sentences() -> None:
+    res = check_scope(
+        {"agreements": [_s("All articles report the arrest.", 3), _s("The arrest was on Monday.", 3)]}, 12
+    )
+    assert not res.passed and res.action == "redact"
+    assert res.meta["drop"] == ["All articles report the arrest."]
+    assert check_scope({"summary": [_s("The arrest was on Monday.", 2)]}, 12).passed

@@ -74,7 +74,7 @@ def test_store_writes_claims_summary_and_guard_events(db: Session, four: Story) 
     claim = db.execute(select(Claim)).scalar_one()
     assert claim.char_end > claim.char_start and claim.prompt_version and claim.schema_version == "1.0"
     guards = {g for (g,) in db.execute(select(GuardEvent.guard_id))}
-    assert guards == {"G-GEN-01", "G-GEN-02", "G-GEN-03", "G-OUT-07"}
+    assert guards == {"G-GEN-01", "G-GEN-02", "G-GEN-03", "G-GEN-08", "G-OUT-07"}
     assert _analyze(db, four).version == 2  # versioned, never overwritten
 
 

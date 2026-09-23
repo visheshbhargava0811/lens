@@ -71,6 +71,39 @@ def check_faithfulness(verdict: FaithfulnessVerdict) -> GuardResult:
     )
 
 
+_UNIVERSAL = re.compile(r"\b(all|each|every)\b[^.]{0,40}\b(articles?|sources?|reports?|outlets?|coverage)\b", re.I)
+_MOST = re.compile(r"\bmost\b[^.]{0,40}\b(articles?|sources?|reports?|outlets?|coverage)\b", re.I)
+_SOME = re.compile(r"\b(multiple|several)\b[^.]{0,40}\b(articles?|sources?|reports?|outlets?)\b", re.I)
+
+
+def scope_violation(sentence: CitedSentence, n_evidence: int) -> str | None:
+    """Why a sentence's scope claim contradicts its own citations, or None. Wrong by construction:
+    "all articles" citing 3 of 12 cannot be true of the evidence, whatever the articles say."""
+    cited = len(set(sentence.citations))
+    if _UNIVERSAL.search(sentence.text) and cited < n_evidence:
+        return f"says all/each/every but cites {cited} of {n_evidence} articles"
+    if _MOST.search(sentence.text) and cited * 2 <= n_evidence:
+        return f"says most but cites {cited} of {n_evidence} articles"
+    if _SOME.search(sentence.text) and cited < 2:
+        return f"says multiple/several but cites {cited} article"
+    return None
+
+
+@traced_guard("G-GEN-08", "generation")
+def check_scope(sections: Mapping[str, Sequence[CitedSentence]], n_evidence: int) -> GuardResult:
+    """Deterministic, before the judge: scope words must match the citations (meta.drop = sentence texts)."""
+    bad = {s.text: why for sec in sections.values() for s in sec if (why := scope_violation(s, n_evidence))}
+    if bad:
+        return GuardResult(
+            guard_id="G-GEN-08",
+            passed=False,
+            action="redact",
+            reason=f"{len(bad)} sentences claim more coverage than they cite",
+            meta={"drop": list(bad), "why": bad},
+        )
+    return GuardResult(guard_id="G-GEN-08", passed=True, action="allow", reason="scope claims match citations")
+
+
 def _matches(term: str, text: str) -> bool:
     if term.isascii():
         return re.search(rf"(?<![a-z]){re.escape(term.lower())}(?![a-z])", text) is not None

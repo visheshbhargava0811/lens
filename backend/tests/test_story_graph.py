@@ -85,7 +85,7 @@ def test_happy_path_publishes_and_drops_unverifiable_quotes() -> None:
     )
     assert out["outcome"] == "published"
     assert [c.source_quote for c in out["claims"]] == ["State approves metro budget"]  # G-GEN-02 dropped the other
-    assert {g.guard_id for g in out["guards"]} == {"G-GEN-01", "G-GEN-02", "G-GEN-03", "G-OUT-07"}
+    assert {g.guard_id for g in out["guards"]} == {"G-GEN-01", "G-GEN-02", "G-GEN-03", "G-GEN-08", "G-OUT-07"}
     assert set(out["prompt_versions"]) == {
         "claims_extraction",
         "framing_contrast",
@@ -187,3 +187,19 @@ def test_judge_excludes_the_family_that_wrote_the_summary_and_models_are_recorde
     assert llm.kwargs[FaithfulnessVerdict][0]["exclude_families"] == {"gemini"}
     assert out["models"]["synthesis_system"]["family"] == "gemini"
     assert set(out["models"]) == {"claims_extraction", "framing_contrast", "synthesis_system", "judge_faithfulness"}
+
+
+def test_scope_violations_are_dropped_before_the_judge() -> None:
+    draft = SummaryDraft(
+        summary=[_cs("The state approved a metro budget.", "A1")],
+        agreements=[_cs("All articles report the approval.", "A1")],  # cites 1 of 2
+        disagreements=[],
+    )
+    out, llm = _run(
+        {ClaimList: [GOOD_CLAIMS], StoryFraming: [FRAMING], SummaryDraft: [draft], FaithfulnessVerdict: [PASS]}
+    )
+    assert out["outcome"] == "published"
+    summary = out["summary"]
+    assert summary is not None and summary.agreements == []
+    assert "All articles report the approval." not in llm.prompts[FaithfulnessVerdict][0]
+    assert [x.text for x in out["pruned"]] == ["All articles report the approval."]

@@ -21,7 +21,13 @@ from pydantic import BaseModel
 from lens.agents.offline.evidence import EvidenceArticle, render
 from lens.agents.prompts import system_prompt
 from lens.guardrails.base import GuardResult
-from lens.guardrails.generation import check_citations, check_faithfulness, check_quotes, check_sensitive
+from lens.guardrails.generation import (
+    check_citations,
+    check_faithfulness,
+    check_quotes,
+    check_scope,
+    check_sensitive,
+)
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, Claim, ClaimList, FaithfulnessVerdict, StoryFraming, SummaryDraft
 
@@ -136,17 +142,32 @@ def build(llm: LLM) -> Any:
             out, rec = call(state, "synthesis_system", "synthesis", SummaryDraft, _user(state, fix))
         except LLMError as e:
             return {"summary": None, "attempts": attempts, "errors": [*state.get("errors", []), f"summary: {e}"]}
-        res = check_citations(
-            {"summary": out.summary, "agreements": out.agreements, "disagreements": out.disagreements},
-            {e.ref for e in state["evidence"]},
+        sections = {"summary": out.summary, "agreements": out.agreements, "disagreements": out.disagreements}
+        res = check_citations(sections, {e.ref for e in state["evidence"]})
+        guards = [*state.get("guards", []), res]
+        if not res.passed:
+            feedback = "\n".join(res.meta["sentences"])
+            return {"summary": None, "attempts": attempts, "feedback": feedback, "guards": guards, **rec}
+        # G-GEN-08: drop sentences whose "all/most/several articles" contradicts their own citations.
+        scope = check_scope(sections, len(state["evidence"]))
+        guards.append(scope)
+        drop = set(scope.meta.get("drop", []))
+        kept = {name: [x for x in sec if x.text not in drop] for name, sec in sections.items()}
+        pruned = [*state.get("pruned", []), *(x for sec in sections.values() for x in sec if x.text in drop)]
+        if not kept["summary"]:
+            feedback = "\n".join(f"{t} ({why})" for t, why in scope.meta["why"].items())
+            return {
+                "summary": None,
+                "attempts": attempts,
+                "feedback": feedback,
+                "guards": guards,
+                "pruned": pruned,
+                **rec,
+            }
+        draft = SummaryDraft(
+            summary=kept["summary"], agreements=kept["agreements"], disagreements=kept["disagreements"]
         )
-        return {
-            "summary": out if res.passed else None,
-            "attempts": attempts,
-            "feedback": None if res.passed else "\n".join(res.meta["sentences"]),
-            "guards": [*state.get("guards", []), res],
-            **rec,
-        }
+        return {"summary": draft, "attempts": attempts, "feedback": None, "guards": guards, "pruned": pruned, **rec}
 
     def judge(state: StoryState) -> dict[str, Any]:
         summary = state["summary"]
@@ -186,9 +207,10 @@ def build(llm: LLM) -> Any:
         main, agree, disagree = keep(summary.summary), keep(summary.agreements), keep(summary.disagreements)
         kept_ids = {id(x) for x in (*main, *agree, *disagree)}
         removed = [x for x in (*summary.summary, *summary.agreements, *summary.disagreements) if id(x) not in kept_ids]
+        pruned = [*state.get("pruned", []), *removed]
         if not main:
-            return {"summary": None, "pruned": removed}
-        return {"summary": SummaryDraft(summary=main, agreements=agree, disagreements=disagree), "pruned": removed}
+            return {"summary": None, "pruned": pruned}
+        return {"summary": SummaryDraft(summary=main, agreements=agree, disagreements=disagree), "pruned": pruned}
 
     def after_prune(state: StoryState) -> str:
         return "sensitive" if state.get("summary") is not None else "failed"
