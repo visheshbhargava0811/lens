@@ -176,7 +176,7 @@ def test_judge_unavailable_never_shows_unverified_answer() -> None:
 
 def test_judge_excludes_the_writer_family() -> None:
     _, llm, _ = _run({QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]})
-    assert llm.kwargs[FaithfulnessVerdict][0]["exclude_families"] == {"synthesis"}
+    assert llm.kwargs[FaithfulnessVerdict][0]["exclude_families"] == {"ask_synthesis"}
 
 
 def test_user_text_cannot_close_the_question_delimiter() -> None:

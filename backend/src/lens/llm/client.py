@@ -54,7 +54,7 @@ class Tier:
     temperature: float
     reasoning_effort: str | None = None
     family: str = ""
-    account: int = 1  # which API key of the provider (GROQ_API_KEY, GROQ_API_KEY_2)
+    account: int = 1  # which API key of the provider (GROQ_API_KEY, GROQ_API_KEY_2, GROQ_API_KEY_3)
 
 
 def _tier(name: str, cfg: dict[str, Any]) -> Tier:
@@ -109,6 +109,7 @@ def _post(provider: str, body: dict[str, Any], account: int = 1) -> httpx.Respon
     keys = {
         ("groq", 1): s.groq_api_key,
         ("groq", 2): s.groq_api_key_2,
+        ("groq", 3): s.groq_api_key_3,
         ("sarvam", 1): s.sarvam_api_key,
         ("gemini", 1): s.gemini_api_key,
     }

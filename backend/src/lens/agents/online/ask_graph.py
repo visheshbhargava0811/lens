@@ -184,7 +184,7 @@ def build(
         fix = f"\n\n{RETRY_NOTE}\n{state['feedback']}" if state.get("feedback") else ""
         user = f"{question_block(qu)}\n\n{render(ev.articles)}{fix}"
         try:
-            d, rec = call(state, "ask_synthesis", "synthesis", AskDraft, system_prompt("ask_synthesis"), user)
+            d, rec = call(state, "ask_synthesis", "ask_synthesis", AskDraft, system_prompt("ask_synthesis"), user)
         except LLMError as e:
             return {"draft": None, "attempts": MAX_VERIFIER_RETRIES + 1, "errors": err(state, "synthesize", e)}
         refs = {a.ref for a in ev.articles}
@@ -230,7 +230,7 @@ def build(
             v, rec = call(
                 state,
                 "judge_faithfulness",
-                "judge",
+                "ask_judge",
                 FaithfulnessVerdict,
                 system_prompt("judge_faithfulness"),
                 user,

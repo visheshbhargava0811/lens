@@ -229,3 +229,9 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
   - **SSE** uses FastAPI's native `EventSourceResponse`; payload types are published as `AskEvents` in OpenAPI. Rate limit G-IN-03 per client: 3/minute, 40/day, keyed by a salted hash of the IP (never the raw IP).
   - **PII (G-OUT-05)** is masked in Ask output, structlog records, and LangSmith traces (`hide_inputs`/`hide_outputs` on the global client).
 - Consequences: Live smoke (2026-09-23): an English story question and a loaded question returned cited, verified answers (17 s and 3 s); an out-of-scope request was refused. Observed prompt issue for the Ask eval: some agreement and disagreement sentences describe the coverage ("not mentioned in other reports", "there is a consensus") instead of the facts. Free-tier quota (ADR-0030) limits live testing to a few questions at a time.
+
+## ADR-0032: Ask gets its own Groq key and tiers (2026-09-23) — owner provided a third key
+
+- Context: Ask and story analysis shared quota (ADR-0030). The owner added a third free Groq key.
+- Decision: `GROQ_API_KEY_3` (`account: 3`) is the primary for three Ask-only tiers: `query_understanding` (gpt-oss-20b), `ask_synthesis` (gpt-oss-120b, 4096 max tokens so prompt + budget fits Groq's per-minute check) and `ask_judge` (Qwen, a different family from the writer). Their fallbacks are keys 1 and 2, then Gemini. The pipeline's tiers never use key 3.
+- Consequences: Ask no longer depends on what analysis leaves over. Scheduled analysis can be re-enabled (ADR-0030) without starving Ask; that stays the owner's call.

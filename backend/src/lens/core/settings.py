@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # LLM providers (config/models.yaml picks tier -> provider/model; ADR-0022).
     groq_api_key: SecretStr | None = None
     groq_api_key_2: SecretStr | None = None  # second key: `account: 2` entries in config/models.yaml
+    groq_api_key_3: SecretStr | None = None  # third key: Ask's own quota (`account: 3`, ADR-0032)
     sarvam_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None  # fallback provider (config/models.yaml `fallbacks`)
     llm_timeout_s: float = 120.0
