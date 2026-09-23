@@ -556,3 +556,30 @@ def test_translation_guard_keeps_attribution() -> None:
     assert check_translation(src, ["A2 के अनुसार ३ लोग घायल हुए।"]).passed  # Devanagari digits count
     assert not check_translation(src, ["3 लोग घायल हुए।"]).passed  # attribution dropped
     assert not check_translation(src, []).passed
+
+
+def test_postgres_checkpointer_round_trips_state_with_a_strict_allowlist(migrated_engine: Any, db: Any) -> None:
+    from lens.db.checkpoint import make_saver
+    from lens.services.ask import ask_events, purge_ask_turns
+
+    url = migrated_engine.url.render_as_string(hide_password=False)
+    saver = make_saver(url, max_size=1)
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    graph = build(FakeLLM(script), FakeRetriever(_ev()), lambda ids: None, checkpointer=saver)
+    list(ask_events(db, "q", graph))
+
+    from sqlalchemy import select
+
+    from lens.db.models import AskTurn
+
+    turn = db.execute(select(AskTurn)).scalar_one()
+    snap = graph.get_state({"configurable": {"thread_id": str(turn.id)}})
+    assert snap.values["outcome"] == "answer"
+    assert isinstance(snap.values["draft"], AskDraft) and isinstance(snap.values["evidence"], Evidence)
+    assert isinstance(snap.values["evidence"].articles[0].article, ArticleIn)
+
+    from datetime import timedelta
+
+    purge_ask_turns(db, datetime.now(UTC) + timedelta(days=31), saver)
+    assert graph.get_state({"configurable": {"thread_id": str(turn.id)}}).values == {}
+    saver.conn.close()

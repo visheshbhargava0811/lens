@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from lens.core.config_files import load_yaml
 from lens.core.logging import configure_logging, get_logger
 from lens.core.settings import get_settings
+from lens.db.checkpoint import ask_checkpointer
 from lens.db.locks import pipeline_lock
 from lens.db.session import get_engine
 from lens.nlp.embed import get_embedder
@@ -48,7 +49,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
-        purged = purge_ask_turns(session, now)  # docs/03 retention for Ask turns
+        purged = purge_ask_turns(session, now, ask_checkpointer())  # docs/03 retention for Ask turns
     # LLM analysis for 4+ source stories, time-boxed (ADR-0022); can be paused to leave quota for Ask (ADR-0030).
     analysed = analyze_pending() if load_yaml("clustering.yaml")["analysis"]["scheduled"] else "paused"
     out = {

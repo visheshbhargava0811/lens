@@ -102,6 +102,7 @@ def build(
     freshness: Callable[[], dict[str, Any]] | None = None,
     stale_hours: float = 6,
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
+    checkpointer: Any = None,
 ) -> Any:
     def call(
         state: AskState,
@@ -456,4 +457,4 @@ def build(
     g.add_edge("localize", END)
     for end in ("refuse", "fallback", "abstain"):
         g.add_edge(end, END)
-    return g.compile(name="ask")
+    return g.compile(name="ask", checkpointer=checkpointer)

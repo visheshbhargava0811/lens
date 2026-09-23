@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from lens.agents.offline.evidence import ArticleIn, EvidenceArticle, article_text
 from lens.agents.online.ask_graph import AskState, Evidence, build
 from lens.core.config_files import load_yaml
+from lens.db.checkpoint import ask_checkpointer
 from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story
 from lens.guardrails.pii import mask, mask_any
 from lens.llm.client import structured
@@ -311,6 +312,7 @@ def record_turn(
     session_id: str | None,
     final: BaseModel | None,
     latency_ms: int,
+    turn_id: uuid.UUID | None = None,
 ) -> AskTurn:
     """G-OPS-04 audit trail: one ask_turns row per question and its guard events. The query and every
     free-text field are PII-masked before storage (G-OUT-05); rows are purged after `retention_days`."""
@@ -321,6 +323,7 @@ def record_turn(
     qu, ev, v = state.get("qu"), state.get("evidence"), state.get("verdict")
     outcome = state.get("outcome") or "error"
     turn = AskTurn(
+        id=turn_id or uuid.uuid4(),
         session_id=sid,
         raw_query=mask(query)[0],
         neutral_query=mask(qu.neutral_query)[0] if qu else None,
@@ -357,13 +360,17 @@ def record_turn(
     return turn
 
 
-def purge_ask_turns(session: Session, now: datetime) -> int:
-    """docs/03 retention (DPDP): delete Ask turns and their guard events after `ask.retention_days`."""
+def purge_ask_turns(session: Session, now: datetime, checkpointer: Any = None) -> int:
+    """docs/03 retention (DPDP): delete Ask turns, their guard events and their checkpoint threads
+    (thread_id == turn id) after `ask.retention_days`."""
     from datetime import timedelta
 
     from sqlalchemy import delete
 
     cutoff = now - timedelta(days=load_yaml("guardrails.yaml")["ask"]["retention_days"])
+    if checkpointer is not None:
+        for tid in session.execute(select(AskTurn.id).where(AskTurn.created_at < cutoff)).scalars():
+            checkpointer.delete_thread(str(tid))
     session.execute(delete(GuardEvent).where(GuardEvent.stage == "ask", GuardEvent.created_at < cutoff))
     return session.execute(delete(AskTurn).where(AskTurn.created_at < cutoff)).rowcount  # type: ignore[attr-defined, no-any-return]
 
@@ -376,10 +383,12 @@ def ask_events(
     import time
 
     t0 = time.monotonic()
+    turn_id = uuid.uuid4()  # also the checkpoint thread id, so an audit row leads to its checkpoints
+    config = {"configurable": {"thread_id": str(turn_id)}}
     yield "status", api.AskStatus(step="understanding", message="Understanding the question")
     state: dict[str, Any] = dict(initial_state(query, ui_lang))
     sent_status: set[str] = set()
-    for update in graph.stream(state, stream_mode="updates"):
+    for update in graph.stream(state, config, stream_mode="updates"):
         for node, delta in update.items():
             state.update(delta or {})
             if node == "understand" and state.get("qu") is not None:
@@ -412,7 +421,7 @@ def ask_events(
         final.articles = cited_articles(session, final)
     else:
         final = abstain_event(session, state)  # type: ignore[arg-type]
-    record_turn(session, state, query, session_id, final, int((time.monotonic() - t0) * 1000))
+    record_turn(session, state, query, session_id, final, int((time.monotonic() - t0) * 1000), turn_id)
     yield ("answer_final" if isinstance(final, api.AskAnswer) else "abstain"), final
 
 
@@ -438,4 +447,5 @@ def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any
         {"terms": g["attribution"]["allegation_terms"], "markers": g["attribution"]["markers"]},
         freshness,
         fcfg["stale_hours"],
+        checkpointer=ask_checkpointer(),
     )
