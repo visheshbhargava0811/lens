@@ -239,5 +239,37 @@
       "right": "Right",
       "unrated": "Not rated"
     }
+  },
+  "source": {
+    "homepage": "Visit {name}",
+    "languages": "Languages",
+    "region": "Region",
+    "national": "National",
+    "wire": "Wire agency",
+    "ratings": "Ratings",
+    "noRatings": "Not rated. No rater we use covers this outlet yet.",
+    "rating": "According to {rater}: {value}",
+    "dimension": {
+      "bias": "Bias",
+      "factuality": "Factuality",
+      "other": "Rating"
+    },
+    "method": "Their method",
+    "evidence": "Evidence",
+    "retrieved": "Checked {date}",
+    "confidence": "Confidence {level}",
+    "ownership": "Ownership",
+    "noOwnership": "Owner unknown. We only show ownership we can back with a public record.",
+    "owner": "Owner: {owner}",
+    "group": "Group: {group}",
+    "recent": "Recent stories",
+    "noRecent": "No recent stories from this outlet.",
+    "license": {
+      "snippet_only": "Lens shows this outlet's headlines and short summaries, and links to the full article.",
+      "link_only": "Lens shows only this outlet's headlines and links.",
+      "full_text": "Lens is licensed to show this outlet's full articles."
+    },
+    "about": "How ratings work",
+    "notRatedDim": "Not rated"
   }
 }

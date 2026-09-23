@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster stats cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats pipeline-worker cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -55,6 +55,9 @@ index:
 
 cluster:
 	$(UVML) python -m lens.pipeline.cluster
+
+pipeline-worker:
+	$(UVML) arq lens.pipeline.worker.PipelineSettings
 
 stats:
 	$(UV) python -m lens.pipeline.stats

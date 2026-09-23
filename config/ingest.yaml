@@ -10,6 +10,8 @@ fetch:
   future_tolerance_min: 10       # publish times later than fetch time + this are not trusted
   same_source_dup_hours: 6       # same source + same content_hash within this window = one article
   ist_offset_min: 330            # some feeds label India time as UTC ("...Z"); corrected when it fits
+pipeline:
+  interval_min: 15              # make pipeline-worker: index -> cluster -> lifecycle -> stats (must divide 60)
 syndication:
   window_hours: 72               # docs/04: near-duplicate check against the last 72 h
   # Two-step near-duplicate test: SimHash is a cheap pre-filter, word-set Jaccard confirms.

@@ -14,6 +14,7 @@ import type {
   CitedSentence,
   FactCheck,
   FactualityCounts,
+  SourceDetail,
   StoryCard,
   StoryDetail,
   StoryStatus,
@@ -486,6 +487,23 @@ export const stories = built.map((b) => b.card);
 export const details = new Map(built.map((b) => [b.card.id, b.detail]));
 export const articlesByStory = new Map(built.map((b) => [b.card.id, b.articles]));
 export const slugToId = new Map(built.map((b) => [b.card.slug, b.card.id]));
+
+/** Source page fixture (docs/09 SourceDetail), derived from the fictional sources and stories above. */
+export function sourceDetail(id: string): SourceDetail | undefined {
+  const s = byId.get(id);
+  if (!s) return undefined;
+  const checked = ago(60 * 24);
+  const ratings: SourceDetail["ratings"] = [];
+  if (s.bias) ratings.push({ dimension: "bias", rater: RATER, value: s.bias, method_url: RATER_METHOD, evidence_url: null, retrieved_at: checked, confidence: "medium" });
+  if (s.rating) ratings.push({ dimension: "factuality", rater: RATER, value: s.rating, method_url: RATER_METHOD, evidence_url: null, retrieved_at: checked, confidence: "medium" });
+  return {
+    source: { id: s.id, slug: s.id, name: s.name, homepage_url: `https://example.org/${s.id}`, languages: [s.language], region: "national", is_wire: !!s.wire, license_mode: "snippet_only" },
+    ownership: s.owner ? [{ owner_name: s.owner, owner_type: null, parent_group: s.owner, evidence_url: EVIDENCE, retrieved_at: checked, confidence: "medium" }] : [],
+    ratings,
+    recent_stories: stories.filter((c) => (articlesByStory.get(c.id) ?? []).some((a) => a.source.id === id)).slice(0, 6),
+    methodology_url: "/methodology#sources",
+  };
+}
 
 export const FEED_PAGE_SIZE = 8;
 

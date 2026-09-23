@@ -30,6 +30,7 @@ export type StoryArticles = S["StoryArticles"];
 export type Blindspots = S["Blindspots"];
 export type Topic = S["Topic"];
 export type Methodology = S["Methodology"];
+export type SourceDetail = S["SourceDetail"];
 
 /** docs/09 pagination envelope; `/feed` returns Page<StoryCard> (ADR-0009). */
 export interface Page<T> {

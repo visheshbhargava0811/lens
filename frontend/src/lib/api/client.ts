@@ -1,4 +1,4 @@
-import type { Blindspots, Methodology, Page, StoryArticles, StoryCard, StoryDetail, Topic } from "./types";
+import type { Blindspots, Methodology, Page, SourceDetail, StoryArticles, StoryCard, StoryDetail, Topic } from "./types";
 
 /** Base URL for the Lens API (docs/09). Paths are prefixed with /api/v1. */
 export const API_BASE = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1`;
@@ -71,5 +71,15 @@ export async function getMethodology(): Promise<Methodology | null> {
     return await get<Methodology>("/methodology");
   } catch {
     return null;
+  }
+}
+
+/** Accepts the source id or slug. */
+export async function getSource(idOrSlug: string): Promise<SourceDetail | null> {
+  try {
+    return await get<SourceDetail>(`/sources/${encodeURIComponent(idOrSlug)}`);
+  } catch (e) {
+    if (e instanceof ApiRequestError && e.status === 404) return null;
+    throw e;
   }
 }

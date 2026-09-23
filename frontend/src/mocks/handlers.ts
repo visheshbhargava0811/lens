@@ -10,6 +10,7 @@ import {
   ERROR_TOPIC,
   FEED_PAGE_SIZE,
   slugToId,
+  sourceDetail,
   stories,
   topics,
 } from "./fixtures";
@@ -68,6 +69,11 @@ export const handlers = [
       items: stories.filter((s) => s.blindspot?.type === type),
       methodology_url: "/methodology#blindspots",
     });
+  }),
+
+  http.get(`${API_BASE}/sources/:id`, ({ params }) => {
+    const detail = sourceDetail(String(params.id));
+    return detail ? HttpResponse.json(detail) : notFound("source");
   }),
 
   http.get(`${API_BASE}/methodology`, () =>

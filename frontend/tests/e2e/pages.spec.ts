@@ -119,6 +119,32 @@ test("Hindi headline renders with lang and Indic line height; legend shows outle
   for (const label of ["Left", "Center", "Right", "Not rated"]) await expect(legend.getByText(label, { exact: true })).toBeVisible();
 });
 
+test("source page shows ratings with provenance, ownership and recent stories", async ({ page }, info) => {
+  await page.goto(STORY);
+  await page.getByTestId("article-row").first().getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/source\//);
+  await expectHealthyPage(page, "source", info.project.name);
+  const rating = page.getByTestId("source-rating").first();
+  await expect(rating).toContainText("According to Example Rater");
+  await expect(rating.getByRole("link", { name: "Their method" })).toHaveAttribute("href", /^https:\/\//);
+  await expect(page.getByRole("heading", { name: "Recent stories" })).toBeVisible();
+});
+
+test("source page lists a missing rating dimension as Not rated", async ({ page }) => {
+  await page.goto("/source/s-wire-sample"); // factuality rated, bias not
+  await expect(page.getByTestId("source-rating")).toHaveCount(1);
+  const missing = page.getByTestId("source-rating-missing");
+  await expect(missing).toHaveCount(1);
+  await expect(missing).toContainText("Bias");
+  await expect(missing).toContainText("Not rated");
+});
+
+test("source page for an unrated, unknown-owner outlet says so", async ({ page }) => {
+  await page.goto("/source/s-placeholder-post");
+  await expect(page.getByText("Not rated. No rater we use covers this outlet yet.")).toBeVisible();
+  await expect(page.getByText("Owner unknown.", { exact: false })).toBeVisible();
+});
+
 test("limited coverage replaces the bar and still lists sources", async ({ page }) => {
   await page.goto(LIMITED);
   await expect(page.getByTestId("coverage-limited").first()).toContainText("Limited coverage: only 2 sources so far");

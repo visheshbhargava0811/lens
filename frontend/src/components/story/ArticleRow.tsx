@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useFormatter, useLocale, useNow, useTranslations } from "next-intl";
 
 import { biasFill } from "@/components/coverage/bias-style";
@@ -26,9 +27,13 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <span className="font-extrabold" lang={article.source.language}>
+        <Link
+          href={`/source/${article.source.id}`}
+          className="font-extrabold hover:underline"
+          lang={article.source.language}
+        >
           {article.source.name}
-        </span>
+        </Link>
         <span className="rounded-chip bg-surface px-1.5 py-0.5 text-xs font-medium text-ink-muted">
           {languageName(article.source.language, locale)}
         </span>
