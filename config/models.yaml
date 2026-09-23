@@ -4,9 +4,15 @@ tiers:
   reranker:            { provider: TBD, model: TBD }
   triage:              { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
   query_understanding: { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
-  analysis:            { provider: TBD, model: TBD, max_tokens: 2048, temperature: 0 }
-  synthesis:           { provider: TBD, model: TBD, max_tokens: 2048, temperature: 0.2 }
-  judge:               { provider: TBD, model: TBD, max_tokens: 1024, temperature: 0 }   # different family than synthesis
+  # Phase 4 (ADR-0022): provisional until the eval baseline; smoke-tested live 2026-09-23.
+  # Groq free tier: 1000 requests/day and 8000 tokens/min per model. Constrained JSON-schema
+  # decoding ("strict") is supported for gpt-oss-* and qwen3.8 on Groq.
+  # gpt-oss models reason before answering; reasoning counts against max_tokens (hence 8192).
+  # qwen/qwen3.8-27b returned empty claim lists on real stories (2026-09-23 comparison, ADR-0022).
+  analysis:            { provider: groq, model: openai/gpt-oss-20b, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+  synthesis:           { provider: groq, model: openai/gpt-oss-120b, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
+  # Different family than synthesis. Reasoning tokens count against max_tokens: keep it large.
+  judge:               { provider: sarvam, model: sarvam-105b, max_tokens: 16000, temperature: 0, reasoning_effort: low }
   translation:         { provider: TBD, model: TBD }
   tts:                 { provider: TBD, model: TBD }
 fallbacks:

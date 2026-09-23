@@ -10,23 +10,13 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 from sqlalchemy.orm import Session
 
-from lens.api.app import create_app
 from lens.core.settings import get_settings
 from lens.db.models import Article, Source, SourceOwnership, SourceRating, Story, StoryArticle
-from lens.db.session import get_session
 from lens.pipeline.stats import compute_all
 
 pytestmark = pytest.mark.db
 NOW = datetime(2026, 9, 21, 12, 0, tzinfo=UTC)
 P = "/api/v1"
-
-
-@pytest.fixture
-def client(db: Session) -> Iterator[TestClient]:
-    app = create_app()
-    app.dependency_overrides[get_session] = lambda: db
-    with TestClient(app) as c:
-        yield c
 
 
 def _src(db: Session, slug: str, lang: str = "en") -> Source:

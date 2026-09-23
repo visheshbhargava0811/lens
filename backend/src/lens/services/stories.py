@@ -20,12 +20,14 @@ from lens.core.config_files import load_yaml
 from lens.db.models import (
     AnalysisDepth,
     Article,
+    Chunk,
     Source,
     SourceOwnership,
     SourceRating,
     Story,
     StoryArticle,
     StoryStats,
+    StorySummary,
 )
 from lens.pipeline.stats import best_ratings
 from lens.schemas import api
@@ -49,7 +51,7 @@ def _visible() -> Any:
 # ---------------------------------------------------------------- cards
 
 
-def _card(story: Story, stats: StoryStats | None, g: dict[str, Any]) -> api.StoryCard:
+def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: str | None = None) -> api.StoryCard:
     n = story.source_count
     blind: api.BiasBlindspot | api.LanguageBlindspot | None = None
     if stats is None:  # stats not computed yet: everything unrated
@@ -101,14 +103,55 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any]) -> api.Stor
             methodology_url=M_FACTUALITY,
         ),
         blindspot=blind,
-        summary_preview=None,  # summaries arrive in Phase 4
+        summary_preview=preview,
     )
 
 
 def _cards(session: Session, q: Select[Any]) -> list[api.StoryCard]:
     g = _cfg()
     rows = session.execute(q.outerjoin(StoryStats, StoryStats.story_id == Story.id).add_columns(StoryStats)).all()
-    return [_card(r[0], r[1], g) for r in rows]
+    latest = latest_published(session, [r[0].id for r in rows])
+    return [_card(r[0], r[1], g, _preview(latest.get(r[0].id))) for r in rows]
+
+
+def latest_published(session: Session, story_ids: list[uuid.UUID]) -> dict[uuid.UUID, StorySummary]:
+    """Newest published summary per story. Held (review) and failed versions are never served."""
+    if not story_ids:
+        return {}
+    rows = session.execute(
+        select(StorySummary)
+        .where(StorySummary.story_id.in_(story_ids), StorySummary.state == "published")
+        .order_by(StorySummary.story_id, StorySummary.version.desc())
+        .distinct(StorySummary.story_id)
+    ).scalars()
+    return {r.story_id: r for r in rows}
+
+
+def _preview(row: StorySummary | None) -> str | None:
+    return row.summary[0]["text"] if row is not None and row.summary else None
+
+
+def _cited(sections: list[list[dict[str, Any]]], chunk_of: dict[str, str]) -> list[list[api.CitedSentence]]:
+    """Stored sentences -> API shape, numbering citations continuously across all sections."""
+    n = 0
+    out: list[list[api.CitedSentence]] = []
+    for sentences in sections:
+        section = []
+        for s in sentences:
+            cites = []
+            for c in s["citations"]:
+                n += 1
+                cites.append(
+                    api.Citation(
+                        n=n,
+                        article_id=c["article_id"],
+                        source_name=c["source_name"],
+                        chunk_id=chunk_of.get(c["article_id"], ""),
+                    )
+                )
+            section.append(api.CitedSentence(text=s["text"], citations=cites))
+        out.append(section)
+    return out
 
 
 # ---------------------------------------------------------------- feed
@@ -199,6 +242,39 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
         .join(StoryArticle, StoryArticle.article_id == Article.id)
         .where(StoryArticle.story_id == story.id, Article.analysis_depth != AnalysisDepth.full_text)
     ).scalar_one()
+    row = latest_published(session, [story.id]).get(story.id)
+    summary: api.StorySummary | None = None
+    framing: list[api.CitedSentence] = []
+    if row is not None:
+        ids = {
+            c["article_id"]
+            for section in (row.summary, row.agreements, row.disagreements, *(row.framing or {}).values())
+            for s in section
+            for c in s["citations"]
+        }
+        chunk_of = {
+            str(a): str(c)
+            for a, c in session.execute(
+                select(Chunk.article_id, Chunk.id).where(
+                    Chunk.article_id.in_([uuid.UUID(i) for i in ids]), Chunk.idx == 0
+                )
+            ).all()
+        }
+        f = row.framing or {}
+        sents, agree, disagree, diffs, only = _cited(
+            [row.summary, row.agreements, row.disagreements, f.get("differences", []), f.get("only_in_some", [])],
+            chunk_of,
+        )
+        summary = api.StorySummary(
+            lang=row.lang,
+            version=row.version,
+            generated_at=row.created_at,
+            verified=(row.verifier_result or {}).get("verdict", {}).get("verdict") == "pass",
+            sentences=sents,
+            agreements=agree,
+            disagreements=disagree,
+        )
+        framing = diffs + only
     limitations: list[str] = []
     if partial:
         limitations.append(f"Based on headlines and summaries for {partial} of {story.source_count} sources.")
@@ -208,8 +284,8 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
         limitations.append(f"{card.factuality.unrated} of {story.source_count} sources have no factuality rating.")
     return api.StoryDetail(
         story=card,
-        summary=None,  # Phase 4
-        framing_differences=[],  # Phase 4
+        summary=summary,
+        framing_differences=framing,
         fact_checks=[],  # Phase 5
         ownership=api.Ownership(
             groups=[api.OwnershipGroup(name=k, sources=v) for k, v in sorted(owners.items()) if k != "unknown"],

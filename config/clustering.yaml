@@ -10,6 +10,11 @@ borderline_without_verifier: new_story   # new_story | assign
 story_centroid_update: running_mean
 lifecycle: { stable_after_hours: 24, archive_after_days: 7 }
 reanalysis_trigger: { new_sources: 3, hours: 6 }
+analysis:                        # LLM story analysis (ADR-0022)
+  min_sources: 4                 # only stories with a coverage bar
+  max_articles: 12               # evidence cap per story (one article per outlet, balanced)
+  max_stories_per_run: 10        # per pipeline pass; Groq free tier is 8k tokens/min per model
+  max_seconds_per_run: 600       # stop starting new stories after this, so the 15-minute pass stays on time
 batch:                           # nightly HDBSCAN pass: proposes merges only, never applies them
   days: 7
   min_cluster_size: 2

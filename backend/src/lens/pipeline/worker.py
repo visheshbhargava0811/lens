@@ -2,8 +2,9 @@
 
 Runs on the host (it needs the `ml` extra for BGE-M3; the ingest container does not carry it):
     make pipeline-worker
-Every `pipeline.interval_min` it indexes new articles, clusters them, updates story lifecycle and
-recomputes story_stats. Its own Arq queue keeps it apart from the ingest worker's fetch jobs.
+Every `pipeline.interval_min` it indexes new articles, clusters them, updates story lifecycle,
+recomputes story_stats, and runs LLM analysis on eligible stories within a time budget.
+Its own Arq queue keeps it apart from the ingest worker's fetch jobs.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from lens.core.logging import configure_logging, get_logger
 from lens.core.settings import get_settings
 from lens.db.session import get_engine
 from lens.nlp.embed import get_embedder
+from lens.pipeline.analyze import analyze_pending
 from lens.pipeline.cluster import cluster_pending, update_lifecycle
 from lens.pipeline.index import index_pending
 from lens.pipeline.stats import compute_all
@@ -43,6 +45,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
+    analysed = analyze_pending()  # LLM analysis for 4+ source stories, time-boxed (ADR-0022)
     out = {
         "indexed": idx.articles,
         "clustered": cl.articles,
@@ -50,6 +53,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         "assigned": cl.assigned,
         "lifecycle": life,
         "stats": stats,
+        "analysed": analysed,
         "seconds": round(time.monotonic() - t0, 1),
     }
     log.info("pipeline.run", **out)

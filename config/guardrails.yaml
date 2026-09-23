@@ -8,6 +8,17 @@ sensitive_topics:
   - health_scare
   - terror_incident
 route_to_review_for: all     # precomputed + reviewed summaries only
+# G-OUT-07 detector, deterministic first (docs/07): a story matches a topic when its headlines or
+# summaries contain one of these terms (case-insensitive; Latin terms match whole words). Deliberately
+# broad: a false positive only sends a summary to review, it never blocks it. Tune on the eval set.
+sensitive_keywords:
+  communal_violence: [communal, riot, riots, mob lynching, lynched, "सांप्रदायिक", "दंगा", "दंगे", "मॉब लिंचिंग", "जातीय हिंसा", "धार्मिक हिंसा"]
+  election_model_code_period: [model code of conduct, "आचार संहिता"]
+  sub_judice_court_matter: [sub judice, chargesheet, charge sheet, bail plea, "आरोप पत्र", "ज़मानत याचिका", "जमानत याचिका"]
+  sexual_offence_case: [rape, raped, gangrape, gang-rape, sexual assault, molestation, molested, pocso, "बलात्कार", "दुष्कर्म", "गैंगरेप", "यौन उत्पीड़न", "छेड़छाड़", "अत्याचार"]
+  minor_involved: [minor, minors, juvenile, "नाबालिग", "नाबालिग़", "अल्पवयीन"]
+  health_scare: [outbreak, epidemic, pandemic, "महामारी", "प्रकोप"]
+  terror_incident: [terror, terrorist, terrorists, terror attack, bomb blast, blasts, bombing, bombings, suicide bomber, "आतंकी", "आतंकवादी", "आतंकवाद", "बम धमाका", "धमाके", "दहशतवादी"]
 min_sources_for_bar: 4
 min_sources_for_blindspot: 6
 feed_min_sources: 2            # feed and blindspot lists hide single-source stories (ADR-0018)

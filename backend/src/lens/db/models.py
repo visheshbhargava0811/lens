@@ -308,6 +308,7 @@ class StoryStats(Base):
 
 class Claim(Base):
     __tablename__ = "claims"
+    __table_args__ = (Index("ix_claims_article_id", "article_id"),)
 
     id: Mapped[uuid.UUID] = _pk()
     article_id: Mapped[uuid.UUID] = _fk("articles.id", ondelete="CASCADE")
@@ -318,6 +319,7 @@ class Claim(Base):
     attributed_to: Mapped[str | None] = mapped_column(Text)
     checkable: Mapped[bool] = mapped_column(Boolean)
     schema_version: Mapped[str] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text)
 
 
 class Framing(Base):
@@ -369,7 +371,10 @@ class ClaimFactCheckMatch(Base):
 
 class StorySummary(Base):
     __tablename__ = "story_summaries"
-    __table_args__ = (UniqueConstraint("story_id", "version", "lang"),)
+    __table_args__ = (
+        UniqueConstraint("story_id", "version", "lang"),
+        Index("ix_story_summaries_story_state", "story_id", "state", text("version DESC")),
+    )
 
     id: Mapped[uuid.UUID] = _pk()
     story_id: Mapped[uuid.UUID] = _fk("stories.id", ondelete="CASCADE")
@@ -382,6 +387,10 @@ class StorySummary(Base):
     prompt_version: Mapped[str] = mapped_column(Text)
     verifier_result: Mapped[Any] = mapped_column(JSONB)
     created_at: Mapped[datetime] = _now()
+    framing: Mapped[Any | None] = mapped_column(JSONB)
+    state: Mapped[str] = mapped_column(Text, server_default="published")  # published | review | failed
+    source_count: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    schema_version: Mapped[str] = mapped_column(Text, server_default="1.0")
 
 
 # ---------------------------------------------------------------- users, memory, logs

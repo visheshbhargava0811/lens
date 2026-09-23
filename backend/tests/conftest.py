@@ -1,16 +1,25 @@
 """Shared fixtures. DB tests run against a throwaway database migrated to head."""
 
+import os
+
+# Tests never talk to LangSmith or any external service (CLAUDE.md: unit tests mock LLM calls).
+# Environment variables take precedence over .env in pydantic-settings and in the langsmith SDK.
+os.environ["LANGSMITH_TRACING"] = "false"
+
 import uuid
 from collections.abc import Iterator
 
 import pytest
 from alembic.config import Config
+from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from alembic import command
+from lens.api.app import create_app
 from lens.core.settings import REPO_ROOT, get_settings
+from lens.db.session import get_session
 
 
 @pytest.fixture(scope="session")
@@ -48,3 +57,12 @@ def db(migrated_engine: Engine) -> Iterator[Session]:
         finally:
             session.close()
             trans.rollback()
+
+
+@pytest.fixture
+def client(db: Session) -> Iterator[TestClient]:
+    """API client whose requests use the test transaction."""
+    app = create_app()
+    app.dependency_overrides[get_session] = lambda: db
+    with TestClient(app) as c:
+        yield c

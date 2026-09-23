@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     langsmith_api_key: SecretStr | None = None
     langsmith_project: str = "lens-dev"
 
+    # LLM providers (config/models.yaml picks tier -> provider/model; ADR-0022).
+    groq_api_key: SecretStr | None = None
+    sarvam_api_key: SecretStr | None = None
+    llm_timeout_s: float = 120.0
+
     web_origin: str = "http://localhost:3000"
     admin_token: SecretStr | None = None  # /api/v1/admin/*; unset disables admin endpoints
 
