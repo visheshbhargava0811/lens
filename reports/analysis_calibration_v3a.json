@@ -1,0 +1,334 @@
+{
+  "name": "calibration_v3a",
+  "generated_at": "2026-09-23T15:55:23.819139+00:00",
+  "stories_analysed": 228,
+  "summary_versions": 290,
+  "outcomes": {
+    "failed": 201,
+    "published": 77,
+    "rejected": 1,
+    "review": 11
+  },
+  "attempts": {
+    "1": 49,
+    "2": 13,
+    "3": 228
+  },
+  "versions_with_pruned_sentences": 34,
+  "first_try_judge_pass_rate": 0.38,
+  "guard_pass_rates": {
+    "G-GEN-01": 1.0,
+    "G-GEN-02": 0.855,
+    "G-GEN-03": 0.38,
+    "G-GEN-08": 0.755,
+    "G-OUT-07": 0.865
+  },
+  "stored_claims": 725,
+  "quote_match_rate": 1.0,
+  "framing_present": 119,
+  "judge_calibration": {
+    "gold": "data/evals/judge_calibration/gold_v3a.jsonl",
+    "judge": "groq/qwen/qwen3.8-27b",
+    "n": 39,
+    "unscored": 15,
+    "kappa": 0.389,
+    "agreement": 0.821,
+    "human_supported_share": 0.923,
+    "by_language": {
+      "en": {
+        "n": 17,
+        "kappa": 0.0,
+        "agreement": 0.882
+      },
+      "en+hi": {
+        "n": 15,
+        "kappa": 0.471,
+        "agreement": 0.8
+      },
+      "hi": {
+        "n": 7,
+        "kappa": 0.364,
+        "agreement": 0.714
+      }
+    },
+    "target": 0.6,
+    "confusion": {
+      "both_supported": 29,
+      "both_unsupported": 3,
+      "judge_too_strict": 7,
+      "judge_too_lenient": 0
+    },
+    "items": [
+      {
+        "id": "judge-v3a-1",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-2",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-3",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-4",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-5",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-6",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-7",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-8",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-9",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-10",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-12",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-13",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-14",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-15",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-16",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-17",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-18",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-19",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-20",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-21",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-23",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-24",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-25",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-26",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-27",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-28",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-29",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-30",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-31",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-32",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-33",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-34",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-35",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-36",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-37",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-38",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-39",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-40",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-41",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-42",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-43",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-44",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-45",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-46",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-47",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-48",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-49",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v3a-50",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-51",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-52",
+        "human": true,
+        "judge": null
+      },
+      {
+        "id": "judge-v3a-53",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-54",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-55",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v3a-56",
+        "human": true,
+        "judge": null
+      }
+    ]
+  }
+}
