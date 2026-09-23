@@ -4,6 +4,8 @@ Stack: **semantic chunks, hybrid dense + sparse search fused with RRF, ColBERT l
 
 Add each component only if evals show it earns its latency and storage cost (ablation plan below).
 
+> **Phase 5 result (ADR-0029, provisional until the reviewed query set):** the ablation kept **dense** search, tier 1 over story centroids, and source balancing. Sparse + RRF and ColBERT rerank did not earn their cost on this corpus and are off by default (`tier2.mode`, `tier2.rerank`). The flow below is the original design; see `reports/retrieval_ablation.md`.
+
 ## Flow
 
 ```

@@ -196,3 +196,16 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Context: `docs/05` lists "hybrid + cross-encoder" as an alternative to ColBERT for the rerank step; only one reranker is ever used (`tier2.rerank`). A 6-query smoke run with `BAAI/bge-reranker-v2-m3` on the top 100 hybrid candidates (local, Apple MPS) measured rerank p50 ≈ 23 s per query, against ≈ 13 s for query-time ColBERT and ≈ 14 ms for hybrid RRF alone.
 - Decision: Drop the cross-encoder without a quality measurement. The ablation compares hybrid RRF against hybrid + ColBERT only; `tier2.rerank` is now `colbert | none`, and the `reranker` model tier is back to TBD.
 - Consequences: The `docs/05` variant list is not fully covered, and this is recorded rather than hidden. Revisit only if ColBERT earns its place and a cheaper cross-encoder (or a hosted one) becomes an option.
+
+## ADR-0029: Retrieval pipeline after the Phase 5 ablation (2026-09-23) — provisional until the reviewed query set
+
+- Context: `reports/retrieval_ablation.md`, 172 Claude-drafted queries (157 answerable, 15 no-answer), story-level relevance, 32,484 single-chunk articles. Per-component evidence is in the report.
+- Decisions:
+  - **Dense chunk search is the tier-2 default** (R@1 0.806, R@5 0.951, MRR 0.901; 15 ms).
+  - **Sparse + RRF fusion dropped from the query path.** Hybrid k=60 R@1 0.581 (k=2: 0.591); sparse beat dense on 1 of 157 queries; cross-lingual R@5 falls from 0.986 to 0.338. Sparse vectors stay stored (0.27 MB per 1k chunks) so the reviewed set can re-test without re-indexing. `tier2.mode: dense | hybrid`.
+  - **ColBERT rerank dropped, and multivectors are not stored.** No query where it beat dense; query-time encoding p50 about 10 s; stored f32 multivectors about 355 MB per 1k chunks (about 11.5 GB today). `tier2.rerank: none`.
+  - **Tier 1 over story centroids (dense) kept.** Ties dense chunk search (1 win each way) and gives the best abstain signal (AUC 0.930).
+  - **`tier1.min_score` 0.35 → 0.66**: 0.35 kept every no-answer query; 0.66 keeps 84% of answerable and 0% of the 15 no-answer queries. Provisional.
+  - **Source-balanced selection kept**: outlets 4.50 → 4.65 (of 4.93 available), largest outlet share 0.323 → 0.296, language groups 0.981 → 0.997, syndicated copies 0.13 → 0, at about 0.05 ms.
+  - **Chunking comparison N/A**: every article is one chunk under `snippet_only`.
+- Consequences: Phase 6's retriever is dense, plus story filter, plus balancing. Re-run `make eval-retrieval QUERIES=data/evals/retrieval/queries_v1.jsonl NAME=v1` once the owner review is done, and revisit these decisions if hybrid or ColBERT gains on the reviewed set.
