@@ -1,0 +1,25 @@
+{
+  "name": "baseline_v0",
+  "generated_at": "2026-09-23T04:29:54.420721+00:00",
+  "stories_analysed": 8,
+  "summary_versions": 8,
+  "outcomes": {
+    "failed": 5,
+    "review": 1,
+    "published": 2
+  },
+  "attempts": {
+    "3": 8
+  },
+  "versions_with_pruned_sentences": 3,
+  "first_try_judge_pass_rate": 0.0,
+  "guard_pass_rates": {
+    "G-GEN-01": 1.0,
+    "G-GEN-02": 0.875,
+    "G-GEN-03": 0.0,
+    "G-OUT-07": 0.667
+  },
+  "stored_claims": 59,
+  "quote_match_rate": 1.0,
+  "framing_present": 8
+}
