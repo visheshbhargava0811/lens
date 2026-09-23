@@ -24,6 +24,7 @@ _INJECTION = re.compile(
     r"(ignore|disregard|forget)\s+(all\s+|any\s+)?(the\s+)?(previous|prior|above|earlier)\s+(instructions|rules|prompts?)"
     r"|\byou\s+are\s+(now\s+)?(an?\s+)?(ai|assistant|language\s+model|chatgpt|claude|llm)\b"
     r"|\b(system|developer)\s+(prompt|message|instructions)\b"
+    r"|\byou\s+are\s+now\s+dan\b|\bdo\s+anything\s+now\b"
     r"|पिछले\s+(सभी\s+)?निर्देश(ों)?\s+(को\s+)?(अनदेखा|नज़रअंदाज़|नजरअंदाज)"
     r"|सिस्टम\s+प्रॉम्प्ट",
     re.IGNORECASE,
