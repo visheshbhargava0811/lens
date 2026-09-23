@@ -98,14 +98,11 @@ def test_long_retry_after_fails_over_to_gemini_without_waiting(fake: Fake) -> No
     fake.queues["gemini"].append(_resp(200, OK))
     meta: dict[str, str] = {}
     structured("synthesis", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
-    assert fake.slept == [] and fake.providers() == ["groq", "gemini"]
-    assert meta == {
-        "provider": "gemini",
-        "model": tier_chain("synthesis")[1].model,
-        "family": "gemini",
-        "fallback": "true",
-    }
-    assert "max_tokens" in fake.requests[1]  # Gemini's OpenAI-compatible body
+    # The other Groq model is down too (empty queue), so the chain reaches Gemini; nobody waited.
+    first_gemini = next(t for t in tier_chain("synthesis") if t.provider == "gemini")
+    assert fake.slept == [] and fake.providers()[-1] == "gemini"
+    assert meta == {"provider": "gemini", "model": first_gemini.model, "family": "gemini", "fallback": "true"}
+    assert "max_tokens" in fake.requests[-1]  # Gemini's OpenAI-compatible body
 
 
 def test_invalid_output_after_fix_retries_fails_over(fake: Fake) -> None:
@@ -119,7 +116,14 @@ def test_second_gemini_model_is_tried_when_the_first_is_down(fake: Fake) -> None
     fake.queues["gemini"].extend([_err(503, headers={"retry-after": "999"}), _resp(200, OK)])
     structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
     models = [r["model"] for r in fake.requests if r["provider"] == "gemini"]
-    assert models == [t.model for t in tier_chain("analysis")[1:3]]
+    assert models == [t.model for t in tier_chain("analysis") if t.provider == "gemini"][:2]
+
+
+def test_groq_models_back_each_other_up_before_gemini(fake: Fake) -> None:
+    fake.queues["groq"].extend([_resp(429, headers={"retry-after": "900"}), _resp(200, OK)])
+    meta: dict[str, str] = {}
+    structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
+    assert fake.providers() == ["groq", "groq"] and meta["model"] == tier_chain("analysis")[1].model
 
 
 def test_every_provider_failing_raises_with_all_reasons(fake: Fake) -> None:
@@ -130,14 +134,20 @@ def test_every_provider_failing_raises_with_all_reasons(fake: Fake) -> None:
 
 
 def test_judge_skips_a_fallback_of_the_summarizers_family(fake: Fake) -> None:
-    # Sarvam (the judge) is down; Gemini wrote the summary, so a Gemini judge would grade its own family.
+    # The primary judge is down; Gemini wrote the summary, so a Gemini judge would grade its own family.
     with pytest.raises(LLMError, match="family gemini excluded"):
         structured("judge", Out, "sys", "user", run_name="t", prompt_version="1", exclude_families={"gemini"})
-    assert set(fake.providers()) == {"sarvam"}
+    assert "gemini" not in fake.providers()
 
 
-def test_judge_tier_uses_sarvam_body(fake: Fake) -> None:
-    fake.queues["sarvam"].append(_resp(200, OK))
-    structured("judge", Out, "sys", "user", run_name="t", prompt_version="1")
-    req = fake.requests[0]
-    assert req["provider"] == "sarvam" and "max_tokens" in req and req["reasoning_effort"] == "low"
+def test_judge_falls_back_to_sarvam_last_when_credits_return(fake: Fake) -> None:
+    fake.queues["sarvam"].append(_resp(200, OK))  # groq and gemini down
+    meta: dict[str, str] = {}
+    structured("judge", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
+    assert fake.providers()[-1] == "sarvam" and meta["family"] == "sarvam"
+    req = fake.requests[-1]
+    assert "max_tokens" in req and req["reasoning_effort"] == "low"
+
+
+def test_judge_family_differs_from_the_summarizer() -> None:
+    assert tier_chain("judge")[0].family != tier_chain("synthesis")[0].family

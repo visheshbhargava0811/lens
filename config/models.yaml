@@ -11,8 +11,9 @@ tiers:
   # qwen/qwen3.8-27b returned empty claim lists on real stories (2026-09-23 comparison, ADR-0022).
   analysis:            { provider: groq, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
   synthesis:           { provider: groq, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
-  # Different family than synthesis. Reasoning tokens count against max_tokens: keep it large.
-  judge:               { provider: sarvam, model: sarvam-105b, family: sarvam, max_tokens: 16000, temperature: 0, reasoning_effort: low }
+  # Different family than synthesis (ADR-0024: Qwen replaced Sarvam when its credits ran out).
+  # Groq checks prompt + max_tokens against the 8k tokens/min limit, so keep the budget at 2048.
+  judge:               { provider: groq, model: qwen/qwen3.8-27b, family: qwen, max_tokens: 2048, temperature: 0 }
   translation:         { provider: TBD, model: TBD }
   tts:                 { provider: TBD, model: TBD }
 # Tried in order when a tier's primary fails after its own retries: rate limit (or a retry-after
@@ -20,8 +21,17 @@ tiers:
 # per model, so each model is its own fallback slot. `family` keeps the judge independent: a judge
 # fallback of the same family as the summary that produced the text is skipped (fail closed).
 fallbacks:
-  analysis: &gemini
-    - { provider: gemini, model: gemini-3.6-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
-    - { provider: gemini, model: gemini-3.5-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
-  synthesis: *gemini
-  judge: *gemini
+  # Each Groq model has its own quota, so the two gpt-oss models back each other up before Gemini.
+  analysis:
+    - { provider: groq, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+    - &gemini36 { provider: gemini, model: gemini-3.6-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+    - &gemini35 { provider: gemini, model: gemini-3.5-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+  synthesis:
+    - { provider: groq, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
+    - *gemini36
+    - *gemini35
+  judge:
+    - *gemini36
+    - *gemini35
+    # Returns 402 until credits are topped up; failing fast costs nothing.
+    - { provider: sarvam, model: sarvam-105b, family: sarvam, max_tokens: 16000, temperature: 0, reasoning_effort: low }

@@ -40,7 +40,11 @@ def eligible(session: Session, limit: int) -> list[Story]:
     retry_after = datetime.now(UTC) - timedelta(hours=c["reanalysis_trigger"]["hours"])
     last = (
         select(StorySummary.story_id, func.max(StorySummary.source_count).label("n"))
-        .where(or_(StorySummary.state != "failed", StorySummary.created_at > retry_after))
+        .where(
+            or_(StorySummary.state != "failed", StorySummary.created_at > retry_after),
+            # Failures caused by exhausted providers are not about the story: never block a retry.
+            ~StorySummary.verifier_result["errors"].astext.contains("every provider failed"),
+        )
         .group_by(StorySummary.story_id)
         .subquery()
     )
@@ -179,11 +183,18 @@ def store(session: Session, story: Story, state: StoryState) -> StorySummary:
     return row
 
 
+def _providers_exhausted(state: StoryState) -> bool:
+    """The summary or judge step failed because every configured provider failed (quota, outage)."""
+    return any(
+        e.split(":", 1)[0] in ("summary", "judge") and "every provider failed" in e for e in state.get("errors", [])
+    )
+
+
 def analyze_pending(llm: LLM = structured, limit: int | None = None) -> dict[str, int]:
     cfg = load_yaml("clustering.yaml")["analysis"]
     keywords = load_yaml("guardrails.yaml")["sensitive_keywords"]
     graph = build(llm)
-    counts = {"published": 0, "review": 0, "failed": 0}
+    counts = {"published": 0, "review": 0, "failed": 0, "deferred": 0}
     with Session(get_engine()) as session:
         stories = eligible(session, limit or cfg["max_stories_per_run"])
     deadline = time.monotonic() + cfg["max_seconds_per_run"]
@@ -201,6 +212,12 @@ def analyze_pending(llm: LLM = structured, limit: int | None = None) -> dict[str
                 "sensitive_keywords": keywords,
             }
         )
+        if state["outcome"] == "failed" and _providers_exhausted(state):
+            # Circuit breaker: not this story's fault. Store nothing (so it is retried next pass)
+            # and stop, instead of burning the remaining quota on the next stories.
+            counts["deferred"] += 1
+            log.warning("pipeline.analyze.providers_exhausted", story=story.slug, errors=state.get("errors"))
+            break
         with Session(get_engine()) as session, session.begin():
             fresh = session.get_one(Story, story.id)
             row = store(session, fresh, state)

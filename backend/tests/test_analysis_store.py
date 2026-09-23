@@ -164,3 +164,26 @@ def test_review_reject_marks_item_and_version_rejected(db: Session, four: Story)
     assert resolve(db, item_id, "reject", reviewer="t")
     assert db.execute(select(ReviewQueueItem.status)).scalar_one() == "rejected"
     assert row.state == "rejected"
+
+
+def test_circuit_breaker_stores_nothing_and_stops_when_providers_are_exhausted(
+    db: Session, four: Story, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from lens.llm.client import LLMError
+    from lens.pipeline import analyze
+
+    monkeypatch.setattr(analyze, "get_engine", lambda: db.connection())  # run inside the test transaction
+    script = _script("x")
+    script[SummaryDraft] = [LLMError("synthesis: every provider failed: groq 429 | gemini 429")]
+    counts = analyze.analyze_pending(llm=FakeLLM(script), limit=5)
+    assert counts["deferred"] == 1 and counts["failed"] == 0
+    assert db.execute(select(func.count()).select_from(StorySummary)).scalar_one() == 0  # retried next pass
+    assert four.id in {s.id for s in eligible(db, 50)}
+
+
+def test_failures_from_exhausted_providers_do_not_block_retry(db: Session, four: Story) -> None:
+    row = _analyze(db, four)
+    row.state = "failed"
+    row.verifier_result = {**row.verifier_result, "errors": ["judge: every provider failed: groq 429"]}
+    db.flush()
+    assert four.id in {s.id for s in eligible(db, 50)}  # recent, but the providers failed, not the story
