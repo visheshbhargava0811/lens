@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster stats eval-summary-ab review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats eval-summary-ab review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -88,6 +88,10 @@ cluster-label-import:
 
 eval-clustering:
 	$(UVML) python -m lens.evals.clustering_run --name $(or $(NAME),baseline) $(if $(GOLD),--gold $(GOLD),)
+
+# Phase 5: retrieval ablation (docs/05). QUERIES defaults to the draft set until the owner review lands.
+eval-retrieval:
+	$(UVML) python -m lens.evals.retrieval_run --name $(or $(NAME),draft) $(if $(QUERIES),--queries $(QUERIES),) $(ARGS)
 
 backend-dev:
 	$(UV) uvicorn lens.api.app:app --reload --port 8000

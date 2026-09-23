@@ -126,7 +126,10 @@ def hybrid(
     return _hits(r.points)
 
 
-def stories_dense(client: QdrantClient, q: EncodedQuery, now: datetime, window_days: int, top: int) -> list[str]:
+def stories_dense(
+    client: QdrantClient, q: EncodedQuery, now: datetime, window_days: int, top: int
+) -> list[tuple[str, float]]:
+    """Tier 1 over story centroids: (story_id, cosine) best first. The score feeds `tier1.min_score`."""
     flt = models.Filter(
         must=[
             models.FieldCondition(
@@ -137,7 +140,7 @@ def stories_dense(client: QdrantClient, q: EncodedQuery, now: datetime, window_d
     r = client.query_points(
         STORIES, query=q.dense.tolist(), using="dense", query_filter=flt, limit=top, with_payload=True
     )
-    return [str((p.payload or {}).get("story_id") or p.id) for p in r.points]
+    return [(str((p.payload or {}).get("story_id") or p.id), float(p.score)) for p in r.points]
 
 
 def stories_from_chunks(hits: Sequence[Hit], top: int) -> list[str]:

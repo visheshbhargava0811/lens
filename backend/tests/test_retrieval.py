@@ -93,3 +93,13 @@ def test_hybrid_rrf_search_with_filters() -> None:
         client, q, chunk_filter(NOW, 30, story_ids=["s2"]), dense_limit=10, sparse_limit=10, limit=5, rrf_k=60
     )
     assert {h.story_id for h in only_s2} == {"s2"}
+
+
+def test_ablation_metrics() -> None:
+    from lens.evals.retrieval_run import auc, best_threshold, story_metrics
+
+    m = story_metrics(["x", "s1", "y"], {"s1"})
+    assert m["recall@1"] == 0 and m["recall@5"] == 1 and m["mrr@10"] == 0.5
+    assert abs(m["ndcg@10"] - 1 / np.log2(3)) < 1e-9
+    assert auc([0.9, 0.8], [0.1, 0.8]) == 0.875
+    assert best_threshold([0.9, 0.8], [0.1, 0.2]) == (0.8, 1.0, 0.0)

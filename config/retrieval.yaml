@@ -9,7 +9,7 @@ tier2:
   fused_limit: 100
   rrf_k: 60                  # Qdrant's default is 2; 60 is the common choice. Tuned in the ablation
   rerank_top_k: 20
-  rerank: colbert            # colbert | cross_encoder | none
+  rerank: colbert            # colbert | none (cross-encoder dropped, Phase 5)
 balance:
   max_chunks: 12
   per_source_cap: 2
