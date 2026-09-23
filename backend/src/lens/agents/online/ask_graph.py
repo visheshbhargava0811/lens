@@ -30,13 +30,17 @@ from lens.guardrails.generation import (
     check_scope,
     check_sensitive,
 )
+from lens.guardrails.input import check_language, check_user_injection
+from lens.guardrails.input import check_scope as check_intent
 from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
 from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, cited_sections
 
 MAX_VERIFIER_RETRIES = 2  # docs/06: bounded loops only
-AbstainReason = Literal["insufficient_coverage", "out_of_scope", "service_unavailable", "sensitive_topic_under_review"]
+AbstainReason = Literal[
+    "insufficient_coverage", "out_of_scope", "service_unavailable", "sensitive_topic_under_review", "guard_block"
+]
 
 
 @dataclass(frozen=True)
@@ -85,6 +89,7 @@ def build(
     stored_summary: Callable[[list[str]], dict[str, Any] | None],
     min_sources: int = 4,
     sensitive_keywords: dict[str, list[str]] | None = None,
+    min_language_confidence: float = 0.6,
 ) -> Any:
     def call(
         state: AskState,
@@ -116,8 +121,14 @@ def build(
         return [*state.get("errors", []), f"{where}: {e}"]
 
     def understand(state: AskState) -> dict[str, Any]:
+        # PII never leaves for the model provider (G-OUT-05), and override attempts stop here (G-IN-02).
+        text = mask(clean(state["raw_query"]))[0]
+        inj = check_user_injection(text)
+        guards = [*state.get("guards", []), inj]
+        if not inj.passed:
+            return {"qu": None, "abstain_reason": "guard_block", "guards": guards}
         s = skill("query_understanding")
-        user = f"<question>\n{clean(state['raw_query'])}\n</question>"
+        user = f"<question>\n{text}\n</question>"
         try:
             qu, rec = call(
                 state,
@@ -129,8 +140,17 @@ def build(
             )
         except LLMError as e:
             # Never search with the raw (possibly loaded) phrasing: no understanding, no answer.
-            return {"qu": None, "abstain_reason": "service_unavailable", "errors": err(state, "understand", e)}
-        return {"qu": qu, **rec}
+            return {
+                "qu": None,
+                "abstain_reason": "service_unavailable",
+                "errors": err(state, "understand", e),
+                "guards": guards,
+            }
+        guards += [
+            check_intent(qu.intent, qu.rationale),  # G-IN-01
+            check_language(qu.language, qu.language_confidence, min_language_confidence),  # G-IN-04
+        ]
+        return {"qu": qu, "guards": guards, **rec}
 
     def after_understand(state: AskState) -> str:
         qu = state.get("qu")

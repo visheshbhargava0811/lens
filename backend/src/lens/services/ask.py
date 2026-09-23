@@ -42,6 +42,7 @@ ABSTAIN_MESSAGES = {  # docs/10 copy
     "Here are the closest stories we found.",
     "out_of_scope": "Lens covers news reporting. Try asking what outlets have reported about a story.",
     "service_unavailable": "Lens can't answer right now. Please try again in a few minutes.",
+    "guard_block": "Lens can't answer this question.",
     "sensitive_topic_under_review": "This topic is sensitive, so we only show reviewed summaries. "
     "This one is still being reviewed.",
 }
@@ -211,6 +212,8 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
         limitations.append("No single story matched the question closely; this answer draws on related coverage.")
     if state.get("pruned"):
         limitations.append("Some sentences were removed because they could not be verified against their sources.")
+    if any(x.guard_id == "G-IN-04" and not x.passed for x in state.get("guards", [])):
+        limitations.append("We couldn't tell which language you wrote in, so this answer is in English.")
     limitations.append("Based on headlines and short feed summaries, not full articles.")
     return api.AskAnswer(
         basis="live",
@@ -383,4 +386,11 @@ def ask_events(
 def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:
     retriever = make_retriever(session, client, embedder, lambda: datetime.now(UTC))
     g = load_yaml("guardrails.yaml")
-    return build(structured, retriever, make_stored_summary(session), g["min_sources_for_bar"], g["sensitive_keywords"])
+    return build(
+        structured,
+        retriever,
+        make_stored_summary(session),
+        g["min_sources_for_bar"],
+        g["sensitive_keywords"],
+        g["ask"]["min_language_confidence"],
+    )

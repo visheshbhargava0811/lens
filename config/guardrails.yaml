@@ -57,4 +57,5 @@ stats:
 ask:
   rate_per_minute: 3
   rate_per_day: 40
+  min_language_confidence: 0.6     # G-IN-04: below this, answer in English and say so
   retention_days: 30               # ask_turns purge (docs/03, DPDP); raw queries are stored PII-masked
