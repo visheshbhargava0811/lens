@@ -271,6 +271,6 @@ def ask_events(session: Session, query: str, graph: Any) -> Iterator[tuple[str, 
 
 
 def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:
-    return build(
-        structured, make_retriever(session, client, embedder, lambda: datetime.now(UTC)), make_stored_summary(session)
-    )
+    retriever = make_retriever(session, client, embedder, lambda: datetime.now(UTC))
+    min_sources = load_yaml("guardrails.yaml")["min_sources_for_bar"]
+    return build(structured, retriever, make_stored_summary(session), min_sources)

@@ -12,7 +12,7 @@ or None. Synthesis gets no tools. User text and article text reach the model onl
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -22,6 +22,7 @@ from lens.agents.offline.evidence import EvidenceArticle, clean, render
 from lens.agents.offline.story_graph import LLM, RETRY_NOTE
 from lens.agents.prompts import skill, system_prompt
 from lens.guardrails.base import GuardResult
+from lens.guardrails.evidence import check_injection, check_min_evidence, redact_injection
 from lens.guardrails.generation import check_citations, check_faithfulness, check_premises, check_scope
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
@@ -75,6 +76,7 @@ def build(
     llm: LLM,
     retriever: Callable[[str, int], Evidence],
     stored_summary: Callable[[list[str]], dict[str, Any] | None],
+    min_sources: int = 4,
 ) -> Any:
     def call(
         state: AskState,
@@ -139,7 +141,13 @@ def build(
         n = state.get("retrieval_attempts", 0)
         windows = state["windows"]
         ev = retriever(qu.neutral_query, windows[min(n, len(windows) - 1)])
-        return {"evidence": ev, "retrieval_attempts": n + 1}
+        guards = [*state.get("guards", []), check_min_evidence(ev.articles, min_sources)]
+        if ev.articles:
+            inj = check_injection(ev.articles)  # G-EV-01, before any model sees the evidence
+            guards.append(inj)
+            if not inj.passed:
+                ev = replace(ev, articles=redact_injection(ev.articles))
+        return {"evidence": ev, "retrieval_attempts": n + 1, "guards": guards}
 
     def after_retrieve(state: AskState) -> str:
         ev = state["evidence"]
