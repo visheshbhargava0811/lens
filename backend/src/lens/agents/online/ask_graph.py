@@ -23,14 +23,20 @@ from lens.agents.offline.story_graph import LLM, RETRY_NOTE
 from lens.agents.prompts import skill, system_prompt
 from lens.guardrails.base import GuardResult
 from lens.guardrails.evidence import check_injection, check_min_evidence, redact_injection
-from lens.guardrails.generation import check_citations, check_faithfulness, check_premises, check_scope
+from lens.guardrails.generation import (
+    check_citations,
+    check_faithfulness,
+    check_premises,
+    check_scope,
+    check_sensitive,
+)
 from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
 from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, cited_sections
 
 MAX_VERIFIER_RETRIES = 2  # docs/06: bounded loops only
-AbstainReason = Literal["insufficient_coverage", "out_of_scope", "service_unavailable"]
+AbstainReason = Literal["insufficient_coverage", "out_of_scope", "service_unavailable", "sensitive_topic_under_review"]
 
 
 @dataclass(frozen=True)
@@ -78,6 +84,7 @@ def build(
     retriever: Callable[[str, int], Evidence],
     stored_summary: Callable[[list[str]], dict[str, Any] | None],
     min_sources: int = 4,
+    sensitive_keywords: dict[str, list[str]] | None = None,
 ) -> Any:
     def call(
         state: AskState,
@@ -148,10 +155,24 @@ def build(
             guards.append(inj)
             if not inj.passed:
                 ev = replace(ev, articles=redact_injection(ev.articles))
+        if ev.articles:
+            # G-OUT-07: sensitive topics get only precomputed, reviewed summaries, never live generation.
+            texts = [state["raw_query"], qu.neutral_query, *(a.text for a in ev.articles)]
+            sens = check_sensitive(texts, sensitive_keywords or {})
+            guards.append(sens)
+            if not sens.passed:
+                return {
+                    "evidence": ev,
+                    "retrieval_attempts": n + 1,
+                    "guards": guards,
+                    "abstain_reason": "sensitive_topic_under_review",
+                }
         return {"evidence": ev, "retrieval_attempts": n + 1, "guards": guards}
 
     def after_retrieve(state: AskState) -> str:
         ev = state["evidence"]
+        if state.get("abstain_reason") == "sensitive_topic_under_review":
+            return "fallback"
         if ev is not None and ev.articles:
             return "synthesize"
         return "retrieve" if state["retrieval_attempts"] < len(state["windows"]) else "abstain"
@@ -303,7 +324,7 @@ def build(
         g.add_node(name, fn)
     g.add_edge(START, "understand")
     g.add_conditional_edges("understand", after_understand, ["retrieve", "refuse", "abstain"])
-    g.add_conditional_edges("retrieve", after_retrieve, ["synthesize", "retrieve", "abstain"])
+    g.add_conditional_edges("retrieve", after_retrieve, ["synthesize", "retrieve", "abstain", "fallback"])
     g.add_conditional_edges("synthesize", after_synthesize, ["verify", "synthesize", "fallback"])
     g.add_conditional_edges("verify", after_verify, ["answer", "synthesize", "prune", "fallback"])
     g.add_conditional_edges("prune", after_prune, ["answer", "fallback"])

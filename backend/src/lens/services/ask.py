@@ -41,6 +41,8 @@ ABSTAIN_MESSAGES = {
     "out_of_scope": "Lens answers questions about news coverage in India. It can't help with this request, "
     "but you can ask what has been reported about a news event, or how outlets covered it.",
     "service_unavailable": "Lens can't answer right now. Please try again in a few minutes.",
+    "sensitive_topic_under_review": "This topic needs extra care, so Lens only shows summaries a person has reviewed. "
+    "None is available yet for this story.",
 }
 STATUS_BY_NODE: dict[str, tuple[Literal["searching", "verifying"], str]] = {
     "understand": ("searching", "Searching coverage"),
@@ -223,7 +225,7 @@ def abstain_event(session: Session, state: AskState) -> api.AskAbstain:
     reason = state.get("abstain_reason") or "insufficient_coverage"
     ev = state.get("evidence")
     closest: list[api.StoryCard] = []
-    if ev is not None and ev.closest_story_ids and reason == "insufficient_coverage":
+    if ev is not None and ev.closest_story_ids and reason in ("insufficient_coverage", "sensitive_topic_under_review"):
         ids = [uuid.UUID(i) for i in ev.closest_story_ids]
         cards = {c.id: c for c in story_cards(session, select(Story).where(visible_story(), Story.id.in_(ids)))}
         closest = [cards[i] for i in ev.closest_story_ids if i in cards]
@@ -272,5 +274,5 @@ def ask_events(session: Session, query: str, graph: Any) -> Iterator[tuple[str, 
 
 def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:
     retriever = make_retriever(session, client, embedder, lambda: datetime.now(UTC))
-    min_sources = load_yaml("guardrails.yaml")["min_sources_for_bar"]
-    return build(structured, retriever, make_stored_summary(session), min_sources)
+    g = load_yaml("guardrails.yaml")
+    return build(structured, retriever, make_stored_summary(session), g["min_sources_for_bar"], g["sensitive_keywords"])

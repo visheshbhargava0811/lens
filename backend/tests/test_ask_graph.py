@@ -106,6 +106,7 @@ def test_happy_path_answers_from_evidence_with_guards() -> None:
         "G-GEN-08",
         "G-GEN-03",
         "G-OUT-05",
+        "G-OUT-07",
     }
     assert set(out["prompt_versions"]) == {"query_understanding", "ask_synthesis", "judge_faithfulness"}
     assert all(k["tags"] == ["graph:online"] for k in llm.kwargs[AskDraft])
@@ -312,3 +313,18 @@ def test_pii_is_masked_in_answers_logs_and_traces() -> None:
     d = out["draft"]
     assert d is not None and d.tldr[0].text == "Police said the caller used [phone]."
     assert next(g for g in out["guards"] if g.guard_id == "G-OUT-05").action == "redact"
+
+
+def test_sensitive_topic_never_generates_live() -> None:
+    from dataclasses import replace
+
+    ev = _ev()
+    riot = replace(ev, articles=[replace(ev.articles[0], text="Communal riot in the district; curfew imposed.")])
+    kw = {"communal_violence": ["communal riot"]}
+    for stored, outcome in (({"story_id": "st1", "detail": "reviewed"}, "fallback"), (None, "abstain")):
+        llm, ret = FakeLLM({QueryUnderstanding: [_qu()]}), FakeRetriever(riot)
+        state: AskState = {"raw_query": "q", "windows": [30, 90]}
+        out = build(llm, ret, lambda ids, s=stored: s, sensitive_keywords=kw).invoke(state)
+        assert out["outcome"] == outcome and AskDraft not in llm.prompts
+        if outcome == "abstain":
+            assert out["abstain_reason"] == "sensitive_topic_under_review"
