@@ -135,12 +135,14 @@ Response: `text/event-stream`. Event types:
 |---|---|
 | `status` | `{ "step": "understanding" \| "searching" \| "checking_sources" \| "writing" \| "verifying", "message": "plain text" }` |
 | `understanding` | `{ "neutral_query": "...", "removed_premises": ["..."], "language": "hi-Latn", "intent": "story_lookup" }` |
-| `evidence` | `{ "story_ids": ["..."], "sources": [ { "source_id": "...", "name": "...", "language": "hi" } ], "stale": false, "newest_article_at": "..." }` |
-| `answer_final` | `AskAnswer` with citations resolved to `{ n, article_id, source_name, url }`, plus `coverage` stats computed by code, `fact_checks`, `limitations`, `verified: true` |
-| `abstain` | `{ "reason": "insufficient_coverage" \| "out_of_scope" \| "sensitive_topic_under_review" \| "guard_block", "message": "plain text", "closest_stories": [ ... ] }` |
+| `evidence` | `{ "story_ids": ["..."], "sources": [ { "source_id": "...", "name": "...", "language": "hi", "bias": "left" } ], "stale": false, "newest_article_at": "...", "methodology_url": "/methodology#bias" }` |
+| `answer_final` | `AskAnswer`: `tldr`, `what_happened`, `agreements`, `disagreements`, `premises_addressed` (cited sentences, citations `{ n, article_id, source_name, chunk_id }`), `articles` (each cited article: `id, headline, headline_lang, url, source_name, source_language`), `coverage` computed by code, `fact_checks`, `limitations` (written by code), `follow_up_questions` (max 3), `story_ids`, `basis` (`live`, or `stored_summary` when the live answer failed verification and the story's verified summary is served), `verified: true` |
+| `abstain` | `{ "reason": "insufficient_coverage" \| "out_of_scope" \| "sensitive_topic_under_review" \| "guard_block" \| "service_unavailable", "message": "plain text", "closest_stories": [ ... ] }` |
 | `error` | `{ "code": "...", "message": "...", "retry_after_s": 5 }` |
 
 MVP: send `status` events during work, then one verified `answer_final`. Add `answer_delta` only when a streaming-safe verification approach is in place.
+
+The payload type of each event is published in the OpenAPI schema as `AskEvents` (one field per event name), so the generated client is typed. Implemented with FastAPI's native `EventSourceResponse` (Phase 6).
 
 Rate-limited requests return HTTP 429 with the standard error shape.
 

@@ -215,3 +215,17 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Context: Ask (Phase 6) and the pipeline's story analysis share the same free-tier models (Groq gpt-oss-20b/120b on both keys, then Gemini). The first live Ask smoke run got 429 on every provider while the worker was analysing stories: the worker drains each model's daily token budget and its fallbacks spill onto the rest.
 - Decision: `analysis.scheduled: false` in `config/clustering.yaml`. The worker keeps ingesting, indexing, clustering and computing stats; LLM story analysis stops. `make analyze` still runs it by hand. Already published summaries stay (and serve as Ask's verified fallback).
 - Consequences: New stories get no summaries until analysis is re-enabled. Re-enable once Ask has its own quota (a separate key or paid tier), or split the budget by time of day.
+
+## ADR-0031: Ask (Graph 2) linear chain: design choices (2026-09-23)
+
+- Context: Phase 6 kickoff: build the linear chain first (query understanding, retriever, synthesis, verifier), verify it, then add the router, freshness and remaining guards.
+- Decisions:
+  - **Retriever** is the ADR-0029 pipeline (dense tier 1 → dense tier 2 → balancing). Weak retrieval widens the window once (`retry.widen_window_days` 30 → 90), then abstains. The global fallback keeps chunks only above `tier2.min_score` 0.58.
+  - **The model never writes limitations or coverage.** Code adds them: unaddressed premises ("None of the retrieved articles report that …"), limited coverage (G-EV-03), global-scope matches, pruned sentences, snippet-only evidence. Removed premises must come back in `premises` (G-IN-05, retry otherwise).
+  - **Verifier fallback** (judge still failing after 2 retries): prune only the flagged sentences, as in Graph 1, when the TL;DR survives; otherwise the stored verified story summary (`basis: stored_summary`); otherwise abstain. Every sentence shown passed the judge. A judge outage never shows an unverified answer.
+  - **G-OUT-07 runs before synthesis**: a sensitive topic never reaches live generation; it gets the reviewed summary or abstains with `sensitive_topic_under_review`.
+  - **Query-understanding failure abstains** (`service_unavailable`) instead of searching with the raw, possibly loaded, text.
+  - **Answers are in English** until the localization node exists (translation tier TBD); query understanding already detects `hi`, `hi-Latn` and `mr`.
+  - **SSE** uses FastAPI's native `EventSourceResponse`; payload types are published as `AskEvents` in OpenAPI. Rate limit G-IN-03 per client: 3/minute, 40/day, keyed by a salted hash of the IP (never the raw IP).
+  - **PII (G-OUT-05)** is masked in Ask output, structlog records, and LangSmith traces (`hide_inputs`/`hide_outputs` on the global client).
+- Consequences: Live smoke (2026-09-23): an English story question and a loaded question returned cited, verified answers (17 s and 3 s); an out-of-scope request was refused. Observed prompt issue for the Ask eval: some agreement and disagreement sentences describe the coverage ("not mentioned in other reports", "there is a consensus") instead of the facts. Free-tier quota (ADR-0030) limits live testing to a few questions at a time.
