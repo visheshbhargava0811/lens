@@ -40,7 +40,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 | G-GEN-05 | No editorializing, predictions, or value-laden adjectives | Tone classifier + banned-pattern list | `retry` |
 | G-GEN-06 | No false balance: fact-checker rated false means show the rating, do not present as "one side's view" | Rules using fact-check matches | `retry` |
 | G-GEN-07 | Abstain over guess: weak retrieval returns "not enough reliable coverage" | Deterministic thresholds | `abstain` |
-| G-GEN-08 | Scope claims: a sentence saying "all/each/every article (source, report…)" must cite every article in the evidence; "most" must cite more than half; "multiple/several" at least two | Deterministic | `redact` (drop the sentence before the judge) |
+| G-GEN-08 | Scope claims: a sentence saying "all/each/every article (source, report…)" must cite every article in the evidence; "most" must cite more than half; "multiple/several" at least two; an agreement must cite at least two articles | Deterministic | `redact` (drop the sentence before the judge) |
 
 ### Output (India-specific)
 

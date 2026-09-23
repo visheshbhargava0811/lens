@@ -116,18 +116,22 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
 
           {summary && (summary.agreements.length > 0 || summary.disagreements.length > 0) && (
             <div className="grid gap-6 md:grid-cols-2">
-              <SentenceList
-                title={t("summary.agreements")}
-                sentences={summary.agreements}
-                lang={lang}
-                articles={cited}
-              />
-              <SentenceList
-                title={t("summary.disagreements")}
-                sentences={summary.disagreements}
-                lang={lang}
-                articles={cited}
-              />
+              {summary.agreements.length > 0 && (
+                <SentenceList
+                  title={t("summary.agreements")}
+                  sentences={summary.agreements}
+                  lang={lang}
+                  articles={cited}
+                />
+              )}
+              {summary.disagreements.length > 0 && (
+                <SentenceList
+                  title={t("summary.disagreements")}
+                  sentences={summary.disagreements}
+                  lang={lang}
+                  articles={cited}
+                />
+              )}
             </div>
           )}
           {detail.framing_differences.length > 0 && (

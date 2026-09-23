@@ -91,8 +91,13 @@ def scope_violation(sentence: CitedSentence, n_evidence: int) -> str | None:
 
 @traced_guard("G-GEN-08", "generation")
 def check_scope(sections: Mapping[str, Sequence[CitedSentence]], n_evidence: int) -> GuardResult:
-    """Deterministic, before the judge: scope words must match the citations (meta.drop = sentence texts)."""
+    """Deterministic, before the judge: scope words must match the citations, and each agreement
+    must cite at least two articles (meta.drop = sentence texts)."""
     bad = {s.text: why for sec in sections.values() for s in sec if (why := scope_violation(s, n_evidence))}
+    # An agreement needs at least two articles: one article cannot agree with itself.
+    bad |= {
+        s.text: "an agreement citing one article" for s in sections.get("agreements", []) if len(set(s.citations)) < 2
+    }
     if bad:
         return GuardResult(
             guard_id="G-GEN-08",

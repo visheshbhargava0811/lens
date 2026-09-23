@@ -297,7 +297,9 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
         framing = diffs + only
     limitations: list[str] = []
     if partial:
-        limitations.append(f"Based on headlines and summaries for {partial} of {story.source_count} sources.")
+        # Syndicated copies make distinct source ids exceed the deduplicated source count; cap it.
+        shown = min(partial, story.source_count)
+        limitations.append(f"Based on headlines and summaries for {shown} of {story.source_count} sources.")
     if card.coverage.available and card.coverage.unrated.sources:
         limitations.append(f"{card.coverage.unrated.sources} of {story.source_count} sources have no bias rating.")
     if card.factuality.unrated:

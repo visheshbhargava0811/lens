@@ -86,3 +86,13 @@ def test_g_gen_08_drops_only_violating_sentences() -> None:
     assert not res.passed and res.action == "redact"
     assert res.meta["drop"] == ["All articles report the arrest."]
     assert check_scope({"summary": [_s("The arrest was on Monday.", 2)]}, 12).passed
+
+
+def test_g_gen_08_drops_single_source_agreements() -> None:
+    res = check_scope(
+        {"agreements": [_s("Trade will reach Rs 35,000 crore by 2030.", 1), _s("It starts on 20 October.", 3)]}, 7
+    )
+    assert res.meta["drop"] == ["Trade will reach Rs 35,000 crore by 2030."]
+    assert check_scope(
+        {"summary": [_s("Trade will reach Rs 35,000 crore by 2030.", 1)]}, 7
+    ).passed  # fine in the summary
