@@ -195,8 +195,10 @@ def run(name: str, gold: Path | None) -> dict[str, Any]:
     if gold is not None and gold.exists():
         items = [json.loads(line) for line in gold.read_text(encoding="utf-8").splitlines() if line.strip()]
         human, judge, langs = [], [], []
+        per_item = []
         for it in items:
             j = _judge_one(it)
+            per_item.append({"id": it["id"], "human": it["reference_outputs"]["supported"], "judge": j})
             if j is None:
                 continue
             human.append(it["reference_outputs"]["supported"])
@@ -223,6 +225,14 @@ def run(name: str, gold: Path | None) -> dict[str, Any]:
             "human_supported_share": round(sum(human) / len(human), 3) if human else None,
             "by_language": by_lang,
             "target": KAPPA_TARGET,
+            # Direction of disagreement decides the fix: a too-strict judge wrongly rejects good sentences.
+            "confusion": {
+                "both_supported": sum(h and j for h, j in zip(human, judge, strict=True)),
+                "both_unsupported": sum(not h and not j for h, j in zip(human, judge, strict=True)),
+                "judge_too_strict": sum(h and not j for h, j in zip(human, judge, strict=True)),
+                "judge_too_lenient": sum(not h and j for h, j in zip(human, judge, strict=True)),
+            },
+            "items": per_item,
         }
 
     REPORTS.mkdir(exist_ok=True)
@@ -265,6 +275,11 @@ def _markdown(r: dict[str, Any]) -> str:
             f"Judge `{jc['judge']}` (primary only). n = {jc['n']} ({jc['unscored']} unscored: judge unavailable), "
             f"Cohen's kappa = **{jc['kappa']}** (target {jc['target']}), "
             f"raw agreement {jc['agreement']}, human-supported share {jc['human_supported_share']}.",
+            "",
+            f"Confusion: both supported {jc['confusion']['both_supported']}, both unsupported "
+            f"{jc['confusion']['both_unsupported']}, **judge too strict {jc['confusion']['judge_too_strict']}** "
+            f"(rejects what the person accepts), **judge too lenient {jc['confusion']['judge_too_lenient']}** "
+            "(accepts what the person rejects).",
             "",
             "| Languages | n | kappa | agreement |",
             "|---|---|---|---|",

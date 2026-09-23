@@ -1,0 +1,65 @@
+{
+  "name": "calibration_v1",
+  "generated_at": "2026-09-23T14:19:00.376222+00:00",
+  "stories_analysed": 225,
+  "summary_versions": 243,
+  "outcomes": {
+    "failed": 201,
+    "published": 35,
+    "rejected": 1,
+    "review": 6
+  },
+  "attempts": {
+    "1": 14,
+    "2": 6,
+    "3": 223
+  },
+  "versions_with_pruned_sentences": 20,
+  "first_try_judge_pass_rate": 0.206,
+  "guard_pass_rates": {
+    "G-GEN-01": 1.0,
+    "G-GEN-02": 0.846,
+    "G-GEN-03": 0.206,
+    "G-OUT-07": 0.833
+  },
+  "stored_claims": 532,
+  "quote_match_rate": 1.0,
+  "framing_present": 72,
+  "judge_calibration": {
+    "gold": "data/evals/judge_calibration/gold_v1.jsonl",
+    "judge": "groq/qwen/qwen3.8-27b",
+    "n": 117,
+    "unscored": 5,
+    "kappa": 0.484,
+    "agreement": 0.812,
+    "human_supported_share": 0.838,
+    "by_language": {
+      "en": {
+        "n": 51,
+        "kappa": 0.301,
+        "agreement": 0.745
+      },
+      "en+hi": {
+        "n": 37,
+        "kappa": 0.431,
+        "agreement": 0.811
+      },
+      "en+hi+mr": {
+        "n": 8,
+        "kappa": 0.0,
+        "agreement": 0.75
+      },
+      "en+mr": {
+        "n": 2,
+        "kappa": 1.0,
+        "agreement": 1.0
+      },
+      "hi": {
+        "n": 19,
+        "kappa": 1.0,
+        "agreement": 1.0
+      }
+    },
+    "target": 0.6
+  }
+}
