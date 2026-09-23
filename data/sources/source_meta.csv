@@ -1,0 +1,17 @@
+kind,source_slug,outlet_name_for_reference,owner_name,owner_type,parent_group,evidence_url,verified_by,dimension,rater,value,method_url,retrieved_at,confidence
+ownership,aaj-tak,Aaj Tak,TV Today Network Limited,conglomerate,India Today Group,https://www.indiatoday.in/applications/aajtak.jsp,India Today Group / TV Today Network disclosures,ownership,,,,2026-09-22,high
+ownership,amar-ujala,Amar Ujala,Amar Ujala Limited,other,,https://www.amarujala.com/terms-and-conditions,Amar Ujala / PRGI,ownership,,,,2026-09-22,high
+ownership,dainik-bhaskar,Dainik Bhaskar,D.B. Corp Limited,conglomerate,DB Corp,https://dbcorpltd.com/img/DB_corp_Annual_Report_Upated_Aug_2025.pdf,DB Corp / PRGI,ownership,,,,2026-09-22,high
+ownership,dainik-jagran,Dainik Jagran,Jagran Prakashan Limited,conglomerate,Jagran Group,https://www.jagran.com/about-us.html,Jagran / PRGI,ownership,,,,2026-09-22,high
+ownership,deccan-herald,Deccan Herald,The Printers (Mysore) Pvt. Ltd.,other,,https://prgi.gov.in/registration-title-details-data/c717a645-4ce4-4e33-8d62-0380f0c5f49a,PRGI / The Printers Mysore,ownership,,,,2026-09-22,high
+ownership,hindustan-hindi,Hindustan,Hindustan Media Ventures Limited,conglomerate,HT Media Group,https://prgi.gov.in/registration-title-details-data/91e567d4-0caa-4285-aa9d-945b5f788dd3,PRGI,ownership,,,,2026-09-22,high
+ownership,hindustan-times,Hindustan Times,HT Media Limited,conglomerate,HT Media Group,https://prgi.gov.in/registration-title-details-data/dc303eae-d508-43ad-91a3-9fa730c7d484,PRGI / HT Media,ownership,,,,2026-09-22,high
+ownership,india-today,India Today,Living Media India Limited,conglomerate,India Today Group,https://www.indiatoday.in/applications/indiatoday.jsp,India Today / PRGI,ownership,,,,2026-09-22,high
+ownership,loksatta,Loksatta,The Indian Express (P) Limited,conglomerate,Indian Express Group,https://prgi.gov.in/registration-title-details-data/168003cd-e74b-11ee-ab0e-00155d022d0b,PRGI / Indian Express Group,ownership,,,,2026-09-22,high
+ownership,republic-world,Republic,SARG Global Digital Private Limited,other,Republic Media Network / ARG Outlier Media,https://www.republicworld.com/policies-disclaimers,Republic World,ownership,,,,2026-09-22,high
+ownership,scroll,Scroll,Scroll Media Inc.,other,Scroll Media,https://scroll.in/privacy,Scroll / Media Ownership Monitor,ownership,,,,2026-09-22,medium
+ownership,economic-times,The Economic Times,"Bennett, Coleman & Co. Ltd.",conglomerate,Times Group,https://prgi.gov.in/registration-title-details-data/3e9f0251-b679-4252-923e-8eb1863fb9d2,PRGI / Times Group,ownership,,,,2026-09-22,high
+ownership,the-hindu,The Hindu,THG Publishing Private Limited,other,The Hindu Group / Kasturi family,https://prgi.gov.in/registration-title-details-data/fb2edf3a-e74a-11ee-ab0e-00155d022d0b,PRGI / Media Ownership Monitor,ownership,,,,2026-09-22,high
+ownership,indian-express,The Indian Express,The Indian Express Private Limited,conglomerate,Indian Express Group,https://prgi.gov.in/registration-title-details-data/3f351bd0-482f-4d2e-9a38-471a90e59966,PRGI / Indian Express Group,ownership,,,,2026-09-22,high
+ownership,times-of-india,The Times of India,"Bennett, Coleman & Co. Ltd.",conglomerate,Times Group,https://prgi.gov.in/registration-title-details-data/92f2e921-65a5-4757-831c-a5ef2a939cd7,PRGI / Times Group,ownership,,,,2026-09-22,high
+ownership,the-print,ThePrint,Printline Media Private Limited,other,,https://theprint.in/terms-of-use/,ThePrint,ownership,,,,2026-09-22,high

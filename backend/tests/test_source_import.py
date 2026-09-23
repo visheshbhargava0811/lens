@@ -67,3 +67,11 @@ def test_template_rows_left_blank_are_skipped(db: Session, src: Source) -> None:
     assert import_csv(db, header + filled + blank).ownership_added == 1
     with pytest.raises(ImportRejected):
         import_csv(db, header + blank)  # nothing filled in at all
+
+
+def test_dimension_ownership_on_an_ownership_row_is_accepted(db: Session, src: Source) -> None:
+    header = "kind,source_slug,owner_name,evidence_url,dimension,retrieved_at,confidence\n"
+    row = "ownership,imp-a,Owner A,https://a.example/about,ownership,2026-09-20T00:00:00Z,high\n"
+    assert import_csv(db, header + row).ownership_added == 1
+    with pytest.raises(ImportRejected):  # any other stray rating field is still an error
+        import_csv(db, header + row.replace(",ownership,2026", ",factuality,2026"))

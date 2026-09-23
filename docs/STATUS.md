@@ -31,7 +31,7 @@ _Last updated: 2026-09-23_
   - The Wire and Lokmat publish no feed or sitemap.
   - Options: publisher permission, a licence, or a licensed news API (`NEWS_API_KEYS`). Never spoof the user agent.
 - **Pipeline:** `candidates.yaml` → `make discover-feeds` → `discovery.json` (evidence) → `feed_selection.yaml` → `make seed-gen` → `sources.seed.yaml` → `make seed`.
-- **Not filled in (rule 7):** ownership, ratings and terms.
+- **Ownership:** 16 of 17 outlets, from `data/sources/source_meta.csv` (owner-verified, with evidence URLs). **Not filled in (rule 7):** ratings and terms.
 
 ## Gotchas learned the hard way
 
@@ -49,6 +49,6 @@ _Last updated: 2026-09-23_
 
 - Clustering gold set: a second person should label a 20% sample so we can measure agreement. It would show how optimistic the 0.99 score is.
 - Same-outlet duplicates: 45 were stored before the 2026-09-23 fix (same source, same `content_hash`, a new URL within 6 h). They were left in place; new ones are skipped (`fetch.same_source_dup_hours`).
-- Outlet ownership and factuality ratings: provide a CSV (format in `lens/ingest/source_import.py`) with an evidence or method URL on every row. Until then every outlet shows "Not rated".
+- Ownership: 16 of 17 outlets imported 2026-09-23 from the owner's CSV (`data/sources/source_meta.csv`). **Sakal is held back** because its evidence URL (`www.sakaal.in/about-us/`) does not resolve; send a working link (Sakal's site is `esakal.com`). The 9 PRGI evidence links could not be opened from this machine (DNS), so the owner should confirm they open. There are no factuality ratings yet, so every outlet shows "Not rated" for factuality.
 - Review ADR-0018 (stats rules, `feed_min_sources: 2`, shapes for `/sources` and `/methodology`).
 - The JS budget is over target (about 163 KB gzipped vs 150).

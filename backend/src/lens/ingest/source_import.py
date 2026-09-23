@@ -52,6 +52,8 @@ def _parse(text: str, slugs: dict[str, Any]) -> list[tuple[str, Any, OwnershipEn
         row = {k.strip(): v.strip() for k, v in raw.items() if k and v is not None and v.strip() != ""}
         kind, slug = row.pop("kind", ""), row.pop("source_slug", "")
         row.pop("outlet_name_for_reference", None)  # template helper column
+        if kind == "ownership" and row.get("dimension") == "ownership":
+            row.pop("dimension")  # redundant on an ownership row
         if not row:
             continue  # a template row left blank: nothing to import
         if slug not in slugs:
