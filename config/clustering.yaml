@@ -3,13 +3,12 @@ window_hours: 72
 candidates: 5                    # top stories (by cosine) scored per article
 weights: { cos: 0.6, entity_jaccard: 0.2, time: 0.1, event_type: 0.1 }  # re-weighted over available features
 time_decay_hours: 24             # time proximity = exp(-|article time - story last update| / decay)
-thresholds: { high: 0.82, low: 0.68 }
+thresholds: { high: 0.72, low: 0.62 }  # tuned on gold_v1 half A (was 0.82/0.68); reports/clustering_baseline.md
 # Until a cluster-verifier model is configured (config/models.yaml `analysis`), borderline scores
 # (low <= S < high) follow this policy and are counted as would-be verifier calls.
 borderline_without_verifier: new_story   # new_story | assign
 story_centroid_update: running_mean
 lifecycle: { stable_after_hours: 24, archive_after_days: 7 }
-min_sources_for_bar: 4
 reanalysis_trigger: { new_sources: 3, hours: 6 }
 batch:                           # nightly HDBSCAN pass: proposes merges only, never applies them
   days: 7

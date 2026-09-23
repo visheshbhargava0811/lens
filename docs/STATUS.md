@@ -2,7 +2,7 @@
 
 The working state of the build: what is done, what is running, and what is known to be broken or open. Update it at the end of every phase or work session. For why decisions were made, see `docs/DECISIONS.md`.
 
-_Last updated: 2026-09-21_
+_Last updated: 2026-09-23_
 
 ## Phases
 
@@ -10,13 +10,13 @@ _Last updated: 2026-09-21_
 |---|---|---|
 | 0 Scaffold | Done | `make up && make migrate && make test && make lint` green. The LangSmith smoke trace is verified (`make trace-smoke`) |
 | 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 accepted. Redesigned in a Ground News tone (ADR-0017, `DESIGN.md`) |
-| 1A Sources and ingestion | Built. 24 h acceptance run in progress (ADR-0016) | Worker container (re)started 2026-09-21 22:38 UTC. Confirm with `make ingest-health` after 2026-09-22 22:38 UTC |
-| 2 Chunk, embed, cluster | Implementation underway; eval blocked on human labels | Chunking, BGE-M3 wrapper, Qdrant indexing, incremental clustering, lifecycle, merge proposals, and labeling import/export are locally verified. After Phase 1A is accepted, export 100+ stories for human labeling, then run and record the baseline. |
+| 1A Sources and ingestion | Done | 24 h acceptance run (ADR-0016) passed 2026-09-22 22:42 UTC: all 17 sources ingested new articles in the window (22 to 6,915 each), 1,947 jobs completed and 0 failed, 0 dead letters. Amar Ujala had 2 "payload is not a feed" errors but still ingested 2,503 articles |
+| 2 Chunk, embed, cluster | Done (pending second-annotator check) | Gold set `data/evals/clustering/gold_v1.jsonl`: 436 articles, 211 stories (93 cross-lingual, 16 hard-negative groups with 42 stories, 29 developing), labeled by the owner 2026-09-23 from `to_label_20260922.csv` (raw: `labeled_20260922_raw.csv`; cleaned: `labeled_20260922_v1.csv`, which drops rows 18-19 and clears hard-negative tags used on only one story). Baseline `reports/clustering_baseline.md`: docs thresholds B³ F1 0.82, cross-lingual recall 0.40; tuned on half A (high 0.72, low 0.62) B³ F1 0.99 on held-out half B. **Optimistic:** the gold set started from the clusterer's own draft groups and only 2 rows changed. On all data the tuned config makes 8 hard-negative merges and has 0.76 cross-lingual precision. Tuned thresholds are in `config/clustering.yaml`. `make cluster` has been run on all indexed articles |
 
 ## What is running
 
 - `make up`: Postgres on 5433, Redis on 6380, Qdrant on 6333. Compose project name: `lens`.
-- `make ingest-up`: the `worker` container (Arq). It polls 22 feeds for 17 active sources every 15 minutes and restarts on its own. Logs: `make ingest-logs`.
+- `make ingest-up`: the `worker` container (Arq). It polls 22 feeds for 17 active sources every 15 minutes and restarts on its own. Poll cadence was fixed 2026-09-23: before that, each feed was fetched about hourly, because arq's stored results blocked re-enqueueing the fixed `_job_id` (now `keep_result = 0`). Logs: `make ingest-logs`.
 
 ## Sources (ADR-0012, ADR-0013)
 
@@ -40,9 +40,12 @@ _Last updated: 2026-09-21_
 - **Hindustan:** `api.livehindustan.com` disallows all crawling in its `robots.txt`, so the www news sitemap is used. Check `robots.txt` on the feed's host, not the homepage's.
 - **Node:** runs as x64 under Rosetta. If Vitest can't find rolldown's native binding, regenerate `frontend/package-lock.json`.
 - **Next.js 16:** read `frontend/node_modules/next/dist/docs/` before writing Next code. `middleware` is now `proxy`.
+- **Root `.env`:** it uses `KEY = value` with spaces, so never `source` it in a shell: the spaces make each line run as a command, and the errors print the secrets. Read keys with a parser (`pydantic-settings` or a regex).
+- **Arq job ids:** a fixed `_job_id` cannot be re-enqueued while that job's stored result exists. The worker sets `keep_result = 0` for this reason.
 - **LangSmith:** per-fetch tracing is off (`INGEST_TRACE`), because at 20 sources it would use about 2k traces a day.
 
 ## Open items needing the owner
 
-- After the Phase 1A acceptance run: export and label 100+ clustering stories (including 30 cross-lingual, 20 hard-negative, and 10 developing stories), then run the Phase 2 baseline.
+- Clustering gold set: a second person should label a 20% sample so we can measure agreement. It would show how optimistic the 0.99 score is.
+- Same-outlet duplicates: 45 were stored before the 2026-09-23 fix (same source, same `content_hash`, a new URL within 6 h). They were left in place; new ones are skipped (`fetch.same_source_dup_hours`).
 - The JS budget is over target (about 163 KB gzipped vs 150).

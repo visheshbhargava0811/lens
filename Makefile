@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -52,6 +52,12 @@ reprocess:
 # Phase 2: chunk + embed stored articles into Qdrant, then the clustering eval loop.
 index:
 	$(UVML) python -m lens.pipeline.index
+
+cluster:
+	$(UVML) python -m lens.pipeline.cluster
+
+stats:
+	$(UV) python -m lens.pipeline.stats
 
 cluster-label-export:
 	$(UVML) python -m lens.evals.clustering_labeling export $(ARGS)
