@@ -1,0 +1,683 @@
+{
+  "name": "calibration_v1b",
+  "generated_at": "2026-09-23T14:35:56.344658+00:00",
+  "stories_analysed": 225,
+  "summary_versions": 243,
+  "outcomes": {
+    "failed": 201,
+    "published": 35,
+    "rejected": 1,
+    "review": 6
+  },
+  "attempts": {
+    "1": 14,
+    "2": 6,
+    "3": 223
+  },
+  "versions_with_pruned_sentences": 20,
+  "first_try_judge_pass_rate": 0.206,
+  "guard_pass_rates": {
+    "G-GEN-01": 1.0,
+    "G-GEN-02": 0.846,
+    "G-GEN-03": 0.206,
+    "G-OUT-07": 0.833
+  },
+  "stored_claims": 532,
+  "quote_match_rate": 1.0,
+  "framing_present": 72,
+  "judge_calibration": {
+    "gold": "data/evals/judge_calibration/gold_v1.jsonl",
+    "judge": "groq/qwen/qwen3.8-27b",
+    "n": 122,
+    "unscored": 0,
+    "kappa": 0.473,
+    "agreement": 0.803,
+    "human_supported_share": 0.836,
+    "by_language": {
+      "en": {
+        "n": 52,
+        "kappa": 0.305,
+        "agreement": 0.75
+      },
+      "en+hi": {
+        "n": 40,
+        "kappa": 0.357,
+        "agreement": 0.775
+      },
+      "en+hi+mr": {
+        "n": 8,
+        "kappa": 0.0,
+        "agreement": 0.75
+      },
+      "en+mr": {
+        "n": 2,
+        "kappa": 1.0,
+        "agreement": 1.0
+      },
+      "hi": {
+        "n": 20,
+        "kappa": 1.0,
+        "agreement": 1.0
+      }
+    },
+    "target": 0.6,
+    "confusion": {
+      "both_supported": 81,
+      "both_unsupported": 17,
+      "judge_too_strict": 21,
+      "judge_too_lenient": 3
+    },
+    "items": [
+      {
+        "id": "judge-v1-1",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-2",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-3",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-4",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-5",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-6",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-7",
+        "human": false,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-8",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-9",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-10",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-11",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-12",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-13",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-14",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-15",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-16",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-17",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-18",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-19",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-20",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-21",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-22",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-23",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-24",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-25",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-26",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-27",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-28",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-29",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-30",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-31",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-32",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-33",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-34",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-35",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-36",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-37",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-38",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-39",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-40",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-41",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-42",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-43",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-44",
+        "human": false,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-45",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-46",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-47",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-48",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-49",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-50",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-51",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-52",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-53",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-54",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-55",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-56",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-57",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-58",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-59",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-60",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-61",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-62",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-63",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-64",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-65",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-66",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-67",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-68",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-69",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-70",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-71",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-72",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-73",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-74",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-75",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-76",
+        "human": false,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-77",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-78",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-79",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-80",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-81",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-82",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-83",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-84",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-85",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-86",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-87",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-88",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-89",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-90",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-91",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-92",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-93",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-94",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-95",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-96",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-97",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-98",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-99",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-100",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-101",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-102",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-103",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-104",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-105",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-106",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-107",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-108",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-109",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-110",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-111",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-112",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-113",
+        "human": false,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-114",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-115",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-116",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-117",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-118",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-119",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-120",
+        "human": true,
+        "judge": true
+      },
+      {
+        "id": "judge-v1-121",
+        "human": true,
+        "judge": false
+      },
+      {
+        "id": "judge-v1-122",
+        "human": true,
+        "judge": true
+      }
+    ]
+  }
+}
