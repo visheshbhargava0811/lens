@@ -20,6 +20,15 @@ stats:
     high_min_sources: 10
     high_max_unclassified: 0.20
     low_max_unclassified: 0.50      # above this share of unclassified sources, confidence is low
+  # Rater wording -> story-card bucket (lowercased). Anything unlisted counts as unrated.
+  # "Mostly Factual" -> mixed is the owner's conservative choice (ADR-0019).
+  factuality_value_map:
+    very high: high
+    high: high
+    mostly factual: mixed
+    mixed: mixed
+    low: low
+    very low: low
   factuality_confidence:            # by share of the story's sources that have a factuality rating
     high_min_rated_share: 0.80
     medium_min_rated_share: 0.50

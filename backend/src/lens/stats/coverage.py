@@ -111,7 +111,7 @@ def compute_story_stats(
     ownership: Counter[str] = Counter()
     for s in by_source:
         facts = sources.get(s, SourceFacts())
-        f = (facts.factuality or "").lower()
+        f = cfg["factuality_value_map"].get((facts.factuality or "").strip().lower())
         factuality_counts[f if f in FACTUALITY_BUCKETS else "unrated"] += 1
         ownership[facts.ownership_group or "unknown"] += 1
 

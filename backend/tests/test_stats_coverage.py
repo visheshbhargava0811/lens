@@ -136,3 +136,14 @@ def test_empty_story() -> None:
 )
 def test_factuality_confidence_follows_rated_share(counts: dict[str, int], expected: str) -> None:
     assert factuality_confidence(counts, CFG["factuality_confidence"]) == expected
+
+
+def test_rater_wording_maps_to_buckets() -> None:
+    sources = {
+        "s1": SourceFacts(factuality="Very High"),
+        "s2": SourceFacts(factuality="Mostly Factual"),  # conservative: counts as mixed (ADR-0019)
+        "s3": SourceFacts(factuality="Very Low"),
+        "s4": SourceFacts(factuality="Satire"),  # unknown wording is never guessed
+    }
+    r = compute_story_stats([_a(s) for s in sources], sources, MIN_BLIND, CFG)
+    assert r.factuality_counts == {"high": 1, "mixed": 1, "low": 1, "unrated": 1}
