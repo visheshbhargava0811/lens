@@ -26,6 +26,7 @@ from lens.schemas import api
 from lens.schemas.analysis import CitedSentence
 from lens.schemas.ask import SECTIONS
 from lens.services.stories import (
+    M_BIAS,
     cited_api,
     coverage_bar,
     find_story,
@@ -35,14 +36,13 @@ from lens.services.stories import (
 )
 from lens.stats.coverage import BIAS_BUCKETS, bucket, rated_share_confidence
 
-ABSTAIN_MESSAGES = {
+ABSTAIN_MESSAGES = {  # docs/10 copy
     "insufficient_coverage": "There isn't enough reliable coverage to answer this yet. "
     "Here are the closest stories we found.",
-    "out_of_scope": "Lens answers questions about news coverage in India. It can't help with this request, "
-    "but you can ask what has been reported about a news event, or how outlets covered it.",
+    "out_of_scope": "Lens covers news reporting. Try asking what outlets have reported about a story.",
     "service_unavailable": "Lens can't answer right now. Please try again in a few minutes.",
-    "sensitive_topic_under_review": "This topic needs extra care, so Lens only shows summaries a person has reviewed. "
-    "None is available yet for this story.",
+    "sensitive_topic_under_review": "This topic is sensitive, so we only show reviewed summaries. "
+    "This one is still being reviewed.",
 }
 STATUS_BY_NODE: dict[str, tuple[Literal["searching", "verifying"], str]] = {
     "understand": ("searching", "Searching coverage"),
@@ -151,10 +151,43 @@ def evidence_event(ev: Evidence) -> api.AskEvidence:
     for a in ev.articles:
         seen.setdefault(
             a.article.source_id,
-            api.AskSource(source_id=a.article.source_id, name=a.article.source_name, language=a.article.language),
+            api.AskSource(
+                source_id=a.article.source_id,
+                name=a.article.source_name,
+                language=a.article.language,
+                bias=a.article.bias if a.article.bias in BIAS_BUCKETS else "unrated",
+            ),
         )
     newest = max((a.article.published_at for a in ev.articles), default=None)
-    return api.AskEvidence(story_ids=ev.story_ids, sources=list(seen.values()), stale=False, newest_article_at=newest)
+    return api.AskEvidence(
+        story_ids=ev.story_ids,
+        sources=list(seen.values()),
+        stale=False,
+        newest_article_at=newest,
+        methodology_url=M_BIAS,
+    )
+
+
+def cited_articles(session: Session, answer: api.AskAnswer) -> list[api.AskArticle]:
+    sections = (answer.tldr, answer.what_happened, answer.agreements, answer.disagreements, answer.premises_addressed)
+    ids = list(dict.fromkeys(c.article_id for sec in sections for s in sec for c in s.citations))
+    if not ids:
+        return []
+    rows = session.execute(
+        select(Article, Source).join(Source).where(Article.id.in_([uuid.UUID(i) for i in ids]))
+    ).all()
+    by_id = {
+        str(a.id): api.AskArticle(
+            id=str(a.id),
+            headline=a.title,
+            headline_lang=a.language,
+            url=a.url,
+            source_name=s.name,
+            source_language=(s.language_codes or [a.language])[0],
+        )
+        for a, s in rows
+    }
+    return [by_id[i] for i in ids if i in by_id]
 
 
 def answer_event(session: Session, state: AskState) -> api.AskAnswer:
@@ -190,6 +223,7 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
         coverage=evidence_coverage(ev),
         fact_checks=[],
         story_ids=ev.story_ids,
+        articles=[],
         verified=True,
     )
 
@@ -217,6 +251,7 @@ def fallback_event(state: AskState) -> api.AskAnswer:
         coverage=detail.story.coverage,
         fact_checks=detail.fact_checks,
         story_ids=[fb["story_id"]],
+        articles=[],
         verified=True,
     )
 
@@ -264,10 +299,10 @@ def ask_events(session: Session, query: str, graph: Any) -> Iterator[tuple[str, 
                 sent_status.add(step)
                 yield "status", api.AskStatus(step=step, message=msg)
     outcome = state.get("outcome")
-    if outcome == "answer":
-        yield "answer_final", answer_event(session, state)  # type: ignore[arg-type]
-    elif outcome == "fallback":
-        yield "answer_final", fallback_event(state)  # type: ignore[arg-type]
+    if outcome in ("answer", "fallback"):
+        ans = answer_event(session, state) if outcome == "answer" else fallback_event(state)  # type: ignore[arg-type]
+        ans.articles = cited_articles(session, ans)
+        yield "answer_final", ans
     else:
         yield "abstain", abstain_event(session, state)  # type: ignore[arg-type]
 

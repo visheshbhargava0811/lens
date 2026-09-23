@@ -328,3 +328,23 @@ def test_sensitive_topic_never_generates_live() -> None:
         assert out["outcome"] == outcome and AskDraft not in llm.prompts
         if outcome == "abstain":
             assert out["abstain_reason"] == "sensitive_topic_under_review"
+
+
+def test_sse_answer_carries_cited_articles_from_the_db(db: Any) -> None:
+    from sqlalchemy import select
+
+    from lens.db.models import Article, Source
+    from tests.test_api_public import _src, _story
+
+    _story(db, [_src(db, "one"), _src(db, "two", "hi")])
+    rows = db.execute(select(Article, Source).join(Source).order_by(Source.slug)).all()
+    arts = [
+        ArticleIn(str(a.id), str(s.id), s.name, a.language, a.published_at, a.title, None, "unrated") for a, s in rows
+    ]
+    ev = Evidence([EvidenceArticle(f"A{i + 1}", x, x.title) for i, x in enumerate(arts)], [], "stories", 0.8)
+    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    ans = _events(script, db, FakeRetriever(ev))[-1][1]
+    assert [(x.source_name, x.source_language, x.url) for x in ans.articles] == [
+        ("ONE", "en", rows[0][0].url),
+        ("TWO", "hi", rows[1][0].url),
+    ]

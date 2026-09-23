@@ -46,7 +46,14 @@ def before_stream(request: Request, response: Response) -> None:
         raise RateLimited(res.meta["retry_after_s"], res.reason)
 
 
-@router.post("/ask", response_class=EventSourceResponse, responses={429: {"model": ErrorResponse}})
+@router.post(
+    "/ask",
+    response_class=EventSourceResponse,
+    responses={
+        200: {"model": api.AskEvents, "description": "SSE stream; payload type per event name (docs/09)"},
+        429: {"model": ErrorResponse},
+    },
+)
 def ask(body: api.AskRequest, _: Annotated[None, Depends(before_stream)]) -> Iterator[ServerSentEvent]:
     # The session lives inside the stream (dependency teardown timing differs for streamed responses).
     with Session(get_engine()) as db:

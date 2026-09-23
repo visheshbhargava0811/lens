@@ -304,6 +304,7 @@ class AskSource(BaseModel):
     source_id: str
     name: str
     language: str
+    bias: Literal["left", "center", "right", "unrated"]  # outlet bucket (ADR-0020), as in ArticleRow
 
 
 class AskEvidence(BaseModel):
@@ -311,6 +312,18 @@ class AskEvidence(BaseModel):
     sources: list[AskSource]
     stale: bool
     newest_article_at: datetime | None
+    methodology_url: str
+
+
+class AskArticle(BaseModel):
+    """A cited article, so citation chips can show the headline and link (docs/09)."""
+
+    id: str
+    headline: str
+    headline_lang: str
+    url: str
+    source_name: str
+    source_language: str
 
 
 class AskAnswer(BaseModel):
@@ -329,6 +342,7 @@ class AskAnswer(BaseModel):
     coverage: CoverageAvailable | CoverageLimited
     fact_checks: list[FactCheckRef]
     story_ids: list[str]
+    articles: list[AskArticle]
     verified: Literal[True]
 
 
@@ -344,3 +358,15 @@ class AskError(BaseModel):
     code: str
     message: str
     retry_after_s: int | None = None
+
+
+class AskEvents(BaseModel):
+    """Documentation only: the payload type of each `/ask` SSE event, keyed by event name, so the
+    generated client has these types. The endpoint streams them as `event: <name>` / `data: <json>`."""
+
+    status: AskStatus
+    understanding: AskUnderstanding
+    evidence: AskEvidence
+    answer_final: AskAnswer
+    abstain: AskAbstain
+    error: AskError
