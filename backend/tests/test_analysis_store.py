@@ -107,3 +107,28 @@ def test_eligibility_skips_analysed_and_retries_old_failures(db: Session, four: 
     db.flush()
     assert four.id in {s.id for s in eligible(db, 50)}  # failure older than reanalysis_trigger.hours
     assert db.execute(select(func.count()).select_from(StorySummary)).scalar_one() == 1
+
+
+def test_review_queue_approve_publishes_the_held_version(
+    db: Session, four: Story, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from pydantic import SecretStr
+
+    from lens.core.settings import get_settings
+
+    monkeypatch.setattr(get_settings(), "admin_token", SecretStr("t"))
+    auth = {"authorization": "Bearer t"}
+    _analyze(db, four, headline="Court convicts accused in bombing case")
+    items = client.get("/api/v1/admin/review-queue", headers=auth).json()["items"]
+    assert len(items) == 1 and "terror_incident" in items[0]["reason"] and items[0]["summary"] == ["First.", "Second."]
+    assert client.get("/api/v1/stories/analysed-story").json()["summary"] is None
+    r = client.post(
+        f"/api/v1/admin/review-queue/{items[0]['id']}/resolve", params={"decision": "approve"}, headers=auth
+    )
+    assert r.json() == {"status": "approved"}
+    assert client.get("/api/v1/stories/analysed-story").json()["summary"]["version"] == 1
+    again = client.post(
+        f"/api/v1/admin/review-queue/{items[0]['id']}/resolve", params={"decision": "approve"}, headers=auth
+    )
+    assert again.status_code == 404
+    assert client.get("/api/v1/admin/review-queue").status_code == 401

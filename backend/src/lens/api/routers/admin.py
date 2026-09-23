@@ -2,10 +2,12 @@
 Unset token means admin is disabled. Never exposed through the public web origin."""
 
 import hmac
-from typing import Annotated
+import uuid
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from lens.core.settings import get_settings
@@ -13,6 +15,7 @@ from lens.db.session import get_session
 from lens.ingest.source_import import ImportRejected, import_csv
 from lens.schemas.api import SourceImportResult
 from lens.schemas.common import ErrorBody, ErrorResponse
+from lens.services import review
 
 
 def require_admin(authorization: Annotated[str | None, Header()] = None) -> None:
@@ -51,3 +54,24 @@ async def import_sources(
         return JSONResponse(body.model_dump(), status_code=422)
     db.commit()
     return SourceImportResult(ownership_added=r.ownership_added, ratings_added=r.ratings_added, unchanged=r.unchanged)
+
+
+@router.get("/review-queue")
+def review_queue(db: Annotated[Session, Depends(get_session)]) -> dict[str, list[dict[str, Any]]]:
+    """Held story summaries (G-OUT-07), oldest first."""
+    return {"items": review.open_items(db)}
+
+
+class Resolved(BaseModel):
+    status: Literal["approved", "rejected"]
+
+
+@router.post("/review-queue/{item_id}/resolve", response_model=Resolved, responses={404: {"model": ErrorResponse}})
+def resolve_review(
+    item_id: uuid.UUID, decision: Literal["approve", "reject"], db: Annotated[Session, Depends(get_session)]
+) -> Resolved | JSONResponse:
+    if not review.resolve(db, item_id, decision, reviewer="admin"):
+        body = ErrorResponse(error=ErrorBody(code="not_found", message="No open review item with that id."))
+        return JSONResponse(body.model_dump(), status_code=404)
+    db.commit()
+    return Resolved(status="approved" if decision == "approve" else "rejected")

@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster stats pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -70,6 +70,9 @@ judge-label-import:
 
 eval-analysis:
 	$(UV) python -m lens.evals.analysis run --name $(or $(NAME),baseline)
+
+review:
+	$(UV) python -m lens.services.review $(ARGS)
 
 stats:
 	$(UV) python -m lens.pipeline.stats
