@@ -27,7 +27,7 @@ OK: dict[str, Any] = {"reasoning": "r", "items": [], "note": None}
 
 def _resp(status: int, content: Any = None, headers: dict[str, str] | None = None) -> httpx.Response:
     text = content if isinstance(content, str) else json.dumps(content)
-    body = {"choices": [{"message": {"content": text}}]}
+    body = {"choices": [{"message": {"content": text}}], "usage": {"prompt_tokens": 100, "completion_tokens": 20}}
     return httpx.Response(status, json=body, headers=headers or {}, request=httpx.Request("POST", "https://x"))
 
 
@@ -107,6 +107,8 @@ def test_long_retry_after_fails_over_to_gemini_without_waiting(fake: Fake) -> No
         "family": "gemini",
         "account": "1",
         "fallback": "true",
+        "prompt_tokens": "100",
+        "completion_tokens": "20",
     }
     assert "max_tokens" in fake.requests[-1]  # Gemini's OpenAI-compatible body
 

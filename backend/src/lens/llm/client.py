@@ -189,28 +189,38 @@ def structured[T: BaseModel](
             metadata={"tier": t.name, "provider": t.provider, "model": t.model, "prompt_version": prompt_version},
         )(_structured)
         try:
-            out = cast(T, traced(t, model, system, user))  # traceable erases the return type
+            out, usage = cast(tuple[T, dict[str, int]], traced(t, model, system, user))  # traceable erases types
         except LLMError as e:
             errors.append(str(e))
             continue
         if meta is not None:
             meta.update(
-                provider=t.provider, model=t.model, family=t.family, account=str(t.account), fallback=str(i > 0).lower()
+                provider=t.provider,
+                model=t.model,
+                family=t.family,
+                account=str(t.account),
+                fallback=str(i > 0).lower(),
+                prompt_tokens=str(usage["prompt_tokens"]),
+                completion_tokens=str(usage["completion_tokens"]),
             )
         return out
     raise LLMError(f"{tier_name}: every provider failed: " + " | ".join(errors))
 
 
-def _structured[T: BaseModel](t: Tier, model: type[T], system: str, user: str) -> T:
+def _structured[T: BaseModel](t: Tier, model: type[T], system: str, user: str) -> tuple[T, dict[str, int]]:
+    """The validated output and the tokens spent on it, summed over fix-up retries (cost per call)."""
     schema = strict_schema(model)
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     last_error = ""
+    usage = {"prompt_tokens": 0, "completion_tokens": 0}
     for _ in range(MAX_FIX_RETRIES + 1):
         data = _send(t, _body(t, messages, schema, model.__name__))
+        for k in usage:
+            usage[k] += int((data.get("usage") or {}).get(k) or 0)
         choice = (data.get("choices") or [{}])[0]
         content = choice.get("message", {}).get("content") or ""
         try:
-            return model.model_validate(json.loads(content))
+            return model.model_validate(json.loads(content)), usage
         except (json.JSONDecodeError, ValidationError) as e:
             if content:
                 last_error = str(e)[:1000]
