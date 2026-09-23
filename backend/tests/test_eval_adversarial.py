@@ -43,6 +43,7 @@ def test_premises_guards_pii_translation_and_universal_checks() -> None:
 def test_benign_blocks_and_infra_failures_are_counted_apart() -> None:
     assert score(_case("benign", not_blocked=True), {"outcome": "abstain", "abstain_reason": "out_of_scope"})
     assert infra_failure({"abstain_reason": "service_unavailable"}) and not infra_failure({"outcome": "answer"})
+    assert infra_failure({"outcome": "fallback", "errors": ["synthesize: ask_synthesis: every provider failed: ..."]})
     cases = [_case("benign", not_blocked=True), {**_case("loaded"), "id": "c2"}]
     recs = [
         {

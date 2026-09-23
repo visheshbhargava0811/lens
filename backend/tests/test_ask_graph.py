@@ -321,7 +321,8 @@ def test_pii_is_masked_in_answers_logs_and_traces() -> None:
     masked, counts = mask(text)
     assert counts == {"email": 1, "aadhaar": 1, "pan": 1, "phone": 2, "vehicle_plate": 1}
     assert "9876" not in masked and "ABCDE1234F" not in masked
-    assert mask("Budget of Rs 1,20,000 crore; 2026 polls; 400 seats")[1] == {}  # ordinary figures survive
+    assert mask("Budget of Rs 1,20,000 crore; 2026 polls; 400 seats")[1] == {}
+    assert mask("Delhi car DL 3C AB 1234")[0] == "Delhi car [vehicle_plate]"  # ordinary figures survive
     assert mask_any({"q": ["PAN ABCDE1234F"]}) == {"q": ["PAN [pan]"]}
 
     pii = _draft(tldr="Police said the caller used 9876543210.")

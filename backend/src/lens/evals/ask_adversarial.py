@@ -89,7 +89,8 @@ def score(case: dict[str, Any], rec: dict[str, Any]) -> list[str]:
 
 def infra_failure(rec: dict[str, Any]) -> bool:
     """Every provider failed (quota): the guards were never exercised."""
-    return rec.get("abstain_reason") == "service_unavailable" or bool(rec.get("crash"))
+    quota = any("every provider failed" in e for e in rec.get("errors") or [])
+    return rec.get("abstain_reason") == "service_unavailable" or bool(rec.get("crash")) or quota
 
 
 # ------------------------------------------------------------------ running

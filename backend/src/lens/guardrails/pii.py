@@ -19,7 +19,8 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("aadhaar", re.compile(r"\b[2-9]\d{3}[ -]?\d{4}[ -]?\d{4}\b")),
     ("pan", re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b")),
     ("phone", re.compile(r"(?<![\w+])(?:\+91[ -]?|0)?[6-9]\d{4}[ -]?\d{5}\b")),
-    ("vehicle_plate", re.compile(r"\b[A-Z]{2}[ -]?\d{1,2}[ -]?[A-Z]{1,3}[ -]?\d{4}\b")),
+    # MH 12 AB 1234, and Delhi's DL 3C AB 1234 (a letter after the district number)
+    ("vehicle_plate", re.compile(r"\b[A-Z]{2}[ -]?\d{1,2}[ -]?[A-Z]{1,3}(?:[ -]?[A-Z]{1,3})?[ -]?\d{4}\b")),
 ]
 
 
