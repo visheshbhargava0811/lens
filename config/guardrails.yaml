@@ -51,3 +51,9 @@ stats:
   rated_share_confidence:           # bar and factuality confidence: share of the story's sources that are rated
     high_min_rated_share: 0.80
     medium_min_rated_share: 0.50
+
+# Ask (Phase 6). G-IN-03: per client, fixed windows in Redis. Starting values; the free-tier LLM
+# quota (ADR-0030) is the real ceiling, so keep these low.
+ask:
+  rate_per_minute: 3
+  rate_per_day: 40

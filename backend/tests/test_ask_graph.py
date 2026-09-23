@@ -204,3 +204,50 @@ def test_sse_refusal_sends_no_progress_or_evidence(db: Any) -> None:
     events = _events({QueryUnderstanding: [_qu("unsupported")]}, db)
     assert [k for k, _ in events] == ["status", "understanding", "abstain"]
     assert events[-1][1].reason == "out_of_scope"
+
+
+class FakeCounter:
+    def __init__(self) -> None:
+        self.n: dict[str, int] = {}
+
+    def incr(self, name: str) -> int:
+        self.n[name] = self.n.get(name, 0) + 1
+        return self.n[name]
+
+    def expire(self, name: str, time: int) -> None:
+        pass
+
+    def ttl(self, name: str) -> int:
+        return 42
+
+
+def test_rate_guard_blocks_over_the_minute_limit() -> None:
+    from lens.guardrails.input import check_rate
+
+    c, cfg = FakeCounter(), {"rate_per_minute": 2, "rate_per_day": 10}
+    assert [check_rate(c, "k", cfg, 120).passed for _ in range(3)] == [True, True, False]
+    assert check_rate(c, "k", cfg, 120).meta["retry_after_s"] == 42
+    assert check_rate(c, "k", cfg, 180).passed  # next minute window
+
+
+def test_ask_endpoint_streams_sse_and_rate_limits(client: Any, monkeypatch: Any) -> None:
+    from lens.api.routers import ask as router
+    from lens.services import ask as svc
+
+    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    monkeypatch.setattr(svc, "ask_graph", lambda *a: build(FakeLLM(script), FakeRetriever(_ev()), lambda ids: None))
+    monkeypatch.setattr(router, "get_qdrant", lambda: None)
+    monkeypatch.setattr(router, "get_embedder", lambda: None)
+    monkeypatch.setattr(router, "_redis", lambda: FakeCounter())  # fresh counter: never limited
+    r = client.post("/api/v1/ask", json={"query": "voter list"})
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
+    assert "no-store" in r.headers["cache-control"]
+    events = [line.removeprefix("event: ") for line in r.text.splitlines() if line.startswith("event: ")]
+    assert events[0] == "status" and events[-1] == "answer_final" and "evidence" in events
+
+    shared = FakeCounter()
+    monkeypatch.setattr(router, "_redis", lambda: shared)
+    codes = [client.post("/api/v1/ask", json={"query": "q"}).status_code for _ in range(4)]
+    assert codes[-1] == 429
+    r = client.post("/api/v1/ask", json={"query": "q"})
+    assert r.json()["error"]["code"] == "rate_limited" and r.headers["retry-after"] == "42"

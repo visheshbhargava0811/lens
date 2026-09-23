@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException  # also covers unknown routes (404)
 
 from lens import __version__
-from lens.api.routers import admin, health, public
+from lens.api.routers import admin, ask, health, public
 from lens.core.logging import configure_logging
 from lens.core.settings import get_settings
 from lens.core.tracing import configure_tracing
@@ -53,6 +53,12 @@ def create_app() -> FastAPI:
         body = ErrorResponse(error=ErrorBody(code=code, message=str(exc.detail)))
         return JSONResponse(body.model_dump(exclude_none=True), status_code=exc.status_code)
 
+    @app.exception_handler(ask.RateLimited)
+    async def rate_limited(request: Request, exc: ask.RateLimited) -> JSONResponse:
+        msg = "You're asking faster than Lens can check sources. Please wait and try again."
+        body = ErrorResponse(error=ErrorBody(code="rate_limited", message=msg, retry_after_s=exc.retry_after_s))
+        return JSONResponse(body.model_dump(), status_code=429, headers={"Retry-After": str(exc.retry_after_s)})
+
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
         fields = ", ".join(".".join(str(p) for p in e["loc"][1:]) for e in exc.errors())
@@ -61,6 +67,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
+    app.include_router(ask.router, prefix=API_PREFIX)
     app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(health.router)  # bare /health for container probes
     return app
