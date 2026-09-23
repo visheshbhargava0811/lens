@@ -68,7 +68,7 @@ def _user(state: StoryState, extra: str = "") -> str:
     return f"Story headline (for context only): {state['headline']}\n\n{render(state['evidence'])}{extra}"
 
 
-def _sentences(summary: SummaryDraft) -> str:
+def judge_lines(summary: SummaryDraft) -> str:
     rows = [
         f"- [{name}] {s.text} (cites {', '.join(s.citations)})"
         for name, section in (
@@ -151,7 +151,7 @@ def build(llm: LLM) -> Any:
     def judge(state: StoryState) -> dict[str, Any]:
         summary = state["summary"]
         assert summary is not None
-        user = _user(state, f"\n\nSentences to check:\n{_sentences(summary)}")
+        user = _user(state, f"\n\nSentences to check:\n{judge_lines(summary)}")
         try:
             # The judge must not share a family with the model that wrote this summary (docs/08).
             writer = state.get("models", {}).get("synthesis_system", {}).get("family")
