@@ -72,4 +72,6 @@ class WorkerSettings:
     on_startup = startup
     max_jobs = 4  # polite: at most four feeds in flight
     job_timeout = 120
+    # A finished job's stored result blocks re-enqueueing its fixed _job_id (arq default: 1 h).
+    keep_result = 0
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

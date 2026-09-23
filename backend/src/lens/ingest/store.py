@@ -101,6 +101,20 @@ def store_items(session: Session, source: Source, items: list[RawItem], now: dat
         if not values["is_news"]:
             stats.not_news += 1
             continue
+        # Same outlet, same headline and snippet under a new URL (slug edited after a headline change,
+        # or published twice): one article. Windowed so daily pieces that reuse a headline are kept.
+        window = timedelta(hours=cfg["fetch"]["same_source_dup_hours"])
+        if session.execute(
+            select(Article.id)
+            .where(
+                Article.source_id == source.id,
+                Article.content_hash == values["content_hash"],
+                Article.published_at.between(values["published_at"] - window, values["published_at"] + window),
+            )
+            .limit(1)
+        ).first():
+            stats.duplicates += 1
+            continue
         # Idempotent: the same canonical URL (or source+url) is never stored twice.
         stmt = insert(Article).values(**values).on_conflict_do_nothing().returning(Article.id)
         new_id = session.execute(stmt).scalar_one_or_none()

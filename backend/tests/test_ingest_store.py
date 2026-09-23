@@ -190,6 +190,16 @@ def test_same_outlet_duplicates_are_not_called_syndication(db: Session) -> None:
     store_items(db, a, [_item("https://outlet-e.example/1", title, snippet=None)], NOW)
     stats = store_items(db, a, [_item("https://outlet-e.example/2", title, snippet=None)], NOW)
     assert stats.syndicated == 0
+    assert stats.inserted == 0 and stats.duplicates == 1  # same outlet re-publishing under a new URL
+
+
+def test_same_outlet_repeat_outside_window_is_kept(db: Session) -> None:
+    # Daily pieces can reuse a headline ("Stock market today"); a new day is a new article.
+    a = _source(db, "outlet-f")
+    title = "Stock market opening today: will Sensex and Nifty rise or fall this morning"
+    store_items(db, a, [_item("https://outlet-f.example/1", title, minutes_ago=24 * 60)], NOW)
+    stats = store_items(db, a, [_item("https://outlet-f.example/2", title, minutes_ago=30)], NOW)
+    assert stats.inserted == 1
 
 
 @pytest.mark.parametrize(
