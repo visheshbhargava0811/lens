@@ -75,3 +75,12 @@ def test_dimension_ownership_on_an_ownership_row_is_accepted(db: Session, src: S
     assert import_csv(db, header + row).ownership_added == 1
     with pytest.raises(ImportRejected):  # any other stray rating field is still an error
         import_csv(db, header + row.replace(",ownership,2026", ",factuality,2026"))
+
+
+def test_editorial_rating_may_link_our_methodology_section_only(db: Session, src: Source) -> None:
+    header = "kind,source_slug,dimension,rater,value,method_url,retrieved_at,confidence\n"
+    row = "rating,imp-a,bias,Lens editor,Right,{},2026-09-23T00:00:00Z,low\n"
+    assert import_csv(db, header + row.format("/methodology#editorial")).ratings_added == 1
+    for bad in ("/about", "methodology#editorial", "/methodology#Editorial Ratings"):
+        with pytest.raises(ImportRejected):
+            import_csv(db, header + row.format(bad))

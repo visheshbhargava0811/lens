@@ -1,0 +1,6 @@
+kind,source_slug,dimension,rater,value,method_url,retrieved_at,confidence
+rating,dainik-bhaskar,bias,Lens editor,Left-Center,/methodology#editorial,2026-09-23,low
+rating,dainik-jagran,bias,Lens editor,Right,/methodology#editorial,2026-09-23,low
+rating,sakal,bias,Lens editor,Left-Center,/methodology#editorial,2026-09-23,low
+rating,loksatta,bias,Lens editor,Right-Center,/methodology#editorial,2026-09-23,low
+rating,amar-ujala,bias,Lens editor,Right-Center,/methodology#editorial,2026-09-23,low

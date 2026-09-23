@@ -5,6 +5,7 @@ import { getMethodology } from "@/lib/api/client";
 const SECTIONS = [
   "coverage",
   "bias",
+  "editorial",
   "factuality",
   "ownership",
   "blindspots",

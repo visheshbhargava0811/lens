@@ -189,6 +189,10 @@
       "bias": {
         "title": "Outlet bias",
         "body": "Each outlet carries a political-lean rating from a named third-party rater: Left, Center or Right. The coverage bar counts how many distinct outlets from each side covered a story. The rating describes the outlet, not the individual article, and outlets without a rating are shown as Not rated. We show the rater's exact wording (for example \"Left-Center\") on every article, and group leaning ratings with their side. Colors and patterns are chosen to avoid party colors."
+      },
+      "editorial": {
+        "title": "Editorial ratings",
+        "body": "Where no third-party rater covers an outlet, a few bias ratings come from the Lens editor's own judgment. They are labelled \"Rated by Lens editor\", marked low confidence, and have no published rubric or independent review yet. We replace them when a third-party rating becomes available."
       }
     },
     "current": {

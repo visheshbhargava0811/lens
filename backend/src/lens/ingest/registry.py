@@ -11,7 +11,7 @@ from __future__ import annotations
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
@@ -57,12 +57,17 @@ class OwnershipEntry(_Strict):
         return v
 
 
+# A method link is a rater's public methodology page, or for Lens's own editorial ratings a section
+# of our methodology page (ADR-0021). Nothing else is accepted.
+INTERNAL_METHOD = r"^/methodology#[a-z-]+$"
+
+
 class RatingEntry(_Strict):
     dimension: str
     rater: str
     value: str
     numeric_value: float | None = None
-    method_url: HttpUrl
+    method_url: HttpUrl | Annotated[str, Field(pattern=INTERNAL_METHOD)]
     evidence_url: HttpUrl | None = None
     retrieved_at: datetime
     confidence: Literal["low", "medium", "high"]
