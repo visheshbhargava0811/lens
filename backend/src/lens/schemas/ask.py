@@ -52,3 +52,10 @@ def cited_sections(d: AskDraft) -> dict[str, list[CitedSentence]]:
     out = {name: list(getattr(d, name)) for name in SECTIONS}
     out["premises"] = [p.evidence_says for p in d.premises if p.evidence_says is not None]
     return out
+
+
+class Translation(BaseModel):
+    """Localization node output (docs/06 node 13): one translation per input line, same order."""
+
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    texts: list[str]

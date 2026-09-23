@@ -9,7 +9,7 @@ from lens.agents.online.ask_graph import MAX_VERIFIER_RETRIES, AskState, Evidenc
 from lens.guardrails.generation import check_premises
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
-from lens.schemas.ask import AskDraft, PremiseNote, QueryUnderstanding
+from lens.schemas.ask import AskDraft, PremiseNote, QueryUnderstanding, Translation
 from tests.test_story_graph import FakeLLM
 
 T0 = datetime(2026, 9, 23, tzinfo=UTC)
@@ -512,3 +512,47 @@ def test_refresh_skips_when_the_pipeline_holds_the_lock(migrated_engine: Any, mo
     with locks.pipeline_lock(wait=True):
         assert freshness.refresh(None, None, cfg).reason == "pipeline running"  # type: ignore[arg-type]
     assert freshness.refresh(None, None, {**cfg, "enabled": False}).reason == "disabled"  # type: ignore[arg-type]
+
+
+HI = Translation(texts=["मतदाता सूची संशोधन का चरण 1 शुरू हुआ।", "चरण 2 आगे बढ़ा।", "क?", "ख?", "ग?", "घ?"])
+
+
+def _localized(translation: Translation, db: Any, ui_lang: str | None = "hi") -> tuple[list[Any], Any, FakeLLM]:
+    from lens.services.ask import ask_events
+
+    llm = FakeLLM(
+        {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS], Translation: [translation]}
+    )
+    graph = build(llm, FakeRetriever(_ev()), lambda ids: None)
+    events = list(ask_events(db, "q", graph, ui_lang=ui_lang))
+    return events, events[-1][1], llm
+
+
+def test_hindi_readers_get_a_checked_translation(db: Any) -> None:
+    _, ans, llm = _localized(HI, db)
+    assert ans.lang == "hi" and ans.tldr[0].text == "मतदाता सूची संशोधन का चरण 1 शुरू हुआ।"
+    assert ans.tldr[0].citations[0].source_name == "Outlet 1"  # citations stay attached
+    assert "सुर्ख़ियों और छोटे फ़ीड सारांशों पर आधारित, पूरे लेखों पर नहीं।" in ans.limitations
+    assert "<texts>" in llm.prompts[Translation][0]
+
+
+def test_translation_that_drops_a_number_falls_back_to_english(db: Any) -> None:
+    bad = HI.model_copy(update={"texts": ["मतदाता सूची संशोधन का पहला चरण शुरू हुआ।", *HI.texts[1:]]})
+    _, ans, _ = _localized(bad, db)
+    assert ans.lang == "en" and ans.tldr[0].text == "The voter list revision entered phase 1."
+    assert "The Hindi translation couldn't be checked, so this answer is in English." in ans.limitations
+
+
+def test_english_readers_skip_translation(db: Any) -> None:
+    _, ans, llm = _localized(HI, db, ui_lang="en")
+    assert ans.lang == "en" and Translation not in llm.prompts
+
+
+def test_translation_guard_keeps_attribution() -> None:
+    from lens.guardrails.generation import check_translation
+
+    src = ["According to A2, 3 people were hurt."]
+    assert check_translation(src, ["A2 के अनुसार 3 लोग घायल हुए।"]).passed
+    assert check_translation(src, ["A2 के अनुसार ३ लोग घायल हुए।"]).passed  # Devanagari digits count
+    assert not check_translation(src, ["3 लोग घायल हुए।"]).passed  # attribution dropped
+    assert not check_translation(src, []).passed

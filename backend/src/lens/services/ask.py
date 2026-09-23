@@ -108,9 +108,34 @@ def make_stored_summary(session: Session) -> Callable[[list[str]], dict[str, Any
     return run
 
 
-def initial_state(query: str) -> AskState:
+def initial_state(query: str, ui_lang: str | None = None) -> AskState:
     windows = load_yaml("retrieval.yaml")["retry"]["widen_window_days"]
-    return {"raw_query": query, "windows": list(windows), "guards": [], "errors": [], "pruned": []}
+    return {"raw_query": query, "ui_lang": ui_lang, "windows": list(windows), "guards": [], "errors": [], "pruned": []}
+
+
+# Limitations are written by code, so they are templates per language, not model output.
+LIMITS = {
+    "en": {
+        "premise": "None of the retrieved articles report that {premise}.",
+        "limited": "Limited coverage: this answer draws on {n} outlet(s).",
+        "global": "No single story matched the question closely; this answer draws on related coverage.",
+        "pruned": "Some sentences were removed because they could not be verified against their sources.",
+        "stale": "Latest report we found is from {hours} hours ago.",
+        "language": "We couldn't tell which language you wrote in, so this answer is in English.",
+        "translation": "The Hindi translation couldn't be checked, so this answer is in English.",
+        "snippets": "Based on headlines and short feed summaries, not full articles.",
+    },
+    "hi": {
+        "premise": "जो लेख मिले, उनमें से किसी ने यह रिपोर्ट नहीं किया कि {premise}।",
+        "limited": "सीमित कवरेज: यह जवाब {n} माध्यम(ओं) पर आधारित है।",
+        "global": "कोई एक स्टोरी सवाल से सीधे मेल नहीं खाई; यह जवाब इससे जुड़े कवरेज पर आधारित है।",
+        "pruned": "कुछ वाक्य हटा दिए गए क्योंकि उन्हें उनके स्रोतों से जाँचा नहीं जा सका।",
+        "stale": "हमें मिली सबसे ताज़ा रिपोर्ट {hours} घंटे पुरानी है।",
+        "language": "हम पहचान नहीं सके कि आपने किस भाषा में लिखा, इसलिए यह जवाब अंग्रेज़ी में है।",
+        "translation": "हिंदी अनुवाद की जाँच नहीं हो सकी, इसलिए यह जवाब अंग्रेज़ी में है।",
+        "snippets": "सुर्ख़ियों और छोटे फ़ीड सारांशों पर आधारित, पूरे लेखों पर नहीं।",
+    },
+}
 
 
 # ---------------------------------------------------------------- assembling events
@@ -202,24 +227,28 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
     tldr, what, agree, disagree, premises = cited_api(sections, _chunk_of(session, ids))
 
     g = load_yaml("guardrails.yaml")
-    limitations = [
-        f"None of the retrieved articles report that {p.premise}." for p in d.premises if p.evidence_says is None
-    ]
+    lang = state.get("lang") or "en"
+    L = LIMITS.get(lang, LIMITS["en"])
+    guards = state.get("guards", [])
+    limitations = [L["premise"].format(premise=p.premise.rstrip(".")) for p in d.premises if p.evidence_says is None]
     n_sources = len({a.article.source_id for a in ev.articles})
     if n_sources < g["min_sources_for_bar"]:
-        limitations.append(f"Limited coverage: this answer draws on {n_sources} outlet(s).")
+        limitations.append(L["limited"].format(n=n_sources))
     if ev.scope == "global":
-        limitations.append("No single story matched the question closely; this answer draws on related coverage.")
+        limitations.append(L["global"])
     if state.get("pruned"):
-        limitations.append("Some sentences were removed because they could not be verified against their sources.")
-    fresh = next((x for x in reversed(state.get("guards", [])) if x.guard_id == "G-EV-04"), None)
+        limitations.append(L["pruned"])
+    fresh = next((x for x in reversed(guards) if x.guard_id == "G-EV-04"), None)
     if fresh is not None and fresh.meta.get("stale") and "newest_hours" in fresh.meta:
-        limitations.append(f"Latest report we found is from {round(fresh.meta['newest_hours'])} hours ago.")
-    if any(x.guard_id == "G-IN-04" and not x.passed for x in state.get("guards", [])):
-        limitations.append("We couldn't tell which language you wrote in, so this answer is in English.")
-    limitations.append("Based on headlines and short feed summaries, not full articles.")
+        limitations.append(L["stale"].format(hours=round(fresh.meta["newest_hours"])))
+    if any(x.guard_id == "G-IN-04" and not x.passed for x in guards):
+        limitations.append(L["language"])
+    if any(x.guard_id == "G-OUT-06" and not x.passed for x in guards):
+        limitations.append(L["translation"])
+    limitations.append(L["snippets"])
     return api.AskAnswer(
         basis="live",
+        lang=lang,
         tldr=tldr,
         what_happened=what,
         agreements=agree,
@@ -248,6 +277,7 @@ def fallback_event(state: AskState) -> api.AskAnswer:
     ]
     return api.AskAnswer(
         basis="stored_summary",
+        lang=s.lang,
         tldr=s.sentences[:1],
         what_happened=s.sentences[1:],
         agreements=s.agreements,
@@ -339,7 +369,7 @@ def purge_ask_turns(session: Session, now: datetime) -> int:
 
 
 def ask_events(
-    session: Session, query: str, graph: Any, session_id: str | None = None
+    session: Session, query: str, graph: Any, session_id: str | None = None, ui_lang: str | None = None
 ) -> Iterator[tuple[str, BaseModel]]:
     """Runs the graph and yields (event, payload) for SSE. Only verified answers are ever sent.
     Records the turn (audit trail) before the final event; the caller commits."""
@@ -347,7 +377,7 @@ def ask_events(
 
     t0 = time.monotonic()
     yield "status", api.AskStatus(step="understanding", message="Understanding the question")
-    state: dict[str, Any] = dict(initial_state(query))
+    state: dict[str, Any] = dict(initial_state(query, ui_lang))
     sent_status: set[str] = set()
     for update in graph.stream(state, stream_mode="updates"):
         for node, delta in update.items():

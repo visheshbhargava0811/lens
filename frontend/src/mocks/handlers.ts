@@ -91,6 +91,7 @@ function askAnswer(loaded: boolean): AskFixture[] {
       "answer_final",
       {
         basis: "live",
+        lang: "en",
         tldr: sentences.slice(0, 1),
         what_happened: sentences.slice(1),
         agreements: detail.summary?.agreements ?? [],

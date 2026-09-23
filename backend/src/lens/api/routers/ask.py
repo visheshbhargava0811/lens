@@ -64,7 +64,7 @@ def ask(body: api.AskRequest, _: Annotated[None, Depends(before_stream)]) -> Ite
     with open_session() as db:
         try:
             graph = svc.ask_graph(db, get_qdrant(), get_embedder())
-            for event, payload in svc.ask_events(db, body.query, graph, body.session_id):
+            for event, payload in svc.ask_events(db, body.query, graph, body.session_id, body.lang):
                 if event in ("answer_final", "abstain"):
                     db.commit()  # the audit row (G-OPS-04) is stored before the answer is sent
                 yield ServerSentEvent(event=event, data=payload)

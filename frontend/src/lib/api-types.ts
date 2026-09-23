@@ -327,6 +327,8 @@ export interface components {
              * @enum {string}
              */
             basis: "live" | "stored_summary";
+            /** Lang */
+            lang: string;
             /** Tldr */
             tldr: components["schemas"]["CitedSentence"][];
             /** What Happened */

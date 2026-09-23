@@ -12,8 +12,6 @@ import { CitedText } from "@/components/story/SummaryBlock";
 import type { AskAnswer, AskEvidence, CitedSentence } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-const ANSWER_LANG = "en"; // synthesis writes English until the localization node lands (docs/06)
-
 export function askArticleDomId(id: string) {
   return `ask-article-${id}`;
 }
@@ -69,7 +67,7 @@ export function AnswerCard({
           {title}
         </h3>
         <ul className="mt-2 list-disc space-y-2 ps-5 marker:text-ink-muted">
-          <CitedText sentences={sentences} lang={ANSWER_LANG} articles={articles} as="li" />
+          <CitedText sentences={sentences} lang={answer.lang} articles={articles} as="li" />
         </ul>
       </section>
     );
@@ -93,7 +91,7 @@ export function AnswerCard({
         </p>
       )}
       <div className="max-w-[68ch] space-y-2 text-lg" data-testid="answer-tldr">
-        <CitedText sentences={answer.tldr} lang={ANSWER_LANG} articles={articles} />
+        <CitedText sentences={answer.tldr} lang={answer.lang} articles={articles} />
       </div>
 
       <section aria-labelledby="answer-coverage" className="rounded-card bg-surface p-4">
@@ -113,7 +111,11 @@ export function AnswerCard({
           <h3 id="answer-limits" className="text-lg">
             {t("ask.limitations")}
           </h3>
-          <ul className="mt-2 list-disc space-y-1 ps-5 text-ink-muted marker:text-ink-muted" data-testid="limitations">
+          <ul
+            lang={answer.lang}
+            className="mt-2 list-disc space-y-1 ps-5 text-ink-muted marker:text-ink-muted"
+            data-testid="limitations"
+          >
             {answer.limitations.map((l) => (
               <li key={l}>{l}</li>
             ))}
@@ -166,7 +168,7 @@ export function AnswerCard({
           <h3 id="answer-follow" className="text-lg">
             {t("ask.followUps")}
           </h3>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-2" lang={answer.lang}>
             {answer.follow_up_questions.slice(0, 3).map((q) => (
               <button
                 key={q}

@@ -332,6 +332,7 @@ class AskAnswer(BaseModel):
     already-verified summary is served instead (docs/06 fallback_precomputed)."""
 
     basis: Literal["live", "stored_summary"]
+    lang: str  # language of the sentences: "hi" when localized and checked (G-OUT-06), else "en"
     tldr: list[CitedSentence]
     what_happened: list[CitedSentence]
     agreements: list[CitedSentence]

@@ -170,3 +170,38 @@ def check_attribution(
             meta={"drop": drop},
         )
     return GuardResult(guard_id="G-OUT-03", passed=True, action="allow", reason="allegations attributed")
+
+
+_DIGITS = re.compile(r"\d[\d,.]*")
+_DEVANAGARI_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
+_ATTRIBUTION_EN = re.compile(r"\b(according to|said|says|alleged|allegedly|claimed|claims|told|accused)\b", re.I)
+_ATTRIBUTION_HI = re.compile(r"अनुसार|मुताबिक|कहा|कहना|आरोप|दावा|बताया")
+
+
+def _numbers(text: str) -> list[str]:
+    return sorted(n.rstrip(".,") for n in _DIGITS.findall(text.translate(_DEVANAGARI_DIGITS)))
+
+
+@traced_guard("G-OUT-06", "output")
+def check_translation(source: Sequence[str], translated: Sequence[str]) -> GuardResult:
+    """Post-translation check: one output per input, every number kept, attribution not dropped."""
+    if len(source) != len(translated):
+        return GuardResult(
+            guard_id="G-OUT-06", passed=False, action="block", reason=f"{len(translated)} lines for {len(source)}"
+        )
+    bad = [
+        i
+        for i, (s, t) in enumerate(zip(source, translated, strict=True))
+        if not t.strip()
+        or _numbers(s) != _numbers(t)
+        or (_ATTRIBUTION_EN.search(s) is not None and _ATTRIBUTION_HI.search(t) is None)
+    ]
+    if bad:
+        return GuardResult(
+            guard_id="G-OUT-06",
+            passed=False,
+            action="block",
+            reason=f"{len(bad)} line(s) lost a number or an attribution",
+            meta={"lines": bad},
+        )
+    return GuardResult(guard_id="G-OUT-06", passed=True, action="allow", reason=f"{len(source)} lines checked")

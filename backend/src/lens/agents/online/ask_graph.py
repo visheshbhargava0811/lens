@@ -31,13 +31,14 @@ from lens.guardrails.generation import (
     check_premises,
     check_scope,
     check_sensitive,
+    check_translation,
 )
 from lens.guardrails.input import check_language, check_user_injection
 from lens.guardrails.input import check_scope as check_intent
 from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
-from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, cited_sections
+from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, Translation, cited_sections
 
 MAX_VERIFIER_RETRIES = 2  # docs/06: bounded loops only
 AbstainReason = Literal[
@@ -72,6 +73,8 @@ class AskState(TypedDict, total=False):
     models: dict[str, dict[str, str]]
     errors: list[str]
     pruned: list[CitedSentence]
+    ui_lang: str | None  # from the request: output language only (docs/06)
+    lang: str  # language the answer is shown in
     stale: bool
     freshness_done: bool
     freshness: dict[str, Any] | None
@@ -358,7 +361,63 @@ def build(
                     "follow_up_questions": [mask(q)[0] for q in d.follow_up_questions],
                 }
             )
-        return {"outcome": "answer", "draft": d, "guards": [*state.get("guards", []), res]}
+        return {"outcome": "answer", "draft": d, "guards": [*state.get("guards", []), res], "lang": "en"}
+
+    def target_language(state: AskState) -> str:
+        qu = state.get("qu")
+        confident = not any(g.guard_id == "G-IN-04" and not g.passed for g in state.get("guards", []))
+        if (state.get("ui_lang") or "").startswith("hi") or (qu is not None and qu.language == "hi" and confident):
+            return "hi"
+        return "en"
+
+    def after_answer(state: AskState) -> str:
+        return "localize" if target_language(state) != "en" else END
+
+    def localize(state: AskState) -> dict[str, Any]:
+        """Node 13 + G-OUT-06: translate the verified draft; any failed check keeps the English answer."""
+        d = state["draft"]
+        assert d is not None
+        sentences = [x for sec in cited_sections(d).values() for x in sec]
+        texts = [x.text for x in sentences] + [p.premise for p in d.premises] + d.follow_up_questions
+        lines = "\n".join(f"{i + 1}. {clean(t)}" for i, t in enumerate(texts))
+        skl = skill("translation")
+        try:
+            out, rec = call(
+                state,
+                "translation",
+                "translation",
+                Translation,
+                (skl.text, f"translation@{skl.version}"),
+                f"<texts>\n{lines}\n</texts>",
+            )
+        except LLMError as e:
+            return {"lang": "en", "errors": err(state, "localize", e)}
+        got = [t.split(". ", 1)[1] if t[:1].isdigit() and ". " in t[:5] else t for t in out.texts]
+        res = check_translation(texts, got)
+        guards = [*state.get("guards", []), res]
+        if not res.passed:
+            return {"lang": "en", "guards": guards, **rec}
+        tr = dict(zip(texts, got, strict=True))
+
+        def m(xs: list[CitedSentence]) -> list[CitedSentence]:
+            return [x.model_copy(update={"text": tr[x.text]}) for x in xs]
+
+        d = d.model_copy(
+            update={
+                **{k: m(getattr(d, k)) for k in SECTIONS},
+                "premises": [
+                    p.model_copy(
+                        update={
+                            "premise": tr[p.premise],
+                            "evidence_says": m([p.evidence_says])[0] if p.evidence_says else None,
+                        }
+                    )
+                    for p in d.premises
+                ],
+                "follow_up_questions": [tr[q] for q in d.follow_up_questions],
+            }
+        )
+        return {"draft": d, "lang": "hi", "guards": guards, **rec}
 
     def fallback(state: AskState) -> dict[str, Any]:
         """docs/06 fallback_precomputed: the stored, already-verified story summary, else abstain."""
@@ -381,6 +440,7 @@ def build(
         ("verify", verify),
         ("prune", prune),
         ("answer", answer),
+        ("localize", localize),
         ("fallback", fallback),
         ("abstain", abstain),
     ):
@@ -392,6 +452,8 @@ def build(
     g.add_conditional_edges("synthesize", after_synthesize, ["verify", "synthesize", "fallback"])
     g.add_conditional_edges("verify", after_verify, ["answer", "synthesize", "prune", "fallback"])
     g.add_conditional_edges("prune", after_prune, ["answer", "fallback"])
-    for end in ("refuse", "answer", "fallback", "abstain"):
+    g.add_conditional_edges("answer", after_answer, ["localize", END])
+    g.add_edge("localize", END)
+    for end in ("refuse", "fallback", "abstain"):
         g.add_edge(end, END)
     return g.compile(name="ask")
