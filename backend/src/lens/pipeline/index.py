@@ -35,13 +35,14 @@ class IndexStats:
     chunks: int = 0
 
 
-def unindexed(session: Session, limit: int) -> list[tuple[Article, Source]]:
+def unindexed(session: Session, limit: int, newest_first: bool = False) -> list[tuple[Article, Source]]:
     has_chunk = select(Chunk.article_id).where(Chunk.article_id == Article.id).exists()
+    order = Article.published_at.desc() if newest_first else Article.published_at
     rows = session.execute(
         select(Article, Source)
         .join(Source, Source.id == Article.source_id)
         .where(Article.is_news, ~has_chunk)
-        .order_by(Article.published_at)
+        .order_by(order)
         .limit(limit)
     ).all()
     return [(r[0], r[1]) for r in rows]

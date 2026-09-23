@@ -105,6 +105,7 @@ def test_happy_path_answers_from_evidence_with_guards() -> None:
         "G-IN-01",
         "G-IN-04",
         "G-EV-03",
+        "G-EV-04",
         "G-EV-01",
         "G-GEN-01",
         "G-IN-05",
@@ -452,3 +453,62 @@ def test_attribution_guard_hindi_and_word_boundaries() -> None:
     assert check_attribution(
         {"s": [_cs("The bank flagged fraudulent-looking entries? No: it filed returns.", "A1")]}, **kw
     ).passed
+
+
+def test_freshness_runs_once_for_weak_or_stale_evidence_and_keeps_the_window() -> None:
+    from datetime import timedelta
+
+    calls: list[int] = []
+
+    def fresh() -> dict[str, Any]:
+        calls.append(1)
+        return {"ran": True, "reason": "ok", "indexed": 3}
+
+    def run(ret: FakeRetriever, now: datetime) -> AskState:
+        script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+        state: AskState = {"raw_query": "q", "windows": [30, 90]}
+        out: AskState = build(FakeLLM(script), ret, lambda ids: None, freshness=fresh, now=lambda: now).invoke(state)
+        return out
+
+    empty = Evidence([], [], "none", 0.1)
+    ret = FakeRetriever(empty, _ev())
+    out = run(ret, T0 + timedelta(hours=1))
+    assert out["outcome"] == "answer" and len(calls) == 1
+    assert [d for _, d in ret.calls] == [30, 30]  # freshness retries the same window before widening
+
+    calls.clear()
+    ret = FakeRetriever(_ev())
+    out = run(ret, T0 + timedelta(hours=30))  # stale: freshness once, then answer with a note
+    assert len(calls) == 1 and out["stale"] and out["outcome"] == "answer"
+
+    calls.clear()
+    run(FakeRetriever(_ev()), T0 + timedelta(hours=1))  # fresh evidence: no freshness
+    assert calls == []
+
+
+def test_freshness_failure_never_blocks_the_answer() -> None:
+    def broken() -> dict[str, Any]:
+        raise RuntimeError("qdrant down")
+
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    state: AskState = {"raw_query": "q", "windows": [30, 90]}
+    out = build(FakeLLM(script), FakeRetriever(_ev()), lambda ids: None, freshness=broken).invoke(state)
+    assert out["outcome"] == "answer" and out["freshness"]["reason"] == "error: RuntimeError"
+
+
+def test_stale_answer_says_how_old_the_latest_report_is(db: Any) -> None:
+    ans = _events({QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}, db)[-1][1]
+    assert any(x.startswith("Latest report we found is from") for x in ans.limitations)  # fixtures are dated T0
+
+
+def test_refresh_skips_when_the_pipeline_holds_the_lock(migrated_engine: Any, monkeypatch: Any) -> None:
+    from lens.db import locks
+    from lens.pipeline import freshness
+
+    monkeypatch.setattr(locks, "get_engine", lambda: migrated_engine)
+    monkeypatch.setattr(freshness, "get_engine", lambda: migrated_engine)
+    cfg = {"enabled": True, "timeout_s": 8, "max_articles": 20}
+    assert freshness.refresh(None, None, cfg).reason == "nothing new"  # type: ignore[arg-type]
+    with locks.pipeline_lock(wait=True):
+        assert freshness.refresh(None, None, cfg).reason == "pipeline running"  # type: ignore[arg-type]
+    assert freshness.refresh(None, None, {**cfg, "enabled": False}).reason == "disabled"  # type: ignore[arg-type]

@@ -156,15 +156,17 @@ def refresh_story_counts(session: Session, story_id: uuid.UUID) -> None:
     )
 
 
-def cluster_pending(session: Session, client: QdrantClient, limit: int = 5000) -> ClusterStats:
+def cluster_pending(
+    session: Session, client: QdrantClient, limit: int = 5000, article_ids: list[uuid.UUID] | None = None
+) -> ClusterStats:
+    """Assigns unclustered articles to stories, oldest first; `article_ids` restricts it to those."""
     cfg = load_yaml("clustering.yaml")
     stats = ClusterStats()
     in_story = select(StoryArticle.article_id).where(StoryArticle.article_id == Article.id).exists()
-    arts = (
-        session.execute(select(Article).where(Article.is_news, ~in_story).order_by(Article.published_at).limit(limit))
-        .scalars()
-        .all()
-    )
+    q = select(Article).where(Article.is_news, ~in_story)
+    if article_ids is not None:
+        q = q.where(Article.id.in_(article_ids))
+    arts = session.execute(q.order_by(Article.published_at).limit(limit)).scalars().all()
     vecs = fetch_article_vectors(client, [str(a.id) for a in arts])
 
     for a in arts:

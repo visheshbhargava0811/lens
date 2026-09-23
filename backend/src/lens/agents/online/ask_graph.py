@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 from typing import Any, Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -22,7 +23,7 @@ from lens.agents.offline.evidence import EvidenceArticle, clean, render
 from lens.agents.offline.story_graph import LLM, RETRY_NOTE
 from lens.agents.prompts import skill, system_prompt
 from lens.guardrails.base import GuardResult
-from lens.guardrails.evidence import check_injection, check_min_evidence, redact_injection
+from lens.guardrails.evidence import check_freshness, check_injection, check_min_evidence, redact_injection
 from lens.guardrails.generation import (
     check_attribution,
     check_citations,
@@ -71,6 +72,9 @@ class AskState(TypedDict, total=False):
     models: dict[str, dict[str, str]]
     errors: list[str]
     pruned: list[CitedSentence]
+    stale: bool
+    freshness_done: bool
+    freshness: dict[str, Any] | None
 
 
 def question_block(qu: QueryUnderstanding) -> str:
@@ -92,6 +96,9 @@ def build(
     sensitive_keywords: dict[str, list[str]] | None = None,
     min_language_confidence: float = 0.6,
     attribution: dict[str, list[str]] | None = None,
+    freshness: Callable[[], dict[str, Any]] | None = None,
+    stale_hours: float = 6,
+    now: Callable[[], datetime] = lambda: datetime.now(UTC),
 ) -> Any:
     def call(
         state: AskState,
@@ -171,7 +178,8 @@ def build(
         n = state.get("retrieval_attempts", 0)
         windows = state["windows"]
         ev = retriever(qu.neutral_query, windows[min(n, len(windows) - 1)])
-        guards = [*state.get("guards", []), check_min_evidence(ev.articles, min_sources)]
+        fresh = check_freshness(ev.articles, now(), stale_hours)  # G-EV-04
+        guards = [*state.get("guards", []), check_min_evidence(ev.articles, min_sources), fresh]
         if ev.articles:
             inj = check_injection(ev.articles)  # G-EV-01, before any model sees the evidence
             guards.append(inj)
@@ -188,16 +196,33 @@ def build(
                     "retrieval_attempts": n + 1,
                     "guards": guards,
                     "abstain_reason": "sensitive_topic_under_review",
+                    "stale": fresh.meta["stale"],
                 }
-        return {"evidence": ev, "retrieval_attempts": n + 1, "guards": guards}
+        return {"evidence": ev, "retrieval_attempts": n + 1, "guards": guards, "stale": fresh.meta["stale"]}
 
     def after_retrieve(state: AskState) -> str:
         ev = state["evidence"]
         if state.get("abstain_reason") == "sensitive_topic_under_review":
             return "fallback"
-        if ev is not None and ev.articles:
+        weak = ev is None or not ev.articles
+        if (weak or state.get("stale")) and freshness is not None and not state.get("freshness_done"):
+            return "freshness"  # once per question (docs/05)
+        if not weak:
             return "synthesize"
         return "retrieve" if state["retrieval_attempts"] < len(state["windows"]) else "abstain"
+
+    def refresh(state: AskState) -> dict[str, Any]:
+        """Mini offline pipeline on not-yet-indexed articles, then retrieve again with the same window."""
+        assert freshness is not None
+        try:
+            result = freshness()
+        except Exception as e:  # freshness is best effort: a failure never blocks the answer
+            result = {"ran": False, "reason": f"error: {type(e).__name__}"}
+        return {
+            "freshness_done": True,
+            "freshness": result,
+            "retrieval_attempts": max(state.get("retrieval_attempts", 1) - 1, 0),
+        }
 
     def synthesize(state: AskState) -> dict[str, Any]:
         qu, ev = state["qu"], state["evidence"]
@@ -351,6 +376,7 @@ def build(
         ("understand", understand),
         ("refuse", refuse),
         ("retrieve", retrieve),
+        ("freshness", refresh),
         ("synthesize", synthesize),
         ("verify", verify),
         ("prune", prune),
@@ -361,7 +387,8 @@ def build(
         g.add_node(name, fn)
     g.add_edge(START, "understand")
     g.add_conditional_edges("understand", after_understand, ["retrieve", "refuse", "abstain"])
-    g.add_conditional_edges("retrieve", after_retrieve, ["synthesize", "retrieve", "abstain", "fallback"])
+    g.add_conditional_edges("retrieve", after_retrieve, ["synthesize", "retrieve", "abstain", "fallback", "freshness"])
+    g.add_edge("freshness", "retrieve")
     g.add_conditional_edges("synthesize", after_synthesize, ["verify", "synthesize", "fallback"])
     g.add_conditional_edges("verify", after_verify, ["answer", "synthesize", "prune", "fallback"])
     g.add_conditional_edges("prune", after_prune, ["answer", "fallback"])

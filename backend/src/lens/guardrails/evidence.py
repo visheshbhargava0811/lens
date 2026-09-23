@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import replace
+from datetime import datetime
 
 from lens.agents.offline.evidence import EvidenceArticle
 from lens.guardrails.base import GuardResult, traced_guard
@@ -71,3 +72,21 @@ def check_min_evidence(articles: Sequence[EvidenceArticle], min_sources: int) ->
             meta={"limited": True, "sources": n},
         )
     return GuardResult(guard_id="G-EV-03", passed=True, action="allow", reason=f"{n} outlets", meta={"sources": n})
+
+
+@traced_guard("G-EV-04", "evidence")
+def check_freshness(articles: Sequence[EvidenceArticle], now: datetime, stale_hours: float) -> GuardResult:
+    """Tags how recent the evidence is. Stale evidence triggers freshness once and a limitation note."""
+    if not articles:
+        return GuardResult(guard_id="G-EV-04", passed=False, action="allow", reason="no evidence", meta={"stale": True})
+    newest = max(a.article.published_at for a in articles)
+    hours = max((now - newest).total_seconds() / 3600, 0.0)
+    stale = hours > stale_hours
+    return GuardResult(
+        guard_id="G-EV-04",
+        passed=not stale,
+        action="allow",
+        reason=f"newest article {hours:.1f} h old",
+        score=hours,
+        meta={"stale": stale, "newest_hours": round(hours, 1), "newest_at": newest.isoformat()},
+    )

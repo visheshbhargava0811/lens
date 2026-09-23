@@ -148,7 +148,7 @@ def evidence_coverage(ev: Evidence) -> api.CoverageAvailable | api.CoverageLimit
     return coverage_bar(counts, len(by_source), conf, g)
 
 
-def evidence_event(ev: Evidence) -> api.AskEvidence:
+def evidence_event(ev: Evidence, stale: bool = False) -> api.AskEvidence:
     seen: dict[str, api.AskSource] = {}
     for a in ev.articles:
         seen.setdefault(
@@ -164,7 +164,7 @@ def evidence_event(ev: Evidence) -> api.AskEvidence:
     return api.AskEvidence(
         story_ids=ev.story_ids,
         sources=list(seen.values()),
-        stale=False,
+        stale=stale,
         newest_article_at=newest,
         methodology_url=M_BIAS,
     )
@@ -212,6 +212,9 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
         limitations.append("No single story matched the question closely; this answer draws on related coverage.")
     if state.get("pruned"):
         limitations.append("Some sentences were removed because they could not be verified against their sources.")
+    fresh = next((x for x in reversed(state.get("guards", [])) if x.guard_id == "G-EV-04"), None)
+    if fresh is not None and fresh.meta.get("stale") and "newest_hours" in fresh.meta:
+        limitations.append(f"Latest report we found is from {round(fresh.meta['newest_hours'])} hours ago.")
     if any(x.guard_id == "G-IN-04" and not x.passed for x in state.get("guards", [])):
         limitations.append("We couldn't tell which language you wrote in, so this answer is in English.")
     limitations.append("Based on headlines and short feed summaries, not full articles.")
@@ -361,7 +364,7 @@ def ask_events(
                     ),
                 )
             if node == "retrieve" and state.get("evidence") is not None and state["evidence"].articles:
-                yield "evidence", evidence_event(state["evidence"])
+                yield "evidence", evidence_event(state["evidence"], bool(state.get("stale")))
                 if "writing" not in sent_status:
                     sent_status.add("writing")
                     yield "status", api.AskStatus(step="writing", message="Writing a cited answer")
@@ -385,6 +388,15 @@ def ask_events(
 
 def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:
     retriever = make_retriever(session, client, embedder, lambda: datetime.now(UTC))
+    fcfg = load_yaml("retrieval.yaml")["freshness"]
+
+    def freshness() -> dict[str, Any]:
+        from dataclasses import asdict
+
+        from lens.pipeline.freshness import refresh
+
+        return asdict(refresh(client, embedder, fcfg))
+
     g = load_yaml("guardrails.yaml")
     return build(
         structured,
@@ -394,4 +406,6 @@ def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any
         g["sensitive_keywords"],
         g["ask"]["min_language_confidence"],
         {"terms": g["attribution"]["allegation_terms"], "markers": g["attribution"]["markers"]},
+        freshness,
+        fcfg["stale_hours"],
     )

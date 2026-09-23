@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from lens.core.config_files import load_yaml
 from lens.core.logging import configure_logging, get_logger
 from lens.core.settings import get_settings
+from lens.db.locks import pipeline_lock
 from lens.db.session import get_engine
 from lens.nlp.embed import get_embedder
 from lens.pipeline.analyze import analyze_pending
@@ -39,10 +40,11 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     failure later in the pass never loses earlier work, and the next pass picks up the rest."""
     now = now or datetime.now(UTC)
     t0 = time.monotonic()
-    idx = index_pending()
-    with Session(get_engine()) as session, session.begin():
-        cl = cluster_pending(session, get_qdrant())
-        life = update_lifecycle(session, now)
+    with pipeline_lock(wait=True):  # shared with Ask's freshness node, so no article is processed twice
+        idx = index_pending()
+        with Session(get_engine()) as session, session.begin():
+            cl = cluster_pending(session, get_qdrant())
+            life = update_lifecycle(session, now)
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
