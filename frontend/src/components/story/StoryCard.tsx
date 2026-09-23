@@ -79,10 +79,10 @@ export function StoryCard({
   );
 }
 
-/** "56% critical of the government": the largest classified share, for small bars. */
+/** "56% Left": the largest rated share, for small bars. */
 function leadingShare(story: StoryCardData, t: ReturnType<typeof useTranslations>): string | undefined {
-  const segments = segmentsFromCoverage(story.coverage).filter((s) => s.key !== "unclassified" && s.sources > 0);
+  const segments = segmentsFromCoverage(story.coverage).filter((s) => s.key !== "unrated" && s.sources > 0);
   if (segments.length === 0) return undefined;
   const top = segments.reduce((a, b) => (b.sources > a.sources ? b : a));
-  return t("coverage.dominant", { pct: top.pct, phrase: t(`stance.phrase.${top.key}`) });
+  return t("coverage.dominant", { pct: top.pct, phrase: t(`bias.short.${top.key}`) });
 }

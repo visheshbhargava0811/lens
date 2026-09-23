@@ -9,7 +9,7 @@ REST plus SSE, JSON, prefixed `/api/v1`. FastAPI generates OpenAPI. The frontend
 - Pagination: cursor-based, `?cursor=...&limit=20`, response includes `next_cursor` or null.
 - Language: `?lang=hi` selects display language for summaries and UI strings where available. Headlines of source articles are always in the original language.
 - Errors: `{ "error": { "code": "string", "message": "plain-language message", "retry_after_s": 12 } }`. Messages are user-readable and never vague.
-- All responses that show coverage, stance, or factuality include `confidence` and `methodology_url`.
+- All responses that show coverage (outlet bias) or factuality include `confidence` and `methodology_url` (on the figure, or on the envelope for per-article outlet ratings).
 
 ## Endpoints
 
@@ -17,16 +17,16 @@ REST plus SSE, JSON, prefixed `/api/v1`. FastAPI generates OpenAPI. The frontend
 |---|---|---|
 | GET | `/feed` | Story feed. `tab=home\|for_you\|blindspot\|local`, `topic`, `lang`, `state`, `cursor` |
 | GET | `/stories/{id}` | Story detail |
-| GET | `/stories/{id}/articles` | Articles grouped for the source list. `group=stance\|language\|all`, `stance`, `lang` |
+| GET | `/stories/{id}/articles` | Articles for the source list. `group=bias\|language\|all`, `bias=left\|center\|right\|unrated`, `lang` |
 | GET | `/stories/{id}/timeline` | Ordered coverage events |
-| GET | `/blindspots` | `type=stance\|language` |
+| GET | `/blindspots` | `type=bias\|language` |
 | GET | `/topics` | Topic list for chips |
 | GET | `/search` | `q`, `lang`, `cursor`. Stories first, then sources |
 | GET | `/sources` | Source directory |
 | GET | `/sources/{id}` | Source page: ownership, ratings with provenance, recent stories |
 | POST | `/ask` | **SSE stream.** Cited answer |
 | GET | `/methodology` | Structured methodology content |
-| POST | `/feedback` | Report wrong cluster, stance, rating, summary |
+| POST | `/feedback` | Report wrong cluster, rating, summary |
 | GET, PUT | `/me/preferences` | Preferences (Phase 9) |
 | GET, DELETE | `/me/memory` | View and delete stored facts and history (Phase 9) |
 | GET | `/health` | Liveness |
@@ -54,18 +54,18 @@ Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue
   },
   "coverage": {
     "available": true,
-    "basis": "article_stance",
+    "basis": "outlet_bias",
     "buckets": [
-      { "key": "critical",   "sources": 18, "pct": 43 },
-      { "key": "balanced",   "sources": 12, "pct": 29 },
-      { "key": "supportive", "sources": 9,  "pct": 21 }
+      { "key": "left",   "sources": 18, "pct": 43 },
+      { "key": "center", "sources": 12, "pct": 29 },
+      { "key": "right",  "sources": 9,  "pct": 21 }
     ],
-    "unclassified": { "sources": 3, "pct": 7 },
+    "unrated": { "sources": 3, "pct": 7 },
     "confidence": "medium",
-    "methodology_url": "/methodology#stance"
+    "methodology_url": "/methodology#bias"
   },
   "factuality": { "high": 30, "mixed": 8, "low": 1, "unrated": 3, "confidence": "medium", "methodology_url": "/methodology#factuality" },
-  "blindspot": { "type": "stance", "skew": "supportive", "score": 0.81 },
+  "blindspot": { "type": "bias", "skew": "right", "score": 0.81 },
   "summary_preview": "Two-line cited summary excerpt."
 }
 ```
@@ -109,7 +109,8 @@ Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue
   "headline_lang": "hi",
   "published_at": "2026-09-21T08:10:00Z",
   "url": "https://...",
-  "stance": { "value": "critical", "target": "central_govt", "confidence": "medium" },
+  "bias": "left",
+  "source_bias": { "rater": "Example Rater", "value": "Left-Center", "method_url": "https://...", "confidence": "high" },
   "analysis_depth": "snippet",
   "source_factuality": { "rater": "Example Rater", "value": "High", "method_url": "https://...", "confidence": "medium" },
   "source_ownership": { "owner": "Example Group", "evidence_url": "https://..." },
@@ -118,7 +119,7 @@ Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue
 }
 ```
 
-`source_factuality` and `source_ownership` are null when unknown. The UI shows "Not rated".
+`source_bias`, `source_factuality` and `source_ownership` are null when unknown; `bias` is then `"unrated"`. The UI shows "Not rated". `bias` is the bucket the outlet counts in (from `stats.bias_value_map`); `source_bias.value` is the rater's own wording.
 
 ## `POST /ask` (SSE)
 
@@ -159,4 +160,4 @@ Rate-limited requests return HTTP 429 with the standard error shape.
 
 - Backend: response models validated in tests. Snapshot tests for every shape above.
 - Frontend: MSW fixtures are generated from the same Pydantic models where possible, so drift fails CI.
-- Contract test for `G-BIAS-01`: any response containing `coverage`, `stance`, or `factuality` must contain `confidence` and `methodology_url`.
+- Contract test for `G-BIAS-01`: any response containing `coverage`, `factuality`, `source_bias` or `source_factuality` must carry `confidence`, and a methodology link on the figure or its envelope.

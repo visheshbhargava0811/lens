@@ -62,7 +62,7 @@ export const handlers = [
   }),
 
   http.get(`${API_BASE}/blindspots`, ({ request }) => {
-    const type = new URL(request.url).searchParams.get("type") === "language" ? "language" : "stance";
+    const type = new URL(request.url).searchParams.get("type") === "language" ? "language" : "bias";
     return HttpResponse.json<Blindspots>({
       type,
       items: stories.filter((s) => s.blindspot?.type === type),
@@ -74,7 +74,7 @@ export const handlers = [
     HttpResponse.json<Methodology>({
       min_sources_for_bar: 4,
       min_sources_for_blindspot: 6,
-      blindspot_stance_share: 0.7,
+      blindspot_bias_share: 0.7,
       blindspot_language_share: 0.9,
       feed_min_sources: 2,
       raters: [{ rater: "Example Rater", dimension: "factuality", method_url: "https://rater.example/method", sources_rated: 3 }],

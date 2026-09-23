@@ -5,21 +5,20 @@ import { useEffect, useMemo, useState } from "react";
 
 import { MethodologyLink } from "@/components/coverage/MethodologyLink";
 import type { ArticleRow as ArticleRowData } from "@/lib/api/types";
-import { articleBucket, dominantTarget, type SegmentKey } from "@/lib/coverage";
+import type { SegmentKey } from "@/lib/coverage";
 import { languageName, sortedLanguages } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { ArticleRow, articleDomId } from "./ArticleRow";
 import { SHOW_ARTICLE_EVENT } from "./events";
 
-const STANCE_FILTERS: ("all" | SegmentKey)[] = ["all", "critical", "balanced", "supportive", "unclassified"];
+const BIAS_FILTERS: ("all" | SegmentKey)[] = ["all", "left", "center", "right", "unrated"];
 
 export function SourceList({ articles, methodologyUrl }: { articles: ArticleRowData[]; methodologyUrl: string }) {
   const t = useTranslations();
-  const [stance, setStance] = useState<"all" | SegmentKey>("all");
+  const [bias, setBias] = useState<"all" | SegmentKey>("all");
   const [lang, setLang] = useState<string>("all");
   const [highlighted, setHighlighted] = useState<string | null>(null);
-  const target = useMemo(() => dominantTarget(articles), [articles]);
 
   const languages = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -27,24 +26,21 @@ export function SourceList({ articles, methodologyUrl }: { articles: ArticleRowD
     return sortedLanguages(counts);
   }, [articles]);
 
-  const stanceCounts = useMemo(() => {
+  const biasCounts = useMemo(() => {
     const counts: Record<string, number> = { all: articles.length };
-    for (const a of articles) {
-      const b = articleBucket(a.stance);
-      counts[b] = (counts[b] ?? 0) + 1;
-    }
+    for (const a of articles) counts[a.bias] = (counts[a.bias] ?? 0) + 1;
     return counts;
   }, [articles]);
 
   const visible = articles.filter(
-    (a) => (stance === "all" || articleBucket(a.stance) === stance) && (lang === "all" || a.source.language === lang),
+    (a) => (bias === "all" || a.bias === bias) && (lang === "all" || a.source.language === lang),
   );
 
   // Citation chips reveal their article: clear filters, then scroll to and focus the row.
   useEffect(() => {
     function onShow(e: Event) {
       const id = (e as CustomEvent<string>).detail;
-      setStance("all");
+      setBias("all");
       setLang("all");
       setHighlighted(id);
       requestAnimationFrame(() => {
@@ -73,17 +69,17 @@ export function SourceList({ articles, methodologyUrl }: { articles: ArticleRowD
         <MethodologyLink href={methodologyUrl}>{t("sources.howLabeled")}</MethodologyLink>
       </div>
 
-      <div role="group" aria-label={t("sources.filterStance")} className="mt-3 flex gap-2 overflow-x-auto pb-1">
-        {STANCE_FILTERS.map((key) => (
+      <div role="group" aria-label={t("sources.filterBias")} className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {BIAS_FILTERS.map((key) => (
           <button
             key={key}
             type="button"
-            aria-pressed={stance === key}
-            onClick={() => setStance(key)}
-            className={chip(stance === key)}
+            aria-pressed={bias === key}
+            onClick={() => setBias(key)}
+            className={chip(bias === key)}
           >
-            {key === "all" ? t("sources.all") : t(`stance.label.${key}`, { target })}
-            <span className="tabular-nums opacity-70">{stanceCounts[key] ?? 0}</span>
+            {key === "all" ? t("sources.all") : t(`bias.label.${key}`)}
+            <span className="tabular-nums opacity-70">{biasCounts[key] ?? 0}</span>
           </button>
         ))}
       </div>

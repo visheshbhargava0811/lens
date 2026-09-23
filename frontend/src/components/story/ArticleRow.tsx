@@ -1,8 +1,7 @@
 import { useFormatter, useLocale, useNow, useTranslations } from "next-intl";
 
-import { stanceFill } from "@/components/coverage/stance-style";
+import { biasFill } from "@/components/coverage/bias-style";
 import type { ArticleRow as ArticleRowData } from "@/lib/api/types";
-import { articleBucket } from "@/lib/coverage";
 import { languageName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -13,12 +12,7 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
   const format = useFormatter();
   const now = useNow();
   const locale = useLocale();
-  const bucket = articleBucket(article.stance);
-  const stanceLabel =
-    article.stance.value === "not_applicable"
-      ? t("stance.label.not_applicable")
-      : t(`stance.label.${bucket}`, { target: article.stance.target });
-  const confidence = t(`confidence.${article.stance.confidence}`);
+  const bias = article.source_bias;
 
   return (
     <li
@@ -49,8 +43,26 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
 
       <ul className="mt-2.5 flex flex-wrap gap-1.5 text-xs font-medium">
         <li className="inline-flex items-center gap-1.5 rounded-chip bg-surface px-2 py-1">
-          <span aria-hidden className={cn("size-3 rounded-[1px] ring-1 ring-ink/20", stanceFill[bucket])} />
-          {t("sources.stanceConfidence", { label: stanceLabel, confidence })}
+          <span aria-hidden className={cn("size-3 rounded-[1px] ring-1 ring-ink/20", biasFill[article.bias])} />
+          {bias ? (
+            <a
+              href={bias.method_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={t("factuality.ratedBy", { rater: bias.rater, confidence: t(`confidence.${bias.confidence}`) })}
+              className="hover:underline"
+            >
+              {/* The rater's own wording, e.g. "Left-Center"; the swatch shows the bucket it counts in. */}
+              {t("sources.biasRating", { value: bias.value })}
+              <span className="sr-only">
+                {" "}
+                {t("factuality.ratedBy", { rater: bias.rater, confidence: t(`confidence.${bias.confidence}`) })}{" "}
+                {t("sources.newTab")}
+              </span>
+            </a>
+          ) : (
+            t("sources.biasRating", { value: t("bias.label.unrated") })
+          )}
         </li>
         <li className="rounded-chip bg-surface px-2 py-1">
           {article.source_factuality ? (

@@ -51,18 +51,18 @@ def story(db: DB, id_or_slug: str, lang: str | None = None) -> api.StoryDetail |
 def story_articles(
     db: DB,
     id_or_slug: str,
-    group: Literal["stance", "language", "all"] = "all",  # grouping is done by the client
-    stance: str | None = None,
+    group: Literal["bias", "language", "all"] = "all",  # grouping is done by the client
+    bias: Literal["left", "center", "right", "unrated"] | None = None,
     lang: str | None = None,
 ) -> api.StoryArticles | JSONResponse:
     s = svc.find_story(db, id_or_slug)
     if s is None:
         return _error(404, "not_found", "No story with that id.")
-    return svc.story_articles(db, s, stance=stance, lang=lang)
+    return svc.story_articles(db, s, bias=bias, lang=lang)
 
 
 @router.get("/blindspots", response_model=api.Blindspots)
-def blindspots(db: DB, type: Literal["stance", "language"] = "stance", lang: str | None = None) -> api.Blindspots:
+def blindspots(db: DB, type: Literal["bias", "language"] = "bias", lang: str | None = None) -> api.Blindspots:
     return svc.blindspots(db, type)
 
 

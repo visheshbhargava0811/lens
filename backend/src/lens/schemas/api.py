@@ -1,7 +1,8 @@
 """Public API shapes (docs/09, ADR-0008, ADR-0009). The frontend client is generated from these.
 
-G-BIAS-01: every coverage, stance and factuality figure carries `confidence`, and
-`methodology_url` either on the same object or on its response envelope.
+The coverage bar counts distinct outlets by their outlet-level bias rating (Left / Center / Right)
+from a named third-party rater (ADR-0020). G-BIAS-01: every bias and factuality figure carries
+`confidence`, and `methodology_url` either on the same object or on its response envelope.
 """
 
 from __future__ import annotations
@@ -12,15 +13,13 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 Confidence = Literal["low", "medium", "high"]
-StanceKey = Literal["critical", "balanced", "supportive"]
-StanceValue = Literal["critical", "balanced", "supportive", "not_applicable", "unclassified"]
-StanceTarget = Literal["central_govt", "state_govt", "opposition", "none"]
+BiasKey = Literal["left", "center", "right"]
 StoryStatus = Literal["developing", "stable", "archived"]
 AnalysisDepth = Literal["headline_only", "snippet", "full_text"]
 
 
 class CoverageBucket(BaseModel):
-    key: StanceKey
+    key: BiasKey
     sources: int
     pct: int
 
@@ -32,9 +31,9 @@ class SourcesPct(BaseModel):
 
 class CoverageAvailable(BaseModel):
     available: Literal[True] = True
-    basis: Literal["article_stance"] = "article_stance"
+    basis: Literal["outlet_bias"] = "outlet_bias"
     buckets: list[CoverageBucket]
-    unclassified: SourcesPct
+    unrated: SourcesPct  # outlets with no bias rating
     confidence: Confidence
     methodology_url: str
 
@@ -56,9 +55,9 @@ class FactualityCounts(BaseModel):
     methodology_url: str
 
 
-class StanceBlindspot(BaseModel):
-    type: Literal["stance"] = "stance"
-    skew: StanceKey
+class BiasBlindspot(BaseModel):
+    type: Literal["bias"] = "bias"
+    skew: BiasKey
     score: float
 
 
@@ -68,7 +67,7 @@ class LanguageBlindspot(BaseModel):
     score: float
 
 
-Blindspot = Annotated[StanceBlindspot | LanguageBlindspot, Field(discriminator="type")]
+Blindspot = Annotated[BiasBlindspot | LanguageBlindspot, Field(discriminator="type")]
 
 
 class StoryImage(BaseModel):
@@ -155,13 +154,9 @@ class ArticleSource(BaseModel):
     language: str
 
 
-class ArticleStance(BaseModel):
-    value: StanceValue
-    target: StanceTarget
-    confidence: Confidence
+class RatingRef(BaseModel):
+    """An outlet rating as shown on an article row: "According to {rater}: {value}"."""
 
-
-class SourceFactuality(BaseModel):
     rater: str
     value: str
     method_url: str
@@ -180,9 +175,10 @@ class ArticleRow(BaseModel):
     headline_lang: str
     published_at: datetime
     url: str
-    stance: ArticleStance
     analysis_depth: AnalysisDepth
-    source_factuality: SourceFactuality | None
+    bias: Literal["left", "center", "right", "unrated"]  # bucket of source_bias, mapped as in the stats
+    source_bias: RatingRef | None
+    source_factuality: RatingRef | None
     source_ownership: SourceOwnershipRef | None
     is_syndicated: bool
     also_carried_by: list[str]
@@ -199,7 +195,7 @@ class StoryArticles(BaseModel):
 
 
 class Blindspots(BaseModel):
-    type: Literal["stance", "language"]
+    type: Literal["bias", "language"]
     items: list[StoryCard]
     methodology_url: str
 
@@ -271,7 +267,7 @@ class Rater(BaseModel):
 class Methodology(BaseModel):
     min_sources_for_bar: int
     min_sources_for_blindspot: int
-    blindspot_stance_share: float
+    blindspot_bias_share: float
     blindspot_language_share: float
     feed_min_sources: int
     raters: list[Rater]

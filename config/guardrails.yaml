@@ -11,16 +11,24 @@ route_to_review_for: all     # precomputed + reviewed summaries only
 min_sources_for_bar: 4
 min_sources_for_blindspot: 6
 feed_min_sources: 2            # feed and blindspot lists hide single-source stories (ADR-0018)
-# Coverage stats and blindspots (docs/01, docs/04 section 11). Starting values; tune in Phase 3+.
+# Coverage stats and blindspots (docs/01, docs/04 section 11, ADR-0020). Starting values; tune later.
+# The coverage bar counts distinct outlets by their *outlet-level* bias label from a third-party
+# rater (Left / Center / Right), in the Ground News style. Outlets without a rating are "unrated".
 stats:
-  blindspot_stance_share: 0.70      # share of classified sources in one stance bucket
+  blindspot_bias_share: 0.70        # share of *rated* sources on one side (left, center or right)
   blindspot_language_share: 0.90    # share of sources in one language group ("near zero" in the other)
   language_groups: { en: [en] }     # every language not listed falls in group "indic"
-  confidence:
-    high_min_sources: 10
-    high_max_unclassified: 0.20
-    low_max_unclassified: 0.50      # above this share of unclassified sources, confidence is low
-  # Rater wording -> story-card bucket (lowercased). Anything unlisted counts as unrated.
+  # Rater wording -> bucket (lowercased). Anything unlisted counts as unrated (never guessed).
+  # Lean-left/right go to Left/Right, as Ground News groups them (ADR-0020).
+  bias_value_map:
+    extreme left: left
+    left: left
+    left-center: left
+    least biased: center
+    center: center
+    right-center: right
+    right: right
+    extreme right: right
   # "Mostly Factual" -> mixed is the owner's conservative choice (ADR-0019).
   factuality_value_map:
     very high: high
@@ -29,6 +37,6 @@ stats:
     mixed: mixed
     low: low
     very low: low
-  factuality_confidence:            # by share of the story's sources that have a factuality rating
+  rated_share_confidence:           # bar and factuality confidence: share of the story's sources that are rated
     high_min_rated_share: 0.80
     medium_min_rated_share: 0.50

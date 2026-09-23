@@ -2,7 +2,7 @@
  * Lens design tokens (docs/10_UI_SPEC.md). Mapped into Tailwind in globals.css.
  * Tone: newsprint-grey ground, near-black ink, flat tinted panels, squared corners.
  * Stance colors are deliberately not red, green, saffron or sky blue (party colors).
- * Every stance segment also gets a pattern, so color is never the only signal.
+ * Every bias segment also gets a pattern, so color is never the only signal.
  */
 :root {
   --paper: #ecede6;
@@ -18,14 +18,14 @@
   --strip-ink: #d8d9d0;
 
   /* Stance: violet / paper-light / teal / grey. Text inside a segment uses the -ink pair. */
-  --stance-critical: #4a3a78;
-  --stance-critical-ink: #ffffff;
-  --stance-balanced: #fbfbf8;
-  --stance-balanced-ink: #1d1e1b;
-  --stance-supportive: #0f5c62;
-  --stance-supportive-ink: #ffffff;
-  --stance-unclassified: #c3c4ba;
-  --stance-unclassified-ink: #1d1e1b;
+  --bias-left: #4a3a78;
+  --bias-left-ink: #ffffff;
+  --bias-center: #fbfbf8;
+  --bias-center-ink: #1d1e1b;
+  --bias-right: #0f5c62;
+  --bias-right-ink: #ffffff;
+  --bias-unrated: #c3c4ba;
+  --bias-unrated-ink: #1d1e1b;
 
   --flag-bg: #e3d9bd;
   --flag-ink: #4a3c12;
@@ -72,14 +72,14 @@
     --link: #e9eae2;
     --strip: #0c0d0b;
     --strip-ink: #c9cac0;
-    --stance-critical: #6552a3;
-    --stance-critical-ink: #ffffff;
-    --stance-balanced: #dcddd4;
-    --stance-balanced-ink: #161714;
-    --stance-supportive: #1a747a;
-    --stance-supportive-ink: #ffffff;
-    --stance-unclassified: #4b4d44;
-    --stance-unclassified-ink: #e9eae2;
+    --bias-left: #6552a3;
+    --bias-left-ink: #ffffff;
+    --bias-center: #dcddd4;
+    --bias-center-ink: #161714;
+    --bias-right: #1a747a;
+    --bias-right-ink: #ffffff;
+    --bias-unrated: #4b4d44;
+    --bias-unrated-ink: #e9eae2;
     --flag-bg: #3b3420;
     --flag-ink: #eadcae;
     --factuality-high: #e9eae2;

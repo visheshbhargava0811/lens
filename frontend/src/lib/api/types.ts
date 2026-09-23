@@ -8,16 +8,16 @@ import type { components } from "../api-types";
 type S = components["schemas"];
 
 export type Confidence = S["CoverageAvailable"]["confidence"];
-export type StanceKey = S["CoverageBucket"]["key"];
-export type StanceValue = S["ArticleStance"]["value"];
-export type StanceTarget = S["ArticleStance"]["target"];
+/** Outlet bias bucket from a third-party rater (ADR-0020). */
+export type BiasKey = S["CoverageBucket"]["key"];
 export type StoryStatus = S["StoryCard"]["status"];
 export type AnalysisDepth = S["ArticleRow"]["analysis_depth"];
 
 export type CoverageBucket = S["CoverageBucket"];
 export type Coverage = S["CoverageAvailable"] | S["CoverageLimited"];
 export type FactualityCounts = S["FactualityCounts"];
-export type Blindspot = S["StanceBlindspot"] | S["LanguageBlindspot"];
+export type Blindspot = S["BiasBlindspot"] | S["LanguageBlindspot"];
+export type RatingRef = S["RatingRef"];
 export type StoryCard = S["StoryCard"];
 export type Citation = S["Citation"];
 export type CitedSentence = S["CitedSentence"];

@@ -4,7 +4,7 @@ import { getMethodology } from "@/lib/api/client";
 
 const SECTIONS = [
   "coverage",
-  "stance",
+  "bias",
   "factuality",
   "ownership",
   "blindspots",
@@ -54,7 +54,7 @@ export default async function MethodologyPage() {
               <ul className="mt-4 list-disc space-y-2 ps-5 text-[1.0625rem]">
                 <li>{t("current.minSourcesForBar", { n: m.min_sources_for_bar })}</li>
                 <li>{t("current.feedMinSources", { n: m.feed_min_sources })}</li>
-                <li>{t("current.stanceBlindspot", { pct: pct(m.blindspot_stance_share), n: m.min_sources_for_blindspot })}</li>
+                <li>{t("current.biasBlindspot", { pct: pct(m.blindspot_bias_share), n: m.min_sources_for_blindspot })}</li>
                 <li>{t("current.languageBlindspot", { pct: pct(m.blindspot_language_share), n: m.min_sources_for_blindspot })}</li>
               </ul>
               <h3 className="mt-6 text-lg">{t("current.raters")}</h3>

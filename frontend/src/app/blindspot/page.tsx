@@ -13,13 +13,13 @@ export default async function BlindspotPage({
 }: {
   searchParams: Promise<{ type?: string }>;
 }) {
-  const type = (await searchParams).type === "language" ? "language" : "stance";
+  const type = (await searchParams).type === "language" ? "language" : "bias";
   const locale = await getLocale();
   const t = await getTranslations("blindspot");
   const data = await getBlindspots(type, locale);
 
   const tabs = [
-    { key: "stance", label: t("byStance"), href: "/blindspot" },
+    { key: "bias", label: t("byBias"), href: "/blindspot" },
     { key: "language", label: t("byLanguage"), href: "/blindspot?type=language" },
   ] as const;
 

@@ -1,7 +1,7 @@
 """Read services for the public API (docs/09). Routers call these; these query Postgres.
 
 Every figure comes from `story_stats` (pure code in lens.stats) or from provenance-backed source
-rows. Nothing here infers a stance or a rating. Killed or held stories are never served.
+rows. Nothing here infers a bias label or a rating. Killed or held stories are never served.
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ from lens.core.config_files import load_yaml
 from lens.db.models import (
     AnalysisDepth,
     Article,
-    Framing,
     Source,
     SourceOwnership,
     SourceRating,
@@ -28,10 +27,11 @@ from lens.db.models import (
     StoryArticle,
     StoryStats,
 )
+from lens.pipeline.stats import best_ratings
 from lens.schemas import api
-from lens.stats.coverage import STANCE_BUCKETS, factuality_confidence, percentages
+from lens.stats.coverage import BIAS_BUCKETS, bucket, percentages, rated_share_confidence
 
-M_STANCE = "/methodology#stance"
+M_BIAS = "/methodology#bias"
 M_FACTUALITY = "/methodology#factuality"
 M_OWNERSHIP = "/methodology#ownership"
 M_BLINDSPOTS = "/methodology#blindspots"
@@ -51,35 +51,34 @@ def _visible() -> Any:
 
 def _card(story: Story, stats: StoryStats | None, g: dict[str, Any]) -> api.StoryCard:
     n = story.source_count
-    blind: api.StanceBlindspot | api.LanguageBlindspot | None = None
-    if stats is None:  # stats not computed yet: everything unclassified and unrated
-        stance = {**{b: 0 for b in STANCE_BUCKETS}, "unclassified": n}
+    blind: api.BiasBlindspot | api.LanguageBlindspot | None = None
+    if stats is None:  # stats not computed yet: everything unrated
+        bias = {**{b: 0 for b in BIAS_BUCKETS}, "unrated": n}
         fact = {"high": 0, "mixed": 0, "low": 0, "unrated": n}
         conf: api.Confidence = "low"
         by_lang: dict[str, int] = {}
     else:
-        stance, fact, conf = stats.stance_counts, stats.factuality_counts, stats.coverage_confidence.value
+        bias, fact, conf = stats.bias_counts, stats.factuality_counts, stats.coverage_confidence.value
         by_lang = stats.language_counts
-        if stats.blindspot_type == "stance" and stats.blindspot_skew in STANCE_BUCKETS:
-            blind = api.StanceBlindspot(skew=stats.blindspot_skew, score=stats.blindspot_score or 0)
+        if stats.blindspot_type == "bias" and stats.blindspot_skew in BIAS_BUCKETS:
+            blind = api.BiasBlindspot(skew=stats.blindspot_skew, score=stats.blindspot_score or 0)
         elif stats.blindspot_type == "language":
             blind = api.LanguageBlindspot(skew=stats.blindspot_skew or "", score=stats.blindspot_score or 0)
 
     coverage: api.CoverageAvailable | api.CoverageLimited
     if n < g["min_sources_for_bar"]:
-        coverage = api.CoverageLimited(min_sources=g["min_sources_for_bar"], confidence=conf, methodology_url=M_STANCE)
+        coverage = api.CoverageLimited(min_sources=g["min_sources_for_bar"], confidence=conf, methodology_url=M_BIAS)
     else:
-        keys = [*STANCE_BUCKETS, "unclassified"]
-        values = [int(stance.get(k, 0)) for k in keys]
+        keys = [*BIAS_BUCKETS, "unrated"]
+        values = [int(bias.get(k, 0)) for k in keys]
         pcts = percentages(values)
         coverage = api.CoverageAvailable(
             buckets=[
-                api.CoverageBucket(key=k, sources=v, pct=p)
-                for k, v, p in zip(STANCE_BUCKETS, values, pcts, strict=False)
+                api.CoverageBucket(key=k, sources=v, pct=p) for k, v, p in zip(BIAS_BUCKETS, values, pcts, strict=False)
             ],
-            unclassified=api.SourcesPct(sources=values[-1], pct=pcts[-1]),
+            unrated=api.SourcesPct(sources=values[-1], pct=pcts[-1]),
             confidence=conf,
-            methodology_url=M_STANCE,
+            methodology_url=M_BIAS,
         )
 
     return api.StoryCard(
@@ -98,7 +97,7 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any]) -> api.Stor
             mixed=fact.get("mixed", 0),
             low=fact.get("low", 0),
             unrated=fact.get("unrated", 0),
-            confidence=factuality_confidence(fact, g["stats"]["factuality_confidence"]),
+            confidence=rated_share_confidence(fact, g["stats"]["rated_share_confidence"]),
             methodology_url=M_FACTUALITY,
         ),
         blindspot=blind,
@@ -154,7 +153,7 @@ def feed(
     return api.StoryCardPage(items=items, next_cursor=nxt)
 
 
-def blindspots(session: Session, kind: Literal["stance", "language"], limit: int = 50) -> api.Blindspots:
+def blindspots(session: Session, kind: Literal["bias", "language"], limit: int = 50) -> api.Blindspots:
     g = _cfg()
     q = (
         select(Story)
@@ -203,8 +202,8 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
     limitations: list[str] = []
     if partial:
         limitations.append(f"Based on headlines and summaries for {partial} of {story.source_count} sources.")
-    if stats is None or stats.stance_counts.get("unclassified", 0) >= story.source_count:
-        limitations.append("Stance has not been classified for this story yet.")
+    if card.coverage.available and card.coverage.unrated.sources:
+        limitations.append(f"{card.coverage.unrated.sources} of {story.source_count} sources have no bias rating.")
     if card.factuality.unrated:
         limitations.append(f"{card.factuality.unrated} of {story.source_count} sources have no factuality rating.")
     return api.StoryDetail(
@@ -221,18 +220,6 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
     )
 
 
-def _best_ratings(session: Session, source_ids: list[uuid.UUID]) -> dict[uuid.UUID, SourceRating]:
-    order = {"low": 0, "medium": 1, "high": 2}
-    best: dict[uuid.UUID, SourceRating] = {}
-    for r in session.execute(
-        select(SourceRating).where(SourceRating.dimension == "factuality", SourceRating.source_id.in_(source_ids))
-    ).scalars():
-        cur = best.get(r.source_id)
-        if cur is None or (order[r.confidence], r.retrieved_at) > (order[cur.confidence], cur.retrieved_at):
-            best[r.source_id] = r
-    return best
-
-
 def _latest_owners(session: Session, source_ids: list[uuid.UUID]) -> dict[uuid.UUID, SourceOwnership]:
     out: dict[uuid.UUID, SourceOwnership] = {}
     for o in session.execute(select(SourceOwnership).where(SourceOwnership.source_id.in_(source_ids))).scalars():
@@ -241,36 +228,42 @@ def _latest_owners(session: Session, source_ids: list[uuid.UUID]) -> dict[uuid.U
     return out
 
 
+def _rating_ref(r: SourceRating | None) -> api.RatingRef | None:
+    if r is None:
+        return None
+    return api.RatingRef(rater=r.rater, value=r.value, method_url=r.method_url, confidence=r.confidence.value)
+
+
 def story_articles(
-    session: Session, story: Story, stance: str | None = None, lang: str | None = None
+    session: Session, story: Story, bias: str | None = None, lang: str | None = None
 ) -> api.StoryArticles:
+    """Articles with their outlet's bias and factuality rating (as the rater worded it) and owner.
+    `bias` filters by bucket (left | center | right | unrated), mapped exactly as in the stats."""
     rows = session.execute(
-        select(Article, Source, Framing)
+        select(Article, Source)
         .join(StoryArticle, StoryArticle.article_id == Article.id)
         .join(Source, Source.id == Article.source_id)
-        .outerjoin(Framing, and_(Framing.article_id == Article.id, Framing.story_id == story.id))
         .where(StoryArticle.story_id == story.id)
         .order_by(Article.published_at.desc())
     ).all()
-    src_ids = list({s.id for _, s, _ in rows})
-    ratings, owners = _best_ratings(session, src_ids), _latest_owners(session, src_ids)
+    src_ids = list({s.id for _, s in rows})
+    biases, facts = best_ratings(session, "bias", src_ids), best_ratings(session, "factuality", src_ids)
+    owners = _latest_owners(session, src_ids)
+    value_map = _cfg()["stats"]["bias_value_map"]
     carried: dict[uuid.UUID, list[str]] = defaultdict(list)
-    for a, s, _ in rows:
+    for a, s in rows:
         if a.original_article_id is not None:
             carried[a.original_article_id].append(s.name)
 
     items: list[api.ArticleRow] = []
-    for a, s, f in rows:
-        st = api.ArticleStance(
-            value=f.stance.value if f else "unclassified",
-            target=f.stance_target.value if f else "none",
-            confidence=f.stance_confidence.value if f else "low",
-        )
-        if stance and st.value != stance:
+    for a, s in rows:
+        b = biases.get(s.id)
+        b_bucket = bucket(b.value if b else None, value_map, BIAS_BUCKETS)
+        if bias and b_bucket != bias:
             continue
         if lang and a.language.split("-")[0] != lang:
             continue
-        r, o = ratings.get(s.id), owners.get(s.id)
+        o = owners.get(s.id)
         items.append(
             api.ArticleRow(
                 id=str(a.id),
@@ -279,19 +272,16 @@ def story_articles(
                 headline_lang=a.language,
                 published_at=a.published_at,
                 url=a.url,
-                stance=st,
                 analysis_depth=a.analysis_depth.value,
-                source_factuality=api.SourceFactuality(
-                    rater=r.rater, value=r.value, method_url=r.method_url, confidence=r.confidence.value
-                )
-                if r
-                else None,
+                bias=b_bucket,
+                source_bias=_rating_ref(b),
+                source_factuality=_rating_ref(facts.get(s.id)),
                 source_ownership=api.SourceOwnershipRef(owner=o.owner_name, evidence_url=o.evidence_url) if o else None,
                 is_syndicated=a.is_syndicated,
                 also_carried_by=sorted(set(carried.get(a.id, []))),
             )
         )
-    return api.StoryArticles(items=items, methodology_url=M_STANCE)
+    return api.StoryArticles(items=items, methodology_url=M_BIAS)
 
 
 # ---------------------------------------------------------------- sources and methodology
@@ -382,7 +372,7 @@ def methodology(session: Session) -> api.Methodology:
     return api.Methodology(
         min_sources_for_bar=g["min_sources_for_bar"],
         min_sources_for_blindspot=g["min_sources_for_blindspot"],
-        blindspot_stance_share=g["stats"]["blindspot_stance_share"],
+        blindspot_bias_share=g["stats"]["blindspot_bias_share"],
         blindspot_language_share=g["stats"]["blindspot_language_share"],
         feed_min_sources=g["feed_min_sources"],
         raters=[api.Rater(rater=r, dimension=d, method_url=m, sources_rated=n) for r, d, m, n in raters],

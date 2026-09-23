@@ -4,7 +4,7 @@ import type { StoryCard, Topic } from "@/lib/api/types";
 /** Rail data is secondary: a failure here must not break the feed. */
 export async function loadRail(lang: string): Promise<{ blindspots: StoryCard[]; topics: Topic[] }> {
   const [stance, language, topics] = await Promise.allSettled([
-    getBlindspots("stance", lang),
+    getBlindspots("bias", lang),
     getBlindspots("language", lang),
     getTopics(lang),
   ]);

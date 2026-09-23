@@ -72,6 +72,17 @@ def test_stats_dedup_copies_and_use_only_imported_facts(db: Session) -> None:
         )
     )
     db.add(
+        SourceRating(
+            source_id=b.id,
+            dimension="bias",
+            rater="Example Rater",
+            value="Right-Center",
+            method_url="https://rater.example/method",
+            retrieved_at=NOW,
+            confidence="high",
+        )
+    )
+    db.add(
         SourceOwnership(
             source_id=b.id,
             owner_name="Owner B",
@@ -85,11 +96,11 @@ def test_stats_dedup_copies_and_use_only_imported_facts(db: Session) -> None:
 
     assert compute_all(db, NOW, [story.id]) == 1
     st = db.execute(select(StoryStats).where(StoryStats.story_id == story.id)).scalar_one()
-    assert st.stance_counts == {"critical": 0, "balanced": 0, "supportive": 0, "unclassified": 2}
+    assert st.bias_counts == {"left": 0, "center": 0, "right": 1, "unrated": 1}  # c's copy collapses
     assert st.factuality_counts == {"high": 1, "mixed": 0, "low": 0, "unrated": 1}
     assert st.ownership_counts == {"unknown": 1, "Group B": 1}
     assert st.language_counts == {"en": 1, "hi": 1}
-    assert st.coverage_confidence == "low"  # stance is a stub until Phase 4
+    assert st.coverage_confidence == "medium"  # half the sources have a bias rating
     assert st.blindspot_type is None
 
     # Re-running updates in place.

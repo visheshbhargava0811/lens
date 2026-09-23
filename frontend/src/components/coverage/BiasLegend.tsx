@@ -1,19 +1,17 @@
 import { useTranslations } from "next-intl";
 
-import type { Coverage, StanceTarget } from "@/lib/api/types";
+import type { Coverage } from "@/lib/api/types";
 import { segmentsFromCoverage } from "@/lib/coverage";
 import { cn } from "@/lib/utils";
 
-import { stanceFill } from "./stance-style";
+import { biasFill } from "./bias-style";
 
 /** Swatch plus pattern plus label plus count and share. */
-export function StanceLegend({
+export function BiasLegend({
   coverage,
-  target = "central_govt",
   compact = false,
 }: {
   coverage: Coverage;
-  target?: StanceTarget;
   compact?: boolean;
 }) {
   const t = useTranslations();
@@ -26,8 +24,8 @@ export function StanceLegend({
     >
       {segments.map((s) => (
         <li key={s.key} className="flex items-center gap-2">
-          <span aria-hidden className={cn("size-3.5 shrink-0 rounded-[1px] ring-1 ring-ink/20", stanceFill[s.key])} />
-          <span className={compact ? "" : "flex-1"}>{t(`stance.label.${s.key}`, { target })}</span>
+          <span aria-hidden className={cn("size-3.5 shrink-0 rounded-[1px] ring-1 ring-ink/20", biasFill[s.key])} />
+          <span className={compact ? "" : "flex-1"}>{t(`bias.label.${s.key}`)}</span>
           <span className="tabular-nums text-ink-muted">
             {compact ? `${s.pct}%` : `${t("coverage.sources", { count: s.sources })}, ${s.pct}%`}
           </span>

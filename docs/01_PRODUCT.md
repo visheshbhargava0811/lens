@@ -5,7 +5,7 @@
 A news product for India where a reader can see **one story, many outlets, many languages** in one place. Ground News proved the pattern: cluster coverage of the same event, show who covered it and how. This product keeps that pattern and adds what Ground News does not serve well for Indian users:
 
 - Cross-lingual coverage (Hindi and regional-language press next to English outlets)
-- A stance axis that fits India (stance toward the government in question, not US-style left/right)
+- Outlet bias (Left / Center / Right from a named third-party rater, with provenance), the Ground News axis, applied across English and Indian-language outlets (ADR-0020)
 - Claim-level links to Indian fact-checkers
 - A conversational interface that answers "tell me about X" with cited, source-balanced answers
 
@@ -42,7 +42,7 @@ A news product for India where a reader can see **one story, many outlets, many 
 
 | Area | Ground News pattern | This product |
 |---|---|---|
-| Bias axis | Left / center / right | **Stance toward the government in question**: critical, balanced, supportive. Computed per article, per story |
+| Bias axis | Left / center / right | **Same axis** (owner decision, ADR-0020): each outlet's Left / Center / Right rating from a named third-party rater with provenance. Unrated outlets are shown as "Not rated" |
 | Language | English-first | Cross-lingual clustering, Hindi and regional outlets in the same story |
 | Blindspot | One side barely covers a story | Also **language blindspot**: covered by regional-language press but not English national outlets, or the reverse |
 | Fact-checks | Outlet-level factuality | Claim-level matches to Indian fact-checkers, plus outlet-level third-party ratings |
@@ -53,23 +53,20 @@ Ground News's product changes over time. Check the current app before treating t
 
 ## India adaptation details
 
-### Stance model
-Each article gets:
-- `stance_target`: `central_govt` | `state_govt` | `opposition` | `none`. Which government or actor the coverage is about.
-- `stance`: `critical` | `balanced` | `supportive` | `not_applicable` | `unclassified`, relative to that target.
-- `stance_confidence`: `low` | `medium` | `high`.
+### Bias model (ADR-0020, replaces the earlier article-level stance model)
+Each **outlet** carries a political-lean rating from a named third-party rater (first rater: Media Bias/Fact Check, ADR-0019), stored with provenance like any rating (rule 7). The rater's wording is mapped to a bucket in `config/guardrails.yaml` (`bias_value_map`): Left, Center or Right; lean-left and lean-right count with their side, as Ground News groups them. Outlets without a rating are `unrated`.
 
-The coverage bar aggregates **distinct sources** (after syndication dedup) by article-level stance for that story. Outlet-level history appears on the source page as secondary context, never as a permanent label on story cards.
+The coverage bar aggregates **distinct sources** (after syndication dedup) by their outlet bias bucket for that story. The label describes the outlet, not the article; article rows show the rater's exact wording (for example "Left-Center").
 
-Articles with low confidence count as `unclassified` and are shown as such.
+The earlier design classified each article's stance toward the government (critical / balanced / supportive). It was dropped by the owner in favour of outlet Left / Center / Right. Its tables (`framings`) remain for Phase 4 framing analysis but no longer feed the bar.
 
 ### Blindspot types
-- **Stance blindspot:** at least 70% of classified sources fall in one stance bucket and at least N sources total (starting values, tune in Phase 3).
+- **Bias blindspot:** at least 70% of *rated* sources on one side, with at least `min_sources_for_blindspot` rated sources (starting values in `config/guardrails.yaml`).
 - **Language blindspot:** a story with substantial coverage in one language group and near-zero in another (for example Hindi vs English).
 
 ### Coverage bar display rules
 - Show the bar only if the story has at least `MIN_SOURCES_FOR_BAR` distinct sources (start at 4). Otherwise show "Limited coverage".
-- Always show the unclassified share.
+- Always show the unrated (Not rated) share.
 - Always show a confidence label and link to the methodology page.
 
 ## Non-goals (for now)

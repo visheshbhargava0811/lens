@@ -2,44 +2,44 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { CoverageBar } from "@/components/coverage/CoverageBar";
-import { StanceLegend } from "@/components/coverage/StanceLegend";
+import { BiasLegend } from "@/components/coverage/BiasLegend";
 import { ArticleRow } from "@/components/story/ArticleRow";
 import { StoryCard } from "@/components/story/StoryCard";
 import type { ArticleRow as Row } from "@/lib/api/types";
-import { buildCoverage, dominantTarget } from "@/lib/coverage";
+import { buildCoverage } from "@/lib/coverage";
 import { stories } from "@/mocks/fixtures";
 
 import { renderWithIntl } from "./render";
 
 describe("CoverageBar", () => {
   it("has a full screen-reader alternative matching docs/10", () => {
-    const coverage = buildCoverage({ critical: 18, balanced: 12, supportive: 9 }, 3, "medium");
+    const coverage = buildCoverage({ left: 18, center: 12, right: 9 }, 3, "medium");
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={42} />);
     expect(screen.getByRole("img")).toHaveAccessibleName(
-      "Coverage by 42 sources: 43 percent critical of the government, 29 percent balanced, " +
-        "21 percent supportive of the government, 7 percent unclassified. Confidence medium.",
+      "Coverage by 42 sources: 43 percent rated Left, 29 percent rated Center, " +
+        "21 percent rated Right, 7 percent not rated. Confidence medium.",
     );
   });
 
   it("always shows confidence and a methodology link", () => {
-    const coverage = buildCoverage({ critical: 2, balanced: 2, supportive: 2 }, 0, "low");
+    const coverage = buildCoverage({ left: 2, center: 2, right: 2 }, 0, "low");
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={6} />);
     expect(screen.getByText("Confidence: low")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "How this is calculated" })).toHaveAttribute("href", "/methodology#stance");
+    expect(screen.getByRole("link", { name: "How this is calculated" })).toHaveAttribute("href", "/methodology#bias");
   });
 
   it("renders segment widths from source counts and hides empty buckets", () => {
-    const coverage = buildCoverage({ critical: 1, balanced: 0, supportive: 3 }, 0, "low");
+    const coverage = buildCoverage({ left: 1, center: 0, right: 3 }, 0, "low");
     const { container } = renderWithIntl(<CoverageBar coverage={coverage} sourceCount={4} />);
     const segs = [...container.querySelectorAll("[data-segment]")] as HTMLElement[];
     expect(segs.map((s) => [s.dataset.segment, s.style.width])).toEqual([
-      ["critical", "25%"],
-      ["supportive", "75%"],
+      ["left", "25%"],
+      ["right", "75%"],
     ]);
   });
 
   it("renders the limited state below min_sources, with no bar", () => {
-    const coverage = buildCoverage({ critical: 1, balanced: 1, supportive: 0 }, 0, "low");
+    const coverage = buildCoverage({ left: 1, center: 1, right: 0 }, 0, "low");
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={2} />);
     expect(screen.queryByRole("img")).toBeNull();
     expect(
@@ -48,18 +48,11 @@ describe("CoverageBar", () => {
   });
 });
 
-describe("StanceLegend", () => {
-  it("names the target when it is not the central government", () => {
-    const coverage = buildCoverage({ critical: 2, balanced: 1, supportive: 1 }, 0, "low");
-    renderWithIntl(<StanceLegend coverage={coverage} target="state_govt" />);
-    expect(screen.getByText("Critical of the state government")).toBeInTheDocument();
-    expect(screen.getByText("Unclassified")).toBeInTheDocument();
-  });
-
-  it("dominantTarget picks the most common non-none target", () => {
-    const a = (target: Row["stance"]["target"]) => ({ stance: { target } });
-    expect(dominantTarget([a("state_govt"), a("state_govt"), a("central_govt"), a("none")])).toBe("state_govt");
-    expect(dominantTarget([a("none")])).toBe("central_govt");
+describe("BiasLegend", () => {
+  it("labels Left, Center, Right and Not rated with counts", () => {
+    const coverage = buildCoverage({ left: 2, center: 1, right: 1 }, 1, "medium");
+    renderWithIntl(<BiasLegend coverage={coverage} />);
+    for (const label of ["Left", "Center", "Right", "Not rated"]) expect(screen.getByText(label)).toBeInTheDocument();
   });
 });
 
@@ -70,8 +63,9 @@ const baseRow: Row = {
   headline_lang: "hi",
   published_at: "2026-09-21T10:00:00Z",
   url: "https://example.org/a1",
-  stance: { value: "critical", target: "central_govt", confidence: "medium" },
   analysis_depth: "snippet",
+  bias: "unrated",
+  source_bias: null,
   source_factuality: null,
   source_ownership: null,
   is_syndicated: false,
@@ -82,6 +76,7 @@ describe("ArticleRow", () => {
   it("shows Not rated, unknown owner, depth note, and keeps the headline's language", () => {
     renderWithIntl(<ArticleRow article={baseRow} />);
     expect(screen.getByText("Factuality: Not rated")).toBeInTheDocument();
+    expect(screen.getByText("Bias: Not rated")).toBeInTheDocument();
     expect(screen.getByText("Owner: Unknown")).toBeInTheDocument();
     expect(screen.getByText("Based on headline and summary.")).toBeInTheDocument();
     expect(screen.getByText("हेडलाइन मूल भाषा में")).toHaveAttribute("lang", "hi");
@@ -94,19 +89,20 @@ describe("ArticleRow", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("labels syndication and low-confidence stance", () => {
+  it("labels syndication and shows the rater's own bias wording, linked to their method", () => {
     renderWithIntl(
       <ArticleRow
         article={{
           ...baseRow,
           analysis_depth: "full_text",
           also_carried_by: ["A", "B"],
-          stance: { value: "critical", target: "state_govt", confidence: "low" },
+          bias: "left",
+          source_bias: { rater: "Example Rater", value: "Left-Center", method_url: "https://example.org/m", confidence: "medium" },
         }}
       />,
     );
     expect(screen.getByText("Also carried by 2 outlets")).toBeInTheDocument();
-    expect(screen.getByText("Unclassified, confidence low")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Bias: Left-Center/ })).toHaveAttribute("href", "https://example.org/m");
     expect(screen.queryByText("Based on headline and summary.")).toBeNull();
   });
 });

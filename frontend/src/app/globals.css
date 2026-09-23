@@ -5,7 +5,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Lens tokens as Tailwind utilities: bg-paper, text-ink, bg-stance-critical, rounded-card ... */
+/* Lens tokens as Tailwind utilities: bg-paper, text-ink, bg-bias-left, rounded-card ... */
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
@@ -15,14 +15,14 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-link: var(--link);
-  --color-stance-critical: var(--stance-critical);
-  --color-stance-balanced: var(--stance-balanced);
-  --color-stance-supportive: var(--stance-supportive);
-  --color-stance-unclassified: var(--stance-unclassified);
-  --color-stance-critical-ink: var(--stance-critical-ink);
-  --color-stance-balanced-ink: var(--stance-balanced-ink);
-  --color-stance-supportive-ink: var(--stance-supportive-ink);
-  --color-stance-unclassified-ink: var(--stance-unclassified-ink);
+  --color-bias-left: var(--bias-left);
+  --color-bias-center: var(--bias-center);
+  --color-bias-right: var(--bias-right);
+  --color-bias-unrated: var(--bias-unrated);
+  --color-bias-left-ink: var(--bias-left-ink);
+  --color-bias-center-ink: var(--bias-center-ink);
+  --color-bias-right-ink: var(--bias-right-ink);
+  --color-bias-unrated-ink: var(--bias-unrated-ink);
   --color-flag-bg: var(--flag-bg);
   --color-flag-ink: var(--flag-ink);
   --color-factuality-high: var(--factuality-high);

@@ -57,7 +57,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 
 | ID | Guard | Type | On fail |
 |---|---|---|---|
-| G-BIAS-01 | Any stance, bias, or factuality figure shown with confidence label and methodology link | UI and API contract test | Block release |
+| G-BIAS-01 | Any bias or factuality figure shown with confidence label and methodology link | UI and API contract test | Block release |
 | G-BIAS-02 | Masked-source audit: stance output must not change when outlet name, language, or region is masked | Eval | Fail CI |
 | G-BIAS-03 | Symmetry audit: same prompts and thresholds for government-critical and government-supportive coverage. Compare error rates | Eval | Fail CI |
 

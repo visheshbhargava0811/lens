@@ -220,13 +220,18 @@ export interface components {
             published_at: string;
             /** Url */
             url: string;
-            stance: components["schemas"]["ArticleStance"];
             /**
              * Analysis Depth
              * @enum {string}
              */
             analysis_depth: "headline_only" | "snippet" | "full_text";
-            source_factuality: components["schemas"]["SourceFactuality"] | null;
+            /**
+             * Bias
+             * @enum {string}
+             */
+            bias: "left" | "center" | "right" | "unrated";
+            source_bias: components["schemas"]["RatingRef"] | null;
+            source_factuality: components["schemas"]["RatingRef"] | null;
             source_ownership: components["schemas"]["SourceOwnershipRef"] | null;
             /** Is Syndicated */
             is_syndicated: boolean;
@@ -244,23 +249,20 @@ export interface components {
             /** Language */
             language: string;
         };
-        /** ArticleStance */
-        ArticleStance: {
+        /** BiasBlindspot */
+        BiasBlindspot: {
             /**
-             * Value
+             * @description discriminator enum property added by openapi-typescript
              * @enum {string}
              */
-            value: "critical" | "balanced" | "supportive" | "not_applicable" | "unclassified";
+            type: "bias";
             /**
-             * Target
+             * Skew
              * @enum {string}
              */
-            target: "central_govt" | "state_govt" | "opposition" | "none";
-            /**
-             * Confidence
-             * @enum {string}
-             */
-            confidence: "low" | "medium" | "high";
+            skew: "left" | "center" | "right";
+            /** Score */
+            score: number;
         };
         /** Blindspots */
         Blindspots: {
@@ -268,7 +270,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "stance" | "language";
+            type: "bias" | "language";
             /** Items */
             items: components["schemas"]["StoryCard"][];
             /** Methodology Url */
@@ -313,13 +315,13 @@ export interface components {
             available: true;
             /**
              * Basis
-             * @default article_stance
+             * @default outlet_bias
              * @constant
              */
-            basis: "article_stance";
+            basis: "outlet_bias";
             /** Buckets */
             buckets: components["schemas"]["CoverageBucket"][];
-            unclassified: components["schemas"]["SourcesPct"];
+            unrated: components["schemas"]["SourcesPct"];
             /**
              * Confidence
              * @enum {string}
@@ -334,7 +336,7 @@ export interface components {
              * Key
              * @enum {string}
              */
-            key: "critical" | "balanced" | "supportive";
+            key: "left" | "center" | "right";
             /** Sources */
             sources: number;
             /** Pct */
@@ -447,8 +449,8 @@ export interface components {
             min_sources_for_bar: number;
             /** Min Sources For Blindspot */
             min_sources_for_blindspot: number;
-            /** Blindspot Stance Share */
-            blindspot_stance_share: number;
+            /** Blindspot Bias Share */
+            blindspot_bias_share: number;
             /** Blindspot Language Share */
             blindspot_language_share: number;
             /** Feed Min Sources */
@@ -527,20 +529,11 @@ export interface components {
              */
             confidence: "low" | "medium" | "high";
         };
-        /** SourceDetail */
-        SourceDetail: {
-            source: components["schemas"]["SourceSummary"];
-            /** Ownership */
-            ownership: components["schemas"]["OwnershipRecord"][];
-            /** Ratings */
-            ratings: components["schemas"]["RatingRecord"][];
-            /** Recent Stories */
-            recent_stories: components["schemas"]["StoryCard"][];
-            /** Methodology Url */
-            methodology_url: string;
-        };
-        /** SourceFactuality */
-        SourceFactuality: {
+        /**
+         * RatingRef
+         * @description An outlet rating as shown on an article row: "According to {rater}: {value}".
+         */
+        RatingRef: {
             /** Rater */
             rater: string;
             /** Value */
@@ -552,6 +545,18 @@ export interface components {
              * @enum {string}
              */
             confidence: "low" | "medium" | "high";
+        };
+        /** SourceDetail */
+        SourceDetail: {
+            source: components["schemas"]["SourceSummary"];
+            /** Ownership */
+            ownership: components["schemas"]["OwnershipRecord"][];
+            /** Ratings */
+            ratings: components["schemas"]["RatingRecord"][];
+            /** Recent Stories */
+            recent_stories: components["schemas"]["StoryCard"][];
+            /** Methodology Url */
+            methodology_url: string;
         };
         /** SourceImportResult */
         SourceImportResult: {
@@ -603,21 +608,6 @@ export interface components {
             /** Pct */
             pct: number;
         };
-        /** StanceBlindspot */
-        StanceBlindspot: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "stance";
-            /**
-             * Skew
-             * @enum {string}
-             */
-            skew: "critical" | "balanced" | "supportive";
-            /** Score */
-            score: number;
-        };
         /** StoryArticles */
         StoryArticles: {
             /** Items */
@@ -653,7 +643,7 @@ export interface components {
             coverage: components["schemas"]["CoverageAvailable"] | components["schemas"]["CoverageLimited"];
             factuality: components["schemas"]["FactualityCounts"];
             /** Blindspot */
-            blindspot: (components["schemas"]["StanceBlindspot"] | components["schemas"]["LanguageBlindspot"]) | null;
+            blindspot: (components["schemas"]["BiasBlindspot"] | components["schemas"]["LanguageBlindspot"]) | null;
             /** Summary Preview */
             summary_preview: string | null;
         };
@@ -847,8 +837,8 @@ export interface operations {
     story_articles_api_v1_stories__id_or_slug__articles_get: {
         parameters: {
             query?: {
-                group?: "stance" | "language" | "all";
-                stance?: string | null;
+                group?: "bias" | "language" | "all";
+                bias?: ("left" | "center" | "right" | "unrated") | null;
                 lang?: string | null;
             };
             header?: never;
@@ -891,7 +881,7 @@ export interface operations {
     blindspots_api_v1_blindspots_get: {
         parameters: {
             query?: {
-                type?: "stance" | "language";
+                type?: "bias" | "language";
                 lang?: string | null;
             };
             header?: never;

@@ -1,6 +1,6 @@
 # 10 UI spec
 
-Goal: a UI that feels familiar to anyone who has used Ground News, adapted for India. Same core patterns: dense story feed, a coverage bar on every story, blindspots, per-story source lists grouped by stance, ownership and factuality context. Different: multilingual first, India stance axis, an Ask interface, and no US left/right framing.
+Goal: a UI that feels familiar to anyone who has used Ground News, adapted for India. Same core patterns: dense story feed, a coverage bar on every story, blindspots, per-story source lists grouped by outlet bias (Left / Center / Right from a named rater, ADR-0020), ownership and factuality context. Different: multilingual first, language blindspots, and an Ask interface.
 
 **Replicate patterns, not assets.** Do not copy Ground News's logo, name, copy, icons, illustrations, or exact colors. Check their current app for layout reference, since it changes.
 
@@ -30,13 +30,13 @@ Define as CSS variables in `frontend/src/app/tokens.css`, mapped into Tailwind c
 | `--ink` | `#16181D` | Primary text, primary buttons |
 | `--ink-muted` | `#5B6270` | Secondary text (checked for 4.5:1 on paper) |
 | `--link` | `#1D4ED8` | Links, focus ring base |
-| `--stance-critical` | `#6A4C9C` | Critical of government |
-| `--stance-balanced` | `#8A919E` | Balanced |
-| `--stance-supportive` | `#0E7C86` | Supportive of government |
-| `--stance-unclassified` | `#D5D8DE` | Unclassified (hatched) |
+| `--bias-left` | `#6A4C9C` | Left (outlet rating) |
+| `--bias-center` | `#8A919E` | Center |
+| `--bias-right` | `#0E7C86` | Right |
+| `--bias-unrated` | `#D5D8DE` | Not rated (hatched) |
 | `--flag-bg` / `--flag-ink` | `#FFF4D6` / `#6B4A00` | Blindspot and limitation notes |
 
-**Stance colors are deliberately not red, green, saffron, or sky blue.** Those colors are strongly tied to Indian parties. Violet and teal are colorblind-safe with each other and neutral. Every segment also has a **pattern** (critical: diagonal hatch, supportive: dots, balanced: solid, unclassified: light hatch) so color is never the only signal. Keep the palette in tokens so it can be swapped after user testing.
+**Bias colors are deliberately not red, green, saffron, or sky blue.** Those colors are strongly tied to Indian parties. Violet and teal are colorblind-safe with each other and neutral. Every segment also has a **pattern** (left: diagonal hatch, right: dots, center: solid, not rated: light hatch) so color is never the only signal. Keep the palette in tokens so it can be swapped after user testing.
 
 Factuality uses a **single-hue ink scale** (high `#1F2937`, mixed `#6B7280`, low `#D1D5DB`) with text labels, not traffic-light colors.
 
@@ -133,7 +133,7 @@ Grid: 12 columns, max content width 1200 px, gutters 24 px desktop, 16 px mobile
 
 ### 3. Blindspot (`/blindspot`)
 
-Two tabs: **By stance** and **By language**.
+Two tabs: **By bias** and **By language**.
 
 - Each card is a StoryCard with a stronger bar and a flag chip in plain language, for example "Mostly covered by outlets critical of the government" or "Covered in Hindi, little in English".
 - Copy is neutral. No implication that either group is wrong for covering or not covering.
@@ -167,7 +167,7 @@ Two tabs: **By stance** and **By language**.
 
 ### 5. Source page (`/source/[slug]`)
 
-Name, language, region, ownership (with evidence link), third-party ratings each showing rater, value, method link, date. Recent stories from this source with their per-story stance chips. **No single permanent bias label.** If stance history is shown, present it as a distribution over stories with the methodology link.
+Name, language, region, ownership (with evidence link), third-party ratings each showing rater, value, method link, date. Recent stories from this source. Its bias rating is shown like any rating: rater, their wording, method link, date (ADR-0020).
 
 ### 6. Topic and search pages
 
@@ -186,13 +186,13 @@ Language, followed topics and regions, summary length, audio. A "What we store" 
 | Component | Behavior |
 |---|---|
 | `CoverageBar` | Props: `buckets`, `unclassified`, `size` (`sm` 8 px feed, `md` 12 px hero, `lg` 14 px story), `confidence`. Segments proportional by distinct sources. Patterns plus colors. Hover or focus shows tooltip "18 sources, 43%, critical of the government". Renders `role="img"` with a full text alternative ("Coverage by 42 sources: 43 percent critical of the government, 29 percent balanced, 21 percent supportive, 7 percent unclassified. Confidence medium."). Below `min_sources`, renders the Limited coverage state instead. Always followed by a "How this is calculated" link |
-| `StanceLegend` | Swatch plus pattern plus label plus count. Labels: "Critical of the government", "Balanced", "Supportive of the government", "Unclassified". For `stance_target` other than central government, the label names the target (for example "state government") |
+| `BiasLegend` | Swatch plus pattern plus label plus count. Labels: "Left", "Center", "Right", "Not rated" |
 | `StoryCard` | Variants `hero`, `standard`, `compact`. Contains headline (original language), optional image or text tile, CoverageBar, counts, updated time, language mix, optional flag chip. Whole card is one link. Only the bar and flag chip are interactive inside |
 | `SourceCount` | "42 sources" with a hover breakdown by language |
 | `FlagChip` | Blindspot and limitation notes in `--flag` colors, with icon and text |
 | `FactualityMeter` | Three-segment ink-scale bar plus labels and counts. Shows "Not rated" count. Tooltip names the rater |
 | `OwnershipTags` | Grouped by parent owner with evidence link, "Unknown" bucket shown honestly |
-| `ArticleRow` | Source name and language tag, original-language headline, time, stance chip for this article, source factuality chip, ownership chip, "Depth" note if `analysis_depth` is not full, external "Read at {source}" link opening in a new tab with `rel="noopener noreferrer"`. Syndicated rows show "Also carried by N outlets" |
+| `ArticleRow` | Source name and language tag, original-language headline, time, outlet bias chip (rater's wording, method link), source factuality chip, ownership chip, "Depth" note if `analysis_depth` is not full, external "Read at {source}" link opening in a new tab with `rel="noopener noreferrer"`. Syndicated rows show "Also carried by N outlets" |
 | `CitationChip` | `[n]` button. Opens popover with source, headline, cited passage if displayable, and link |
 | `SummaryBlock` | Renders cited sentences. Shows "Verified against sources" indicator only when `verified` is true |
 | `Timeline` | Vertical list of coverage events (first report, major updates, fact-check published). Collapsible on mobile |
@@ -286,7 +286,7 @@ frontend/src/
 │   └── layout.tsx
 ├── components/
 │   ├── coverage/CoverageBar.tsx
-│   ├── coverage/StanceLegend.tsx
+│   ├── coverage/BiasLegend.tsx
 │   ├── story/StoryCard.tsx
 │   ├── story/ArticleRow.tsx
 │   ├── story/SummaryBlock.tsx
@@ -306,7 +306,7 @@ frontend/src/
 - [ ] Home, Story, Blindspot, Ask, Source, Methodology render from fixtures at 375, 768, and 1280 px widths
 - [ ] CoverageBar passes unit tests for rounding, unclassified share, and limited-coverage state, and has a screen-reader alternative
 - [ ] Hindi headlines render correctly with proper line height and `lang`
-- [ ] No stance figure appears without confidence and a methodology link (contract test)
+- [ ] No bias or factuality figure appears without confidence and a methodology link (contract test)
 - [ ] Citation chips resolve to the right ArticleRow and popover
 - [ ] All states (loading, empty, error, limited, stale, abstain) implemented
 - [ ] axe clean, keyboard-only walkthrough passes, reduced motion respected

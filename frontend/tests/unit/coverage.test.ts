@@ -41,22 +41,22 @@ describe("percentages", () => {
 });
 
 describe("coverageSegments", () => {
-  it("orders critical, balanced, supportive, unclassified and includes unclassified share", () => {
-    const segs = coverageSegments({ critical: 18, balanced: 12, supportive: 9 }, 3);
-    expect(segs.map((s) => s.key)).toEqual(["critical", "balanced", "supportive", "unclassified"]);
+  it("orders left, center, right, unrated and includes the unrated share", () => {
+    const segs = coverageSegments({ left: 18, center: 12, right: 9 }, 3);
+    expect(segs.map((s) => s.key)).toEqual(["left", "center", "right", "unrated"]);
     expect(segs.map((s) => s.pct)).toEqual([43, 29, 21, 7]);
     expect(totalSources(segs)).toBe(42);
   });
 
   it("treats missing buckets as zero", () => {
-    const segs = coverageSegments({ critical: 2 }, 2);
+    const segs = coverageSegments({ left: 2 }, 2);
     expect(segs.map((s) => s.sources)).toEqual([2, 0, 0, 2]);
     expect(segs.map((s) => s.pct)).toEqual([50, 0, 0, 50]);
   });
 
-  it("handles a story that is entirely unclassified", () => {
+  it("handles a story where no outlet is rated", () => {
     const segs = coverageSegments({}, 6);
-    expect(segs.at(-1)).toMatchObject({ key: "unclassified", pct: 100 });
+    expect(segs.at(-1)).toMatchObject({ key: "unrated", pct: 100 });
   });
 });
 
@@ -68,20 +68,20 @@ describe("limited coverage", () => {
   });
 
   it("buildCoverage returns the limited shape below the threshold", () => {
-    const cov = buildCoverage({ critical: 1, balanced: 1, supportive: 0 }, 0, "low");
+    const cov = buildCoverage({ left: 1, center: 1, right: 0 }, 0, "low");
     expect(cov).toMatchObject({ available: false, reason: "limited_coverage", min_sources: 4 });
     expect(segmentsFromCoverage(cov)).toEqual([]);
   });
 
-  it("buildCoverage counts unclassified toward min_sources", () => {
-    const cov = buildCoverage({ critical: 1, balanced: 1, supportive: 0 }, 2, "low");
+  it("buildCoverage counts unrated outlets toward min_sources", () => {
+    const cov = buildCoverage({ left: 1, center: 1, right: 0 }, 2, "low");
     expect(cov.available).toBe(true);
   });
 
   it("buildCoverage round-trips through segmentsFromCoverage", () => {
-    const cov = buildCoverage({ critical: 18, balanced: 12, supportive: 9 }, 3, "medium");
+    const cov = buildCoverage({ left: 18, center: 12, right: 9 }, 3, "medium");
     expect(segmentsFromCoverage(cov).map((s) => s.pct)).toEqual([43, 29, 21, 7]);
     if (!cov.available) throw new Error("expected available");
-    expect(sum([...cov.buckets.map((b) => b.pct), cov.unclassified.pct])).toBe(100);
+    expect(sum([...cov.buckets.map((b) => b.pct), cov.unrated.pct])).toBe(100);
   });
 });

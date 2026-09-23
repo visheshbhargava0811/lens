@@ -75,7 +75,7 @@ test("coverage bar tooltip appears on keyboard focus", async ({ page }) => {
 test("citation chip opens a popover and reveals its article row", async ({ page }) => {
   await page.goto(STORY);
   // Filter the list first so the cited row is hidden; the citation must clear filters.
-  await page.getByRole("button", { name: /^Supportive of the government/ }).click();
+  await page.getByRole("group", { name: "Filter by outlet bias" }).getByRole("button", { name: /^Right/ }).click();
   const chip = page.getByTestId("citation-chip").first();
   const articleId = await chip.getAttribute("data-article-id");
   await chip.click();
@@ -92,10 +92,12 @@ test("citation chip opens a popover and reveals its article row", async ({ page 
 test("source filters narrow the list", async ({ page }) => {
   await page.goto(STORY);
   await expect(page.getByText("15 articles")).toBeVisible();
-  await page.getByRole("button", { name: /^Critical of the government/ }).click();
-  await expect(page.getByText("4 articles")).toBeVisible();
-  await page.getByRole("group", { name: "Filter by language" }).getByRole("button", { name: /हिन्दी/ }).click();
-  await expect(page.getByText("1 article", { exact: true })).toBeVisible();
+  const left = page.getByRole("group", { name: "Filter by outlet bias" }).getByRole("button", { name: /^Left/ });
+  const leftCount = Number(await left.locator("span").innerText());
+  expect(leftCount).toBeGreaterThan(0);
+  await left.click();
+  await expect(page.getByText(`${leftCount} article${leftCount === 1 ? "" : "s"}`, { exact: true })).toBeVisible();
+  await expect(page.getByText("Bias: Left").first()).toBeVisible();
 });
 
 test("syndicated rows and unrated sources are labeled", async ({ page }) => {
@@ -107,13 +109,14 @@ test("syndicated rows and unrated sources are labeled", async ({ page }) => {
   await expect(page.getByTestId("limitations")).toContainText("Based on headlines and summaries");
 });
 
-test("Hindi headline renders with lang and Indic line height; legend names the state government", async ({ page }) => {
+test("Hindi headline renders with lang and Indic line height; legend shows outlet bias", async ({ page }) => {
   await page.goto(STORY_HI);
   const h1 = page.getByRole("heading", { level: 1 });
   await expect(h1).toHaveAttribute("lang", "hi");
   const ratio = await h1.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight) / parseFloat(getComputedStyle(el).fontSize));
   expect(ratio).toBeCloseTo(1.35, 2);
-  await expect(page.getByText("Critical of the state government").filter({ visible: true }).first()).toBeVisible();
+  const legend = page.getByRole("list", { name: "Political lean of the outlets covering this story" }).filter({ visible: true }).first();
+  for (const label of ["Left", "Center", "Right", "Not rated"]) await expect(legend.getByText(label, { exact: true })).toBeVisible();
 });
 
 test("limited coverage replaces the bar and still lists sources", async ({ page }) => {

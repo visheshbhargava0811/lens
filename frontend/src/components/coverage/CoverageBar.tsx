@@ -5,7 +5,7 @@ import { segmentsFromCoverage, totalSources, type Segment } from "@/lib/coverage
 import { cn } from "@/lib/utils";
 
 import { MethodologyLink } from "./MethodologyLink";
-import { stanceFill, stanceInk } from "./stance-style";
+import { biasFill, biasInk } from "./bias-style";
 
 /** sm: thin feed bar. md and lg: labelled bars with the share set inside each segment. */
 const heights = { sm: "h-1.5", md: "h-6", lg: "h-7" } as const;
@@ -22,14 +22,14 @@ type Props = {
 };
 
 /**
- * Pure CSS stance bar. Segments are proportional to distinct sources.
+ * Pure CSS outlet-bias bar. Segments are proportional to distinct sources.
  * Hover or focus shows a breakdown; screen readers get a full text alternative.
  */
 export function CoverageBar({ coverage, sourceCount, size = "sm", showMeta = true, summary, className }: Props) {
   const t = useTranslations("coverage");
   const tc = useTranslations("confidence");
-  const tp = useTranslations("stance.phrase");
-  const ts = useTranslations("stance.short");
+  const tp = useTranslations("bias.phrase");
+  const ts = useTranslations("bias.short");
 
   if (!coverage.available) {
     return (
@@ -104,8 +104,8 @@ function Seg({ segment, label }: { segment: Segment; label: string | null }) {
       data-pct={segment.pct}
       className={cn(
         "@container flex h-full min-w-0 items-center justify-center overflow-hidden text-[0.6875rem] font-bold whitespace-nowrap tabular-nums",
-        stanceFill[segment.key],
-        stanceInk[segment.key],
+        biasFill[segment.key],
+        biasInk[segment.key],
       )}
       style={{ width: `${segment.pct}%` }}
     >

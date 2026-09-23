@@ -53,11 +53,11 @@ export async function getStory(idOrSlug: string, lang?: string): Promise<StoryDe
   }
 }
 
-export function getStoryArticles(id: string, params: { group?: "stance" | "language" | "all" } = {}) {
+export function getStoryArticles(id: string, params: { group?: "bias" | "language" | "all" } = {}) {
   return get<StoryArticles>(`/stories/${encodeURIComponent(id)}/articles`, params);
 }
 
-export function getBlindspots(type: "stance" | "language", lang?: string) {
+export function getBlindspots(type: "bias" | "language", lang?: string) {
   return get<Blindspots>("/blindspots", { type, lang });
 }
 

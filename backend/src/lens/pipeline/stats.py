@@ -1,8 +1,7 @@
 """Stats node (Graph 1, node 11): compute story_stats for stories whose articles changed.
 
-Stance comes from `framings` (Phase 4). Until then every source is unclassified, which the
-math turns into low confidence and no stance blindspot. Source facts come only from imported,
-provenance-backed rows (rule 7); anything missing is unrated / unknown.
+Bias (Left/Center/Right) and factuality are outlet-level third-party ratings (ADR-0020). Source
+facts come only from imported, provenance-backed rows (rule 7); anything missing is unrated.
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from lens.core.config_files import load_yaml
 from lens.core.logging import configure_logging, get_logger
-from lens.db.models import Article, Framing, SourceOwnership, SourceRating, StoryArticle, StoryStats
+from lens.db.models import Article, SourceOwnership, SourceRating, StoryArticle, StoryStats
 from lens.db.session import get_engine
 from lens.stats.coverage import ArticleFacts, SourceFacts, compute_story_stats
 
@@ -27,42 +26,48 @@ log = get_logger(__name__)
 _CONF_ORDER = {"low": 0, "medium": 1, "high": 2}
 
 
-def load_source_facts(session: Session) -> dict[str, SourceFacts]:
-    """Best factuality rating (highest confidence, then newest) and newest ownership row per source."""
+def best_ratings(
+    session: Session, dimension: str, source_ids: list[uuid.UUID] | None = None
+) -> dict[uuid.UUID, SourceRating]:
+    """Per source, the rating to show for one dimension: highest confidence, then newest."""
+    q = select(SourceRating).where(SourceRating.dimension == dimension)
+    if source_ids is not None:
+        q = q.where(SourceRating.source_id.in_(source_ids))
     best: dict[uuid.UUID, SourceRating] = {}
-    for r in session.execute(select(SourceRating).where(SourceRating.dimension == "factuality")).scalars():
+    for r in session.execute(q).scalars():
         cur = best.get(r.source_id)
         if cur is None or (_CONF_ORDER[r.confidence], r.retrieved_at) > (_CONF_ORDER[cur.confidence], cur.retrieved_at):
             best[r.source_id] = r
+    return best
+
+
+def load_source_facts(session: Session) -> dict[str, SourceFacts]:
+    """Bias and factuality ratings (see best_ratings) and the newest ownership row per source."""
+    bias, best = best_ratings(session, "bias"), best_ratings(session, "factuality")
     owner: dict[uuid.UUID, SourceOwnership] = {}
     for o in session.execute(select(SourceOwnership)).scalars():
         if o.source_id not in owner or o.retrieved_at > owner[o.source_id].retrieved_at:
             owner[o.source_id] = o
     return {
         str(sid): SourceFacts(
+            bias=bias[sid].value if sid in bias else None,
             factuality=best[sid].value if sid in best else None,
             ownership_group=(owner[sid].parent_group or owner[sid].owner_name) if sid in owner else None,
         )
-        for sid in set(best) | set(owner)
+        for sid in set(bias) | set(best) | set(owner)
     }
 
 
 def story_article_facts(
     session: Session, story_ids: list[uuid.UUID] | None = None
 ) -> dict[uuid.UUID, list[ArticleFacts]]:
-    q = (
-        select(
-            StoryArticle.story_id,
-            Article.id,
-            Article.source_id,
-            Article.language,
-            Article.original_article_id,
-            Framing.stance,
-            Framing.stance_confidence,
-        )
-        .join(Article, Article.id == StoryArticle.article_id)
-        .outerjoin(Framing, (Framing.article_id == Article.id) & (Framing.story_id == StoryArticle.story_id))
-    )
+    q = select(
+        StoryArticle.story_id,
+        Article.id,
+        Article.source_id,
+        Article.language,
+        Article.original_article_id,
+    ).join(Article, Article.id == StoryArticle.article_id)
     if story_ids is not None:
         q = q.where(StoryArticle.story_id.in_(story_ids))
     rows = session.execute(q).all()
@@ -77,8 +82,6 @@ def story_article_facts(
                 language=r.language,
                 # A copy collapses into its original only when the original is in the same story.
                 is_copy=r.original_article_id is not None and r.original_article_id in in_story[r.story_id],
-                stance=str(r.stance) if r.stance else "unclassified",
-                stance_confidence=str(r.stance_confidence) if r.stance_confidence else None,
             )
         )
     return out
@@ -94,7 +97,7 @@ def compute_all(session: Session, now: datetime, story_ids: list[uuid.UUID] | No
         values = {
             "story_id": story_id,
             "computed_at": now,
-            "stance_counts": r.stance_counts,
+            "bias_counts": r.bias_counts,
             "factuality_counts": r.factuality_counts,
             "ownership_counts": r.ownership_counts,
             "language_counts": r.language_counts,

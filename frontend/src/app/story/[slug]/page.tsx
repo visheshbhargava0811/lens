@@ -4,14 +4,14 @@ import { getFormatter, getLocale, getNow, getTranslations } from "next-intl/serv
 import { CoverageBar } from "@/components/coverage/CoverageBar";
 import { FactualityMeter } from "@/components/coverage/FactualityMeter";
 import { OwnershipTags } from "@/components/coverage/OwnershipTags";
-import { StanceLegend } from "@/components/coverage/StanceLegend";
+import { BiasLegend } from "@/components/coverage/BiasLegend";
 import type { CitedArticle } from "@/components/story/CitationChip";
 import { FlagChip } from "@/components/story/FlagChip";
 import { SourceList } from "@/components/story/SourceList";
 import { CitedText, SummaryBlock } from "@/components/story/SummaryBlock";
 import { getStory, getStoryArticles } from "@/lib/api/client";
 import type { CitedSentence } from "@/lib/api/types";
-import { dominantTarget, segmentsFromCoverage } from "@/lib/coverage";
+import { segmentsFromCoverage } from "@/lib/coverage";
 
 export default async function StoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -39,7 +39,6 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     ]),
   );
   const lang = summary?.lang ?? story.headline_lang;
-  const target = dominantTarget(articles.items);
 
   const panel = "rounded-card bg-surface p-5";
   const segments = segmentsFromCoverage(story.coverage);
@@ -52,7 +51,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
       <dl className="mt-3 divide-y divide-ink/10 text-[0.9375rem]">
         <Row label={t("story.totalSources")} value={story.counts.sources} strong />
         {segments.map((s) => (
-          <Row key={s.key} label={t(`stance.label.${s.key}`, { target })} value={s.sources} />
+          <Row key={s.key} label={t(`bias.label.${s.key}`)} value={s.sources} />
         ))}
         <Row label={t("story.lastUpdated")} value={updated} />
         <Row label={t("story.status")} value={t(`status.${story.status}`)} />
@@ -66,7 +65,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
         showMeta={false}
       />
       <div className="mt-3">
-        <StanceLegend coverage={story.coverage} target={target} />
+        <BiasLegend coverage={story.coverage} />
       </div>
       {story.coverage.available && (
         <p className="mt-3 text-sm text-ink-muted">

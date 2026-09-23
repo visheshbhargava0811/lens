@@ -1,13 +1,14 @@
 /**
  * Coverage bar math. Pure functions, unit-tested: this is the number users see.
- * Segments are proportional to distinct sources (after syndication dedup).
+ * Segments are proportional to distinct sources (after syndication dedup), bucketed by each
+ * outlet's third-party bias rating: Left, Center, Right, or Unrated (ADR-0020).
  */
-import type { Coverage, StanceKey } from "@/lib/api/types";
+import type { Coverage, BiasKey } from "@/lib/api/types";
 
-export const STANCE_ORDER: readonly StanceKey[] = ["critical", "balanced", "supportive"];
+export const BIAS_ORDER: readonly BiasKey[] = ["left", "center", "right"];
 export const MIN_SOURCES_FOR_BAR = 4;
 
-export type SegmentKey = StanceKey | "unclassified";
+export type SegmentKey = BiasKey | "unrated";
 
 export interface Segment {
   key: SegmentKey;
@@ -41,13 +42,13 @@ export function percentages(counts: readonly number[]): number[] {
   return floors;
 }
 
-/** Segments in display order: critical, balanced, supportive, then unclassified. */
+/** Segments in display order: left, center, right, then unrated. */
 export function coverageSegments(
-  counts: Partial<Record<StanceKey, number>>,
-  unclassified: number,
+  counts: Partial<Record<BiasKey, number>>,
+  unrated: number,
 ): Segment[] {
-  const keys: SegmentKey[] = [...STANCE_ORDER, "unclassified"];
-  const values = [...STANCE_ORDER.map((k) => counts[k] ?? 0), unclassified];
+  const keys: SegmentKey[] = [...BIAS_ORDER, "unrated"];
+  const values = [...BIAS_ORDER.map((k) => counts[k] ?? 0), unrated];
   const pcts = percentages(values);
   return keys.map((key, i) => ({ key, sources: values[i], pct: pcts[i] }));
 }
@@ -55,7 +56,7 @@ export function coverageSegments(
 export function segmentsFromCoverage(coverage: Coverage): Segment[] {
   if (!coverage.available) return [];
   const counts = Object.fromEntries(coverage.buckets.map((b) => [b.key, b.sources]));
-  return coverageSegments(counts, coverage.unclassified.sources);
+  return coverageSegments(counts, coverage.unrated.sources);
 }
 
 export function totalSources(segments: readonly Segment[]): number {
@@ -67,48 +68,25 @@ export function isLimited(sourceCount: number, min = MIN_SOURCES_FOR_BAR): boole
   return sourceCount < min;
 }
 
-/** Build a Coverage object from raw counts. Used by fixtures now and mirrored by the backend in Phase 3. */
+/** Build a Coverage object from raw counts. Used by fixtures; mirrors the backend (lens.services.stories). */
 export function buildCoverage(
-  counts: Record<StanceKey, number>,
-  unclassified: number,
+  counts: Record<BiasKey, number>,
+  unrated: number,
   confidence: Coverage["confidence"],
   min = MIN_SOURCES_FOR_BAR,
 ): Coverage {
-  const methodology_url = "/methodology#stance";
-  const segments = coverageSegments(counts, unclassified);
+  const methodology_url = "/methodology#bias";
+  const segments = coverageSegments(counts, unrated);
   if (isLimited(totalSources(segments), min)) {
     return { available: false, reason: "limited_coverage", min_sources: min, confidence, methodology_url };
   }
-  const [critical, balanced, supportive, unc] = segments;
+  const [left, center, right, unr] = segments;
   return {
     available: true,
-    basis: "article_stance",
-    buckets: [critical, balanced, supportive].map((s) => ({
-      key: s.key as StanceKey,
-      sources: s.sources,
-      pct: s.pct,
-    })),
-    unclassified: { sources: unc.sources, pct: unc.pct },
+    basis: "outlet_bias",
+    buckets: [left, center, right].map((s) => ({ key: s.key as BiasKey, sources: s.sources, pct: s.pct })),
+    unrated: { sources: unr.sources, pct: unr.pct },
     confidence,
     methodology_url,
   };
-}
-
-/** Bucket for one article. Low confidence and not_applicable count as unclassified (docs/01). */
-export function articleBucket(stance: { value: string; confidence: string }): SegmentKey {
-  if (stance.confidence === "low") return "unclassified";
-  if (stance.value === "critical" || stance.value === "balanced" || stance.value === "supportive") {
-    return stance.value;
-  }
-  return "unclassified";
-}
-
-/** The government most articles in a story are about, for legend labels. Ties go to central_govt. */
-export function dominantTarget(
-  articles: readonly { stance: { target: "central_govt" | "state_govt" | "opposition" | "none" } }[],
-): "central_govt" | "state_govt" | "opposition" {
-  const counts = { central_govt: 0, state_govt: 0, opposition: 0 };
-  for (const a of articles) if (a.stance.target !== "none") counts[a.stance.target] += 1;
-  const order = ["central_govt", "state_govt", "opposition"] as const;
-  return order.reduce((best, k) => (counts[k] > counts[best] ? k : best), order[0]);
 }

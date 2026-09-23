@@ -10,8 +10,8 @@ export function FlagChip({ blindspot, className }: { blindspot: Blindspot; class
   const t = useTranslations();
   const locale = useLocale();
   let text: string;
-  if (blindspot.type === "stance") {
-    text = t("flag.stance", { phrase: t(`stance.phrase.${blindspot.skew}`) });
+  if (blindspot.type === "bias") {
+    text = t("flag.bias", { phrase: t(`bias.phrase.${blindspot.skew}`) });
   } else {
     // skew is a language group from the backend: "en" or "indic" (ADR-0018); older data may hold a code.
     const language = blindspot.skew === "indic" ? t("flag.indianLanguages") : languageName(blindspot.skew, locale);

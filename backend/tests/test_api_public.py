@@ -74,6 +74,18 @@ def _story(db: Session, sources: list[Source], minutes_ago: int = 0, slug: str |
 @pytest.fixture
 def seeded(db: Session) -> dict[str, Any]:
     srcs = [_src(db, f"api-{i}", "en" if i < 3 else "hi") for i in range(5)]
+    for src, wording in zip(srcs, ("Left-Center", "Right-Center", "Least Biased"), strict=False):  # api-3/4 unrated
+        db.add(
+            SourceRating(
+                source_id=src.id,
+                dimension="bias",
+                rater="Example Rater",
+                value=wording,
+                method_url="https://rater.example/method",
+                retrieved_at=NOW,
+                confidence="high",
+            )
+        )
     db.add(
         SourceRating(
             source_id=srcs[0].id,
@@ -118,12 +130,12 @@ def _walk(node: Any, link: str | None = None) -> Iterator[tuple[str, Any, str | 
 
 
 def assert_g_bias_01(body: Any) -> None:
-    """G-BIAS-01: every coverage, stance or factuality figure has a confidence label and a
-    methodology link, on the figure itself or (per-article stance, source ratings) on its envelope."""
+    """G-BIAS-01: every coverage (bias) or factuality figure has a confidence label and a
+    methodology link, on the figure itself or (per-article outlet ratings) on its envelope."""
     for key, value, link in _walk(body):
         if key in ("coverage", "factuality") and isinstance(value, dict):
             assert "confidence" in value and value.get("methodology_url"), (key, value)
-        if key in ("stance", "source_factuality") and isinstance(value, dict):
+        if key in ("source_bias", "source_factuality") and isinstance(value, dict):
             assert "confidence" in value and link, (key, value)
 
 
@@ -139,9 +151,14 @@ def test_feed_hides_single_source_and_killed_stories(client: TestClient, seeded:
 def test_feed_cards_follow_coverage_rules(client: TestClient, seeded: dict[str, Any]) -> None:
     big, small = client.get(f"{P}/feed").json()["items"]
     assert big["coverage"]["available"] is True
-    assert [b["key"] for b in big["coverage"]["buckets"]] == ["critical", "balanced", "supportive"]
-    assert big["coverage"]["unclassified"] == {"sources": 5, "pct": 100}  # stance stub
-    assert big["coverage"]["confidence"] == "low"
+    assert big["coverage"]["basis"] == "outlet_bias"
+    assert big["coverage"]["buckets"] == [
+        {"key": "left", "sources": 1, "pct": 20},
+        {"key": "center", "sources": 1, "pct": 20},
+        {"key": "right", "sources": 1, "pct": 20},
+    ]
+    assert big["coverage"]["unrated"] == {"sources": 2, "pct": 40}
+    assert big["coverage"]["confidence"] == "medium"  # 3 of 5 outlets rated
     assert big["factuality"] == {
         "high": 1,
         "mixed": 0,
@@ -155,8 +172,8 @@ def test_feed_cards_follow_coverage_rules(client: TestClient, seeded: dict[str, 
         "available": False,
         "reason": "limited_coverage",
         "min_sources": 4,
-        "confidence": "low",
-        "methodology_url": "/methodology#stance",
+        "confidence": "high",  # both outlets rated
+        "methodology_url": "/methodology#bias",
     }
     assert big["image"] is None and big["summary_preview"] is None
 
@@ -184,7 +201,7 @@ def test_story_detail_by_id_and_slug(client: TestClient, seeded: dict[str, Any])
         "unknown": 4,
         "methodology_url": "/methodology#ownership",
     }
-    assert "Stance has not been classified for this story yet." in by_slug["limitations"]
+    assert "2 of 5 sources have no bias rating." in by_slug["limitations"]
     assert_g_bias_01(by_slug)
 
 
@@ -207,8 +224,20 @@ def test_story_articles_carry_provenance_or_null(client: TestClient, seeded: dic
     }
     assert rated["source_ownership"] == {"owner": "Owner Zero", "evidence_url": "https://api-0.example/about"}
     assert by_src["API-1"]["source_factuality"] is None and by_src["API-1"]["source_ownership"] is None
-    assert rated["stance"] == {"value": "unclassified", "target": "none", "confidence": "low"}
+    assert rated["source_bias"] == {
+        "rater": "Example Rater",
+        "value": "Left-Center",  # the rater's own wording on the row
+        "method_url": "https://rater.example/method",
+        "confidence": "high",
+    }
+    assert rated["bias"] == "left"
+    assert by_src["API-4"]["source_bias"] is None and by_src["API-4"]["bias"] == "unrated"
+    assert body["methodology_url"] == "/methodology#bias"
     assert_g_bias_01(body)
+    left = client.get(f"{P}/stories/big-story/articles", params={"bias": "left"}).json()["items"]
+    unrated = client.get(f"{P}/stories/big-story/articles", params={"bias": "unrated"}).json()["items"]
+    assert [r["source"]["name"] for r in left] == ["API-0"]
+    assert {r["source"]["name"] for r in unrated} == {"API-3", "API-4"}
     hi_only = client.get(f"{P}/stories/big-story/articles", params={"lang": "hi"}).json()
     assert {r["headline_lang"] for r in hi_only["items"]} == {"hi"}
 
@@ -226,7 +255,7 @@ def test_blindspots_topics_sources_methodology(client: TestClient, seeded: dict[
     assert str(seeded["killed"].id) not in {s["id"] for s in detail["recent_stories"]}
     assert_g_bias_01(detail)
     m = client.get(f"{P}/methodology").json()
-    assert m["min_sources_for_bar"] == 4
+    assert m["min_sources_for_bar"] == 4 and m["blindspot_bias_share"] == 0.7
     assert {
         "rater": "Example Rater",
         "dimension": "factuality",
@@ -266,7 +295,7 @@ def test_admin_import_needs_token(client: TestClient, seeded: dict[str, Any], mo
     [
         {"coverage": {"available": True, "methodology_url": "/m"}},  # no confidence
         {"factuality": {"high": 1, "confidence": "low"}},  # no methodology link
-        {"items": [{"stance": {"value": "critical", "confidence": "low"}}]},  # no envelope link
+        {"items": [{"source_bias": {"value": "Left", "confidence": "low"}}]},  # no envelope link
     ],
 )
 def test_g_bias_01_contract_catches_missing_labels(body: dict[str, Any]) -> None:

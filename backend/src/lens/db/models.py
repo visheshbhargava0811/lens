@@ -293,7 +293,7 @@ class StoryStats(Base):
         UUID(as_uuid=True), ForeignKey("stories.id", ondelete="CASCADE"), primary_key=True
     )
     computed_at: Mapped[datetime] = mapped_column(TSTZ)
-    stance_counts: Mapped[dict[str, int]] = mapped_column(JSONB)
+    bias_counts: Mapped[dict[str, int]] = mapped_column(JSONB)  # outlet Left/Center/Right (ADR-0020)
     factuality_counts: Mapped[dict[str, int]] = mapped_column(JSONB)
     ownership_counts: Mapped[dict[str, int]] = mapped_column(JSONB)
     language_counts: Mapped[dict[str, int]] = mapped_column(JSONB)
