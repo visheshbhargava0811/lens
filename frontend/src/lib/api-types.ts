@@ -160,6 +160,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask */
+        post: operations["ask_api_v1_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/sources/import": {
         parameters: {
             query?: never;
@@ -174,6 +191,43 @@ export interface paths {
          * @description Body: the CSV itself (Content-Type: text/csv). Columns: see lens.ingest.source_import.
          */
         post: operations["import_sources_api_v1_admin_sources_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/review-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Review Queue
+         * @description Held story summaries (G-OUT-07), oldest first.
+         */
+        get: operations["review_queue_api_v1_admin_review_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/review-queue/{item_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Review */
+        post: operations["resolve_review_api_v1_admin_review_queue__item_id__resolve_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -248,6 +302,155 @@ export interface components {
             logo_url: string | null;
             /** Language */
             language: string;
+        };
+        /** AskAbstain */
+        AskAbstain: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "insufficient_coverage" | "out_of_scope" | "sensitive_topic_under_review" | "guard_block" | "service_unavailable";
+            /** Message */
+            message: string;
+            /** Closest Stories */
+            closest_stories: components["schemas"]["StoryCard"][];
+        };
+        /**
+         * AskAnswer
+         * @description `answer_final`. Every sentence is cited and passed the checks; coverage is computed by code.
+         *     `basis` is "stored_summary" when the live answer failed verification and the story's stored,
+         *     already-verified summary is served instead (docs/06 fallback_precomputed).
+         */
+        AskAnswer: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "live" | "stored_summary";
+            /** Tldr */
+            tldr: components["schemas"]["CitedSentence"][];
+            /** What Happened */
+            what_happened: components["schemas"]["CitedSentence"][];
+            /** Agreements */
+            agreements: components["schemas"]["CitedSentence"][];
+            /** Disagreements */
+            disagreements: components["schemas"]["CitedSentence"][];
+            /** Premises Addressed */
+            premises_addressed: components["schemas"]["CitedSentence"][];
+            /** Limitations */
+            limitations: string[];
+            /** Follow Up Questions */
+            follow_up_questions: string[];
+            /** Coverage */
+            coverage: components["schemas"]["CoverageAvailable"] | components["schemas"]["CoverageLimited"];
+            /** Fact Checks */
+            fact_checks: components["schemas"]["FactCheckRef"][];
+            /** Story Ids */
+            story_ids: string[];
+            /** Articles */
+            articles: components["schemas"]["AskArticle"][];
+            /**
+             * Verified
+             * @constant
+             */
+            verified: true;
+        };
+        /**
+         * AskArticle
+         * @description A cited article, so citation chips can show the headline and link (docs/09).
+         */
+        AskArticle: {
+            /** Id */
+            id: string;
+            /** Headline */
+            headline: string;
+            /** Headline Lang */
+            headline_lang: string;
+            /** Url */
+            url: string;
+            /** Source Name */
+            source_name: string;
+            /** Source Language */
+            source_language: string;
+        };
+        /** AskError */
+        AskError: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+            /** Retry After S */
+            retry_after_s?: number | null;
+        };
+        /**
+         * AskEvents
+         * @description Documentation only: the payload type of each `/ask` SSE event, keyed by event name, so the
+         *     generated client has these types. The endpoint streams them as `event: <name>` / `data: <json>`.
+         */
+        AskEvents: {
+            status: components["schemas"]["AskStatus"];
+            understanding: components["schemas"]["AskUnderstanding"];
+            evidence: components["schemas"]["AskEvidence"];
+            answer_final: components["schemas"]["AskAnswer"];
+            abstain: components["schemas"]["AskAbstain"];
+            error: components["schemas"]["AskError"];
+        };
+        /** AskEvidence */
+        AskEvidence: {
+            /** Story Ids */
+            story_ids: string[];
+            /** Sources */
+            sources: components["schemas"]["AskSource"][];
+            /** Stale */
+            stale: boolean;
+            /** Newest Article At */
+            newest_article_at: string | null;
+            /** Methodology Url */
+            methodology_url: string;
+        };
+        /** AskRequest */
+        AskRequest: {
+            /** Query */
+            query: string;
+            /** Session Id */
+            session_id?: string | null;
+            /** Lang */
+            lang?: string | null;
+        };
+        /** AskSource */
+        AskSource: {
+            /** Source Id */
+            source_id: string;
+            /** Name */
+            name: string;
+            /** Language */
+            language: string;
+            /**
+             * Bias
+             * @enum {string}
+             */
+            bias: "left" | "center" | "right" | "unrated";
+        };
+        /** AskStatus */
+        AskStatus: {
+            /**
+             * Step
+             * @enum {string}
+             */
+            step: "understanding" | "searching" | "checking_sources" | "writing" | "verifying";
+            /** Message */
+            message: string;
+        };
+        /** AskUnderstanding */
+        AskUnderstanding: {
+            /** Neutral Query */
+            neutral_query: string;
+            /** Removed Premises */
+            removed_premises: string[];
+            /** Language */
+            language: string;
+            /** Intent */
+            intent: string;
         };
         /** BiasBlindspot */
         BiasBlindspot: {
@@ -545,6 +748,14 @@ export interface components {
              * @enum {string}
              */
             confidence: "low" | "medium" | "high";
+        };
+        /** Resolved */
+        Resolved: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "approved" | "rejected";
         };
         /** SourceDetail */
         SourceDetail: {
@@ -1021,6 +1232,48 @@ export interface operations {
             };
         };
     };
+    ask_api_v1_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description SSE stream; payload type per event name (docs/09) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["AskEvents"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     import_sources_api_v1_admin_sources_import_post: {
         parameters: {
             query?: never;
@@ -1052,6 +1305,85 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    review_queue_api_v1_admin_review_queue_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: {
+                            [key: string]: unknown;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_review_api_v1_admin_review_queue__item_id__resolve_post: {
+        parameters: {
+            query: {
+                decision: "approve" | "reject";
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Resolved"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -271,5 +271,40 @@
     },
     "about": "How ratings work",
     "notRatedDim": "Not rated"
+  },
+  "ask": {
+    "title": "Ask",
+    "intro": "Ask about any story in the news. Every sentence in the answer cites the outlets it comes from, and is checked against them.",
+    "label": "Your question",
+    "placeholder": "Ask about any story, in English, Hindi, or Hinglish",
+    "submit": "Ask",
+    "stop": "Stop",
+    "status": {
+      "understanding": "Understanding your question",
+      "searching": "Searching coverage",
+      "checking_sources": "Checking sources",
+      "writing": "Writing a cited answer",
+      "verifying": "Checking every sentence against its sources"
+    },
+    "neutralNote": "We searched for a neutral version of your question:",
+    "editQuery": "Search for this instead",
+    "answer": "Answer",
+    "whatHappened": "What happened",
+    "premises": "About your question's assumptions",
+    "limitations": "Limitations",
+    "sourcesUsed": "Sources used",
+    "followUps": "You could also ask",
+    "coverage": "Coverage in this answer",
+    "storedSummary": "A live answer couldn't be verified, so this is the story's verified summary.",
+    "abstain": {
+      "insufficient_coverage": "There isn't enough reliable coverage to answer this yet. Here are the closest stories we found.",
+      "out_of_scope": "Lens covers news reporting. Try asking what outlets have reported about a story.",
+      "sensitive_topic_under_review": "This topic is sensitive, so we only show reviewed summaries. This one is still being reviewed.",
+      "guard_block": "Lens can't answer this question.",
+      "service_unavailable": "Lens can't answer right now. Please try again in a few minutes."
+    },
+    "closest": "Closest stories",
+    "rateLimited": "You've asked a lot of questions quickly. Try again in {seconds, plural, one {# second} other {# seconds}}.",
+    "error": "Couldn't get an answer. Check your connection and try again."
   }
 }

@@ -41,3 +41,13 @@ export interface Page<T> {
 export interface ApiError {
   error: { code: string; message: string; retry_after_s?: number | null };
 }
+
+/** `/ask` SSE payloads, one type per event name (docs/09). */
+export type AskEvents = S["AskEvents"];
+export type AskEventName = keyof AskEvents;
+export type AskAnswer = S["AskAnswer"];
+export type AskAbstain = S["AskAbstain"];
+export type AskEvidence = S["AskEvidence"];
+export type AskUnderstanding = S["AskUnderstanding"];
+export type AskStatus = S["AskStatus"];
+export type AskArticle = S["AskArticle"];

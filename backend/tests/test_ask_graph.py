@@ -22,7 +22,7 @@ def _qu(intent: str = "story_lookup", premises: list[str] | None = None) -> Quer
         language_confidence=0.9,
         neutral_query="voter list revision",
         removed_premises=premises or [],
-        intent=intent,  # type: ignore[arg-type]
+        intent=intent,
         entities=["Election Commission"],
         time_hint=None,
     )
@@ -158,7 +158,7 @@ def test_unsupported_sentences_retry_then_prune_keeps_only_verified() -> None:
 
 def test_unverifiable_tldr_falls_back_to_stored_summary_or_abstains() -> None:
     tl = "The voter list revision entered phase 1."
-    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [_fail(tl)]}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [_fail(tl)]}
     out, _, _ = _run(script, stored={"story_id": "st1", "detail": "stored"})
     assert out["outcome"] == "fallback" and out["fallback"] == {"story_id": "st1", "detail": "stored"}
     out, _, _ = _run(script, stored=None)
@@ -196,7 +196,7 @@ def _events(script: dict[type, list[Any]], db: Any, retriever: FakeRetriever | N
 
 def test_sse_answer_is_cited_with_outlet_names_and_code_limitations(db: Any) -> None:
     premise = [PremiseNote(premise=PREMISE, evidence_says=None)]
-    script = {QueryUnderstanding: [_qu(premises=[PREMISE])], AskDraft: [_draft(premise)], FaithfulnessVerdict: [PASS]}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu(premises=[PREMISE])], AskDraft: [_draft(premise)], FaithfulnessVerdict: [PASS]}
     events = _events(script, db)
     kinds = [k for k, _ in events]
     assert kinds[:3] == ["status", "understanding", "status"] and kinds[-1] == "answer_final"
@@ -243,7 +243,7 @@ def test_ask_endpoint_streams_sse_and_rate_limits(client: Any, monkeypatch: Any)
     from lens.api.routers import ask as router
     from lens.services import ask as svc
 
-    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
     monkeypatch.setattr(svc, "ask_graph", lambda *a: build(FakeLLM(script), FakeRetriever(_ev()), lambda ids: None))
     monkeypatch.setattr(router, "get_qdrant", lambda: None)
     monkeypatch.setattr(router, "get_embedder", lambda: None)
@@ -324,7 +324,11 @@ def test_sensitive_topic_never_generates_live() -> None:
     for stored, outcome in (({"story_id": "st1", "detail": "reviewed"}, "fallback"), (None, "abstain")):
         llm, ret = FakeLLM({QueryUnderstanding: [_qu()]}), FakeRetriever(riot)
         state: AskState = {"raw_query": "q", "windows": [30, 90]}
-        out = build(llm, ret, lambda ids, s=stored: s, sensitive_keywords=kw).invoke(state)
+
+        def lookup(ids: list[str], s: dict[str, Any] | None = stored) -> dict[str, Any] | None:
+            return s
+
+        out = build(llm, ret, lookup, sensitive_keywords=kw).invoke(state)
         assert out["outcome"] == outcome and AskDraft not in llm.prompts
         if outcome == "abstain":
             assert out["abstain_reason"] == "sensitive_topic_under_review"
@@ -342,7 +346,7 @@ def test_sse_answer_carries_cited_articles_from_the_db(db: Any) -> None:
         ArticleIn(str(a.id), str(s.id), s.name, a.language, a.published_at, a.title, None, "unrated") for a, s in rows
     ]
     ev = Evidence([EvidenceArticle(f"A{i + 1}", x, x.title) for i, x in enumerate(arts)], [], "stories", 0.8)
-    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
     ans = _events(script, db, FakeRetriever(ev))[-1][1]
     assert [(x.source_name, x.source_language, x.url) for x in ans.articles] == [
         ("ONE", "en", rows[0][0].url),
