@@ -277,3 +277,70 @@ class SourceImportResult(BaseModel):
     ownership_added: int
     ratings_added: int
     unchanged: int
+
+
+# ---------------------------------------------------------------- Ask (SSE events, docs/09)
+
+
+class AskRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    session_id: str | None = None
+    lang: str | None = None  # UI language; output language only
+
+
+class AskStatus(BaseModel):
+    step: Literal["understanding", "searching", "checking_sources", "writing", "verifying"]
+    message: str
+
+
+class AskUnderstanding(BaseModel):
+    neutral_query: str
+    removed_premises: list[str]
+    language: str
+    intent: str
+
+
+class AskSource(BaseModel):
+    source_id: str
+    name: str
+    language: str
+
+
+class AskEvidence(BaseModel):
+    story_ids: list[str]
+    sources: list[AskSource]
+    stale: bool
+    newest_article_at: datetime | None
+
+
+class AskAnswer(BaseModel):
+    """`answer_final`. Every sentence is cited and passed the checks; coverage is computed by code.
+    `basis` is "stored_summary" when the live answer failed verification and the story's stored,
+    already-verified summary is served instead (docs/06 fallback_precomputed)."""
+
+    basis: Literal["live", "stored_summary"]
+    tldr: list[CitedSentence]
+    what_happened: list[CitedSentence]
+    agreements: list[CitedSentence]
+    disagreements: list[CitedSentence]
+    premises_addressed: list[CitedSentence]
+    limitations: list[str]
+    follow_up_questions: list[str]
+    coverage: CoverageAvailable | CoverageLimited
+    fact_checks: list[FactCheckRef]
+    story_ids: list[str]
+    verified: Literal[True]
+
+
+class AskAbstain(BaseModel):
+    reason: Literal[
+        "insufficient_coverage", "out_of_scope", "sensitive_topic_under_review", "guard_block", "service_unavailable"
+    ]
+    message: str
+    closest_stories: list[StoryCard]
+
+
+class AskError(BaseModel):
+    code: str
+    message: str
+    retry_after_s: int | None = None

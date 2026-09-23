@@ -102,7 +102,7 @@ def build(llm: LLM) -> Any:
             user,
             run_name=f"story.{task}",
             prompt_version=version,
-            tags=[f"story:{state['story_id']}"],
+            tags=["graph:offline", f"story:{state['story_id']}"],
             exclude_families=exclude,
             meta=meta,
         )

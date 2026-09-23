@@ -45,11 +45,30 @@ def _cfg() -> dict[str, Any]:
     return load_yaml("guardrails.yaml")
 
 
-def _visible() -> Any:
+def visible_story() -> Any:
     return and_(Story.kill_switch.is_(False), Story.review_status != "held")
 
 
 # ---------------------------------------------------------------- cards
+
+
+def coverage_bar(
+    bias: dict[str, int], n_sources: int, conf: api.Confidence, g: dict[str, Any]
+) -> api.CoverageAvailable | api.CoverageLimited:
+    """Outlet Left/Center/Right bar from distinct-source counts; limited below `min_sources_for_bar`."""
+    if n_sources < g["min_sources_for_bar"]:
+        return api.CoverageLimited(min_sources=g["min_sources_for_bar"], confidence=conf, methodology_url=M_BIAS)
+    keys = [*BIAS_BUCKETS, "unrated"]
+    values = [int(bias.get(k, 0)) for k in keys]
+    pcts = percentages(values)
+    return api.CoverageAvailable(
+        buckets=[
+            api.CoverageBucket(key=k, sources=v, pct=p) for k, v, p in zip(BIAS_BUCKETS, values, pcts, strict=False)
+        ],
+        unrated=api.SourcesPct(sources=values[-1], pct=pcts[-1]),
+        confidence=conf,
+        methodology_url=M_BIAS,
+    )
 
 
 def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: str | None = None) -> api.StoryCard:
@@ -68,21 +87,7 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: st
         elif stats.blindspot_type == "language":
             blind = api.LanguageBlindspot(skew=stats.blindspot_skew or "", score=stats.blindspot_score or 0)
 
-    coverage: api.CoverageAvailable | api.CoverageLimited
-    if n < g["min_sources_for_bar"]:
-        coverage = api.CoverageLimited(min_sources=g["min_sources_for_bar"], confidence=conf, methodology_url=M_BIAS)
-    else:
-        keys = [*BIAS_BUCKETS, "unrated"]
-        values = [int(bias.get(k, 0)) for k in keys]
-        pcts = percentages(values)
-        coverage = api.CoverageAvailable(
-            buckets=[
-                api.CoverageBucket(key=k, sources=v, pct=p) for k, v, p in zip(BIAS_BUCKETS, values, pcts, strict=False)
-            ],
-            unrated=api.SourcesPct(sources=values[-1], pct=pcts[-1]),
-            confidence=conf,
-            methodology_url=M_BIAS,
-        )
+    coverage = coverage_bar(bias, n, conf, g)
 
     return api.StoryCard(
         id=str(story.id),
@@ -108,7 +113,7 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: st
     )
 
 
-def _cards(session: Session, q: Select[Any]) -> list[api.StoryCard]:
+def story_cards(session: Session, q: Select[Any]) -> list[api.StoryCard]:
     g = _cfg()
     rows = session.execute(q.outerjoin(StoryStats, StoryStats.story_id == Story.id).add_columns(StoryStats)).all()
     latest = latest_published(session, [r[0].id for r in rows])
@@ -146,7 +151,7 @@ def _unmask(text: str, names: dict[str, str]) -> str:
     return _REF.sub(lambda m: names.get(f"A{m.group(1)}", m.group(0)), text).strip()
 
 
-def _cited(sections: list[list[dict[str, Any]]], chunk_of: dict[str, str]) -> list[list[api.CitedSentence]]:
+def cited_api(sections: list[list[dict[str, Any]]], chunk_of: dict[str, str]) -> list[list[api.CitedSentence]]:
     """Stored sentences -> API shape, numbering citations continuously across all sections."""
     names = {
         c["ref"]: c["source_name"] for sentences in sections for s in sentences for c in s["citations"] if "ref" in c
@@ -196,7 +201,7 @@ def feed(
     limit: int = 20,
 ) -> api.StoryCardPage:
     g = _cfg()
-    q = select(Story).where(_visible(), Story.source_count >= g["feed_min_sources"])
+    q = select(Story).where(visible_story(), Story.source_count >= g["feed_min_sources"])
     if topic and topic != "top":
         q = q.where(Story.topic == topic)
     if tab == "blindspot":
@@ -207,7 +212,7 @@ def feed(
         ts, sid = _decode_cursor(cursor)
         q = q.where(or_(Story.last_updated_at < ts, and_(Story.last_updated_at == ts, Story.id < sid)))
     q = q.order_by(Story.last_updated_at.desc(), Story.id.desc()).limit(limit + 1)
-    items = _cards(session, q)
+    items = story_cards(session, q)
     more = len(items) > limit
     items = items[:limit]
     nxt = _encode_cursor(items[-1].updated_at, uuid.UUID(items[-1].id)) if more and items else None
@@ -219,20 +224,20 @@ def blindspots(session: Session, kind: Literal["bias", "language"], limit: int =
     q = (
         select(Story)
         .where(
-            _visible(),
+            visible_story(),
             Story.source_count >= g["feed_min_sources"],
             Story.id.in_(select(StoryStats.story_id).where(StoryStats.blindspot_type == kind)),
         )
         .order_by(Story.last_updated_at.desc())
         .limit(limit)
     )
-    return api.Blindspots(type=kind, items=_cards(session, q), methodology_url=M_BLINDSPOTS)
+    return api.Blindspots(type=kind, items=story_cards(session, q), methodology_url=M_BLINDSPOTS)
 
 
 def topics(session: Session) -> api.Topics:
     rows = session.execute(
         select(Story.topic)
-        .where(_visible(), Story.topic.is_not(None))
+        .where(visible_story(), Story.topic.is_not(None))
         .group_by(Story.topic)
         .order_by(func.count().desc())
     ).scalars()
@@ -247,11 +252,11 @@ def find_story(session: Session, id_or_slug: str) -> Story | None:
         cond = Story.id == uuid.UUID(id_or_slug)
     except ValueError:
         cond = Story.slug == id_or_slug
-    return session.execute(select(Story).where(cond, _visible())).scalar_one_or_none()
+    return session.execute(select(Story).where(cond, visible_story())).scalar_one_or_none()
 
 
 def story_detail(session: Session, story: Story) -> api.StoryDetail:
-    card = _cards(session, select(Story).where(Story.id == story.id))[0]
+    card = story_cards(session, select(Story).where(Story.id == story.id))[0]
     stats = session.get(StoryStats, story.id)
     owners = stats.ownership_counts if stats else {}
     unknown = owners.get("unknown", 0) if stats else story.source_count
@@ -279,7 +284,7 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
             ).all()
         }
         f = row.framing or {}
-        sents, agree, disagree, diffs, only = _cited(
+        sents, agree, disagree, diffs, only = cited_api(
             [row.summary, row.agreements, row.disagreements, f.get("differences", []), f.get("only_in_some", [])],
             chunk_of,
         )
@@ -421,7 +426,7 @@ def source_detail(session: Session, s: Source, recent: int = 10) -> api.SourceDe
     in_source = select(StoryArticle.story_id).join(Article, Article.id == StoryArticle.article_id)
     q = (
         select(Story)
-        .where(_visible(), Story.id.in_(in_source.where(Article.source_id == s.id)))
+        .where(visible_story(), Story.id.in_(in_source.where(Article.source_id == s.id)))
         .order_by(Story.last_updated_at.desc())
         .limit(recent)
     )
@@ -450,7 +455,7 @@ def source_detail(session: Session, s: Source, recent: int = 10) -> api.SourceDe
             )
             for r in ratings
         ],
-        recent_stories=_cards(session, q),
+        recent_stories=story_cards(session, q),
         methodology_url=M_SOURCES,
     )
 

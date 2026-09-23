@@ -9,7 +9,8 @@ tier2:
   sparse_limit: 50
   fused_limit: 100
   rrf_k: 60                  # Qdrant's default is 2; 60 is the common choice. Tuned in the ablation
-  rerank_top_k: 20
+  rerank_top_k: 20           # candidates passed to balancing (no reranker: ADR-0029)
+  min_score: 0.58            # global fallback: best chunk cosine to keep (ablation Youden 0.582, ADR-0029)
   rerank: none               # none | colbert. ColBERT gave no gain at ~10 s (ADR-0029); cross-encoder dropped (ADR-0028)
 balance:
   max_chunks: 12

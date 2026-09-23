@@ -184,7 +184,7 @@ def structured[T: BaseModel](
         traced = traceable(
             name=run_name if i == 0 else f"{run_name}:fallback",
             run_type="llm",
-            tags=["graph:offline", f"tier:{t.name}", *(["fallback"] if i else []), *(tags or [])],
+            tags=[f"tier:{t.name}", *(["fallback"] if i else []), *(tags or [])],
             metadata={"tier": t.name, "provider": t.provider, "model": t.model, "prompt_version": prompt_version},
         )(_structured)
         try:

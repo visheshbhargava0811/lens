@@ -3,7 +3,8 @@ tiers:
   embedding:           { provider: local, model: BAAI/bge-m3 }   # benchmark vs multilingual-e5, LaBSE (Phase 2)
   reranker:            { provider: TBD, model: TBD }
   triage:              { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
-  query_understanding: { provider: TBD, model: TBD, max_tokens: 512,  temperature: 0 }
+  # Phase 6: same small model as analysis until the Ask eval says otherwise.
+  query_understanding: { provider: groq, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 4096, temperature: 0, reasoning_effort: low }
   # Phase 4 (ADR-0022): provisional until the eval baseline; smoke-tested live 2026-09-23.
   # Groq free tier: 1000 requests/day and 8000 tokens/min per model. Constrained JSON-schema
   # decoding ("strict") is supported for gpt-oss-* and qwen3.8 on Groq.
@@ -29,6 +30,10 @@ fallbacks:
     - { provider: groq, account: 2, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
     - &gemini36 { provider: gemini, model: gemini-3.6-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
     - &gemini35 { provider: gemini, model: gemini-3.5-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+  query_understanding:
+    - { provider: groq, account: 2, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 4096, temperature: 0, reasoning_effort: low }
+    - *gemini36
+    - *gemini35
   synthesis:
     - { provider: groq, account: 2, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
     - { provider: groq, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }

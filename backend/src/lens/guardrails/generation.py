@@ -130,3 +130,20 @@ def check_sensitive(texts: Sequence[str], keywords: Mapping[str, Sequence[str]])
             meta={"topics": hits},
         )
     return GuardResult(guard_id="G-OUT-07", passed=True, action="allow", reason="no sensitive topic matched")
+
+
+@traced_guard("G-IN-05", "generation")
+def check_premises(removed: Sequence[str], addressed: Sequence[str]) -> GuardResult:
+    """Every premise removed from the question comes back in the answer (docs/06): either with what
+    the evidence says about it, or as "no article reports that". Silently dropping one fails."""
+    got = {p.strip().casefold() for p in addressed}
+    missing = [p for p in removed if p.strip().casefold() not in got]
+    if missing:
+        return GuardResult(
+            guard_id="G-IN-05",
+            passed=False,
+            action="retry",
+            reason=f"{len(missing)} of {len(removed)} removed premises not addressed",
+            meta={"missing": missing},
+        )
+    return GuardResult(guard_id="G-IN-05", passed=True, action="allow", reason=f"{len(removed)} premises addressed")
