@@ -58,3 +58,12 @@ def test_rows_without_provenance_reject_the_whole_file(db: Session, src: Source,
 def test_empty_file_is_rejected(db: Session, src: Source) -> None:
     with pytest.raises(ImportRejected):
         import_csv(db, HEADER)
+
+
+def test_template_rows_left_blank_are_skipped(db: Session, src: Source) -> None:
+    header = "kind,source_slug,outlet_name_for_reference,owner_name,evidence_url,retrieved_at,confidence\n"
+    filled = "ownership,imp-a,A,Owner A,https://a.example/about,2026-09-20T00:00:00Z,high\n"
+    blank = "ownership,imp-a,A,,,,\n"
+    assert import_csv(db, header + filled + blank).ownership_added == 1
+    with pytest.raises(ImportRejected):
+        import_csv(db, header + blank)  # nothing filled in at all

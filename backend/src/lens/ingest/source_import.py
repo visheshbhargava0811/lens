@@ -6,7 +6,9 @@ whole file is rejected if any row is invalid, so a partial import can never happ
 Re-importing the same row is a no-op.
 
 CSV columns: kind (ownership|rating), source_slug, then the fields of OwnershipEntry or
-RatingEntry. Empty cells are treated as missing.
+RatingEntry. Empty cells are treated as missing. `outlet_name_for_reference` is ignored, and a
+row with nothing filled in beyond kind and source_slug is skipped (template:
+data/sources/source_meta.template.csv).
 
 Usage: uv run python -m lens.ingest.source_import path/to/file.csv
 """
@@ -49,6 +51,9 @@ def _parse(text: str, slugs: dict[str, Any]) -> list[tuple[str, Any, OwnershipEn
     for n, raw in enumerate(rows, start=2):  # row 1 is the header
         row = {k.strip(): v.strip() for k, v in raw.items() if k and v is not None and v.strip() != ""}
         kind, slug = row.pop("kind", ""), row.pop("source_slug", "")
+        row.pop("outlet_name_for_reference", None)  # template helper column
+        if not row:
+            continue  # a template row left blank: nothing to import
         if slug not in slugs:
             errors.append(f"row {n}: unknown source_slug {slug!r}")
             continue
@@ -65,8 +70,8 @@ def _parse(text: str, slugs: dict[str, Any]) -> list[tuple[str, Any, OwnershipEn
         except ValidationError as e:
             fields = ", ".join(f"{'.'.join(map(str, err['loc']))}: {err['msg']}" for err in e.errors())
             errors.append(f"row {n}: {fields}")
-    if not rows:
-        errors.append("the file has no data rows")
+    if not parsed and not errors:
+        errors.append("the file has no filled-in rows")
     if errors:
         raise ImportRejected(errors)
     return parsed
