@@ -85,7 +85,8 @@
     "totalSources": "कुल स्रोत",
     "lastUpdated": "पिछला अपडेट",
     "status": "स्थिति",
-    "distribution": "झुकाव का बँटवारा"
+    "distribution": "झुकाव का बँटवारा",
+    "imageCredit": "तस्वीर: {source}"
   },
   "flag": {
     "language": "ज़्यादातर {language} में कवरेज, {other} में बहुत कम",

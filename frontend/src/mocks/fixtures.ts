@@ -210,7 +210,8 @@ function build(spec: StorySpec): { card: StoryCard; detail: StoryDetail; article
     status: spec.status,
     updated_at: ago(spec.updatedMinutesAgo),
     topic: spec.topic,
-    image: null,
+    // Some stories carry an outlet photo (hotlinked in production, ADR-0034); the rest show text tiles.
+    image: spec.slug.length % 2 === 0 && rows.length ? { url: "/fixtures/story-photo.svg", source_name: rows[0].source.name } : null,
     counts: { sources: n, articles: rows.length, by_language: byLanguage },
     coverage: buildCoverage(biasCounts, unrated, coverageConfidence),
     factuality,

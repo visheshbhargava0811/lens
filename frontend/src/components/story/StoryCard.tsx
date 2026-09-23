@@ -7,6 +7,7 @@ import { segmentsFromCoverage } from "@/lib/coverage";
 import { cn } from "@/lib/utils";
 
 import { FlagChip } from "./FlagChip";
+import { StoryImage } from "./StoryImage";
 import { StoryMeta } from "./StoryMeta";
 
 type Variant = "hero" | "standard" | "compact";
@@ -31,16 +32,8 @@ export function StoryCard({
   const labelledBar = variant === "hero" || strongBar;
   const lead = leadingShare(story, t);
 
-  return (
-    <article
-      data-testid={`story-card-${variant}`}
-      className={cn(
-        "group relative flex flex-col",
-        variant === "hero" && "gap-5",
-        variant === "standard" && "gap-3",
-        variant === "compact" && "gap-2 py-4",
-      )}
-    >
+  const body = (
+    <>
       <H
         lang={story.headline_lang}
         className={cn(
@@ -49,13 +42,19 @@ export function StoryCard({
           variant === "compact" && "text-base font-bold",
         )}
       >
-        <Link href={`/story/${story.slug}`} className="headline-link after:absolute after:inset-0 after:content-['']">
+        <Link
+          href={`/story/${story.slug}`}
+          className="headline-link after:absolute after:inset-0 after:content-['']"
+        >
           {story.headline}
         </Link>
       </H>
 
       {variant === "hero" && story.summary_preview && (
-        <p lang={story.headline_lang} className="line-clamp-3 max-w-[62ch] text-lg text-ink-muted">
+        <p
+          lang={story.headline_lang}
+          className="line-clamp-3 max-w-[62ch] text-lg text-ink-muted"
+        >
           {story.summary_preview}
         </p>
       )}
@@ -74,15 +73,49 @@ export function StoryCard({
         maxLanguages={variant === "compact" ? 0 : variant === "hero" ? 5 : 2}
       />
 
-      {story.blindspot && <FlagChip blindspot={story.blindspot} className="self-start" />}
+      {story.blindspot && (
+        <FlagChip blindspot={story.blindspot} className="self-start" />
+      )}
+    </>
+  );
+
+  if (variant === "compact") {
+    return (
+      <article
+        data-testid="story-card-compact"
+        className="group relative flex items-start gap-3 py-4"
+      >
+        <div className="flex min-w-0 flex-1 flex-col gap-2">{body}</div>
+        <StoryImage story={story} variant="compact" />
+      </article>
+    );
+  }
+  return (
+    <article
+      data-testid={`story-card-${variant}`}
+      className={cn(
+        "group relative flex flex-col",
+        variant === "hero" ? "gap-5" : "gap-3",
+      )}
+    >
+      <StoryImage story={story} variant={variant} />
+      {body}
     </article>
   );
 }
 
 /** "56% Left": the largest rated share, for small bars. */
-function leadingShare(story: StoryCardData, t: ReturnType<typeof useTranslations>): string | undefined {
-  const segments = segmentsFromCoverage(story.coverage).filter((s) => s.key !== "unrated" && s.sources > 0);
+function leadingShare(
+  story: StoryCardData,
+  t: ReturnType<typeof useTranslations>,
+): string | undefined {
+  const segments = segmentsFromCoverage(story.coverage).filter(
+    (s) => s.key !== "unrated" && s.sources > 0,
+  );
   if (segments.length === 0) return undefined;
   const top = segments.reduce((a, b) => (b.sources > a.sources ? b : a));
-  return t("coverage.dominant", { pct: top.pct, phrase: t(`bias.short.${top.key}`) });
+  return t("coverage.dominant", {
+    pct: top.pct,
+    phrase: t(`bias.short.${top.key}`),
+  });
 }

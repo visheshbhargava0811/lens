@@ -8,6 +8,7 @@ import { BiasLegend } from "@/components/coverage/BiasLegend";
 import type { CitedArticle } from "@/components/story/CitationChip";
 import { FlagChip } from "@/components/story/FlagChip";
 import { SourceList } from "@/components/story/SourceList";
+import { StoryImage } from "@/components/story/StoryImage";
 import { CitedText, SummaryBlock } from "@/components/story/SummaryBlock";
 import { getStory, getStoryArticles } from "@/lib/api/client";
 import type { CitedSentence } from "@/lib/api/types";
@@ -95,6 +96,11 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
             <time dateTime={story.updated_at}>{t("story.updated", { time: updated })}</time>
           </div>
           {story.blindspot && <FlagChip blindspot={story.blindspot} className="mt-4" />}
+          {story.image && (
+            <div className="mt-6 max-w-3xl">
+              <StoryImage story={story} variant="hero" />
+            </div>
+          )}
         </header>
 
         {/* Mobile and tablet: coverage card directly under the headline */}

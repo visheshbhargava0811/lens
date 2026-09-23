@@ -85,7 +85,8 @@
     "totalSources": "Total sources",
     "lastUpdated": "Last updated",
     "status": "Status",
-    "distribution": "Bias distribution"
+    "distribution": "Bias distribution",
+    "imageCredit": "Image: {source}"
   },
   "flag": {
     "language": "Covered mostly in {language}, little in {other}",
