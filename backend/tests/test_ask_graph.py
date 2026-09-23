@@ -158,7 +158,11 @@ def test_unsupported_sentences_retry_then_prune_keeps_only_verified() -> None:
 
 def test_unverifiable_tldr_falls_back_to_stored_summary_or_abstains() -> None:
     tl = "The voter list revision entered phase 1."
-    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [_fail(tl)]}
+    script: dict[type, list[Any]] = {
+        QueryUnderstanding: [_qu()],
+        AskDraft: [_draft()],
+        FaithfulnessVerdict: [_fail(tl)],
+    }
     out, _, _ = _run(script, stored={"story_id": "st1", "detail": "stored"})
     assert out["outcome"] == "fallback" and out["fallback"] == {"story_id": "st1", "detail": "stored"}
     out, _, _ = _run(script, stored=None)
@@ -196,7 +200,11 @@ def _events(script: dict[type, list[Any]], db: Any, retriever: FakeRetriever | N
 
 def test_sse_answer_is_cited_with_outlet_names_and_code_limitations(db: Any) -> None:
     premise = [PremiseNote(premise=PREMISE, evidence_says=None)]
-    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu(premises=[PREMISE])], AskDraft: [_draft(premise)], FaithfulnessVerdict: [PASS]}
+    script: dict[type, list[Any]] = {
+        QueryUnderstanding: [_qu(premises=[PREMISE])],
+        AskDraft: [_draft(premise)],
+        FaithfulnessVerdict: [PASS],
+    }
     events = _events(script, db)
     kinds = [k for k, _ in events]
     assert kinds[:3] == ["status", "understanding", "status"] and kinds[-1] == "answer_final"
