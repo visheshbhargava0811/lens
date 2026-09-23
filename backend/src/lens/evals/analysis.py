@@ -65,7 +65,25 @@ def _sentences(session: Session, prompt: str | None = None) -> list[dict[str, An
     return out
 
 
-def _evidence(session: Session, article_ids: list[str]) -> tuple[str, list[str]]:
+def _refs(session: Session, summary_id: str) -> dict[str, str]:
+    """article_id -> the masked ref (A1..An) the summary's sentences use for it."""
+    row = session.get(StorySummary, uuid.UUID(summary_id))
+    if row is None:
+        return {}
+    pruned = [p for p in (row.verifier_result or {}).get("pruned", []) if isinstance(p, dict)]
+    framing = [x for sec in (row.framing or {}).values() for x in sec]
+    return {
+        c["article_id"]: c["ref"]
+        for section in (row.summary, row.agreements, row.disagreements, pruned, framing)
+        for s in section or []
+        for c in s.get("citations", [])
+        if "ref" in c
+    }
+
+
+def _evidence(session: Session, article_ids: list[str], refs: dict[str, str] | None = None) -> tuple[str, list[str]]:
+    """Cited articles as text. Each is labeled with the ref the sentence uses (A5) when known, so a
+    sentence saying "A5 reports..." can be checked; otherwise numbered [1], [2]."""
     rows = {
         str(a.id): a
         for a in session.execute(select(Article).where(Article.id.in_([uuid.UUID(i) for i in article_ids]))).scalars()
@@ -74,7 +92,8 @@ def _evidence(session: Session, article_ids: list[str]) -> tuple[str, list[str]]
     for i, aid in enumerate(article_ids, 1):
         a = rows.get(aid)
         if a is not None:
-            parts.append(f"[{i}] ({a.language}) {article_text(a.title, a.snippet)}")
+            label = (refs or {}).get(aid, str(i))
+            parts.append(f"[{label}] ({a.language}) {article_text(a.title, a.snippet)}")
             langs.append(a.language.split("-")[0])
     return "\n\n".join(parts), sorted(set(langs))
 
@@ -105,7 +124,7 @@ def export(n: int, seed: int = 7, prompt: str | None = None, name: str | None = 
             w = csv.DictWriter(f, fieldnames=COLUMNS)
             w.writeheader()
             for i, s in enumerate(chosen, 1):
-                evidence, langs = _evidence(session, s["article_ids"])
+                evidence, langs = _evidence(session, s["article_ids"], _refs(session, s["summary_id"]))
                 w.writerow(
                     {
                         "row": i,
@@ -126,6 +145,14 @@ def export(n: int, seed: int = 7, prompt: str | None = None, name: str | None = 
 def import_labels(csv_path: Path, annotator: str, name: str) -> Path:
     rows = list(csv.DictReader(csv_path.open(encoding="utf-8")))
     out = GOLD_DIR / f"gold_{name}.jsonl"
+    # The judge sees the evidence labeled with the refs the sentence uses (the labeler's sheet may
+    # have numbered them [1], [2]); the labeler's view is kept as `evidence`.
+    with Session(get_engine()) as session:
+        judge_evidence = {
+            r["row"]: _evidence(session, r["article_ids"].split(","), _refs(session, r["summary_id"]))[0]
+            for r in rows
+            if r.get("summary_id") and r.get("article_ids")
+        }
     labels = {"yes": True, "y": True, "no": False, "n": False}
     kept = 0
     with out.open("w", encoding="utf-8") as f:
@@ -138,7 +165,11 @@ def import_labels(csv_path: Path, annotator: str, name: str) -> Path:
                 json.dumps(
                     {
                         "id": f"judge-{name}-{r['row']}",
-                        "inputs": {"sentence": r["sentence"], "evidence": r["evidence"]},
+                        "inputs": {
+                            "sentence": r["sentence"],
+                            "evidence": r["evidence"],
+                            "judge_evidence": judge_evidence.get(r["row"]) or r["evidence"],
+                        },
                         "reference_outputs": {"supported": label},
                         "tags": {"languages": r["languages"].split(","), "notes": r["notes"] or None},
                         "annotator_ids": [annotator],
@@ -158,7 +189,7 @@ def _judge_one(item: dict[str, Any]) -> bool | None:
     chain = tier_chain("judge")
     others = {t.family for t in chain[1:]} - {chain[0].family}
     system, version = system_prompt("judge_faithfulness")
-    ev = item["inputs"]["evidence"]
+    ev = item["inputs"].get("judge_evidence") or item["inputs"]["evidence"]
     sentence = item["inputs"]["sentence"]
     user = f"<evidence>\n{ev}\n</evidence>\n\nSentences to check:\n- {sentence} (cites all articles above)"
     try:
