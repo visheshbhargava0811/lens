@@ -46,7 +46,7 @@ def retrieve_chunks(client: QdrantClient, q, flt: models.Filter, top_k: int = 20
                     query=models.SparseVector(indices=q.sparse_idx, values=q.sparse_val),
                     using="sparse", limit=50, filter=flt),
             ],
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query=models.RrfQuery(rrf=models.Rrf(k=60)),  # verified 2026-09-23: replaces FusionQuery; Qdrant's default k is 2
             limit=100,
         ),
         query=q.colbert,          # list of token vectors
@@ -69,12 +69,13 @@ tier2:
   dense_limit: 50
   sparse_limit: 50
   fused_limit: 100
+  rrf_k: 60
   rerank_top_k: 20
   rerank: colbert            # colbert | cross_encoder | none
 balance:
   max_chunks: 12
   per_source_cap: 2
-  ensure_stance_buckets: true
+  ensure_bias_buckets: true     # outlet Left / Center / Right / unrated (ADR-0020)
   ensure_language_groups: true
   collapse_syndicated: true
 retry:
@@ -92,7 +93,7 @@ A plain top-k often returns many chunks from two outlets, which destroys a cover
 
 1. **Collapse syndicated copies:** keep the original, record `also_carried_by`.
 2. **Round-robin by source:** take the best remaining chunk from each source in rank order until `max_chunks`, with `per_source_cap`.
-3. **Ensure diversity:** if the story has articles in a stance bucket or language group that the selection lacks, force-include the top chunk from each missing group.
+3. **Ensure diversity:** if the candidates include a bias bucket (ADR-0020) or language group that the selection lacks, force-include the top chunk from each missing group.
 4. **Keep provenance:** every selected chunk keeps `article_id`, `source_id`, `stance`, `language`, `published_at`, offsets.
 5. **Never let personalization change this selection.** Memory may influence output language and format only.
 

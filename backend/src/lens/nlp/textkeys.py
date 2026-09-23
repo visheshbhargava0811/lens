@@ -49,6 +49,11 @@ def _tokens(text: str) -> list[str]:
     return _WORD.findall(normalize_text(text))
 
 
+def word_tokens(text: str) -> list[str]:
+    """Normalized word tokens, Indic combining marks kept inside words (ADR-0014). Used by BM25."""
+    return _tokens(text)
+
+
 def simhash64(text: str, shingle: int = 1) -> int:
     """64-bit SimHash over word shingles, as a signed int to fit Postgres BIGINT.
 

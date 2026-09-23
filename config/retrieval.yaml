@@ -7,12 +7,13 @@ tier2:
   dense_limit: 50
   sparse_limit: 50
   fused_limit: 100
+  rrf_k: 60                  # Qdrant's default is 2; 60 is the common choice. Tuned in the ablation
   rerank_top_k: 20
   rerank: colbert            # colbert | cross_encoder | none
 balance:
   max_chunks: 12
   per_source_cap: 2
-  ensure_stance_buckets: true
+  ensure_bias_buckets: true   # left / center / right / unrated (ADR-0020)
   ensure_language_groups: true
   collapse_syndicated: true
 retry:
