@@ -54,6 +54,7 @@ class Tier:
     temperature: float
     reasoning_effort: str | None = None
     family: str = ""
+    account: int = 1  # which API key of the provider (GROQ_API_KEY, GROQ_API_KEY_2)
 
 
 def _tier(name: str, cfg: dict[str, Any]) -> Tier:
@@ -67,6 +68,7 @@ def _tier(name: str, cfg: dict[str, Any]) -> Tier:
         temperature=float(cfg.get("temperature", 0)),
         reasoning_effort=cfg.get("reasoning_effort"),
         family=cfg.get("family") or cfg["model"],
+        account=int(cfg.get("account", 1)),
     )
 
 
@@ -102,17 +104,28 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
     return fix(raw)  # type: ignore[no-any-return]
 
 
-def _post(provider: str, body: dict[str, Any]) -> httpx.Response:
+def _post(provider: str, body: dict[str, Any], account: int = 1) -> httpx.Response:
     s = get_settings()
-    key = {"groq": s.groq_api_key, "sarvam": s.sarvam_api_key, "gemini": s.gemini_api_key}[provider]
+    keys = {
+        ("groq", 1): s.groq_api_key,
+        ("groq", 2): s.groq_api_key_2,
+        ("sarvam", 1): s.sarvam_api_key,
+        ("gemini", 1): s.gemini_api_key,
+    }
+    key = keys.get((provider, account))
     if key is None:
-        raise LLMError(f"{provider.upper()}_API_KEY is not set")
+        suffix = "" if account == 1 else f"_{account}"
+        raise LLMError(f"{provider.upper()}_API_KEY{suffix} is not set")
     headers = {"User-Agent": USER_AGENT, "Content-Type": "application/json"}
     if provider == "sarvam":
         headers["api-subscription-key"] = key.get_secret_value()
     else:
         headers["Authorization"] = f"Bearer {key.get_secret_value()}"
     return httpx.post(ENDPOINTS[provider], json=body, headers=headers, timeout=s.llm_timeout_s)
+
+
+def _name(t: Tier) -> str:
+    return f"{t.provider}/{t.model}" + (f" (key {t.account})" if t.account != 1 else "")
 
 
 def _body(t: Tier, messages: list[dict[str, str]], schema: dict[str, Any], name: str) -> dict[str, Any]:
@@ -131,7 +144,9 @@ def _body(t: Tier, messages: list[dict[str, str]], schema: dict[str, Any], name:
 def _send(t: Tier, body: dict[str, Any]) -> dict[str, Any]:
     for attempt in range(MAX_RATE_RETRIES + 1):
         try:
-            r = _post(t.provider, body)
+            r = _post(t.provider, body, t.account)
+        except LLMError:
+            raise  # missing key: nothing to retry, fall through to the next candidate
         except httpx.HTTPError as e:
             if attempt == MAX_RATE_RETRIES:
                 raise LLMError(f"{t.provider} request failed: {e.__class__.__name__}") from e
@@ -140,11 +155,11 @@ def _send(t: Tier, body: dict[str, Any]) -> dict[str, Any]:
         if r.status_code == 429 or r.status_code >= 500:
             wait = float(r.headers.get("retry-after") or 2**attempt)
             if attempt == MAX_RATE_RETRIES or wait > FAST_FAIL_WAIT_S:
-                raise LLMError(f"{t.provider}/{t.model} returned {r.status_code} (retry-after {wait:g}s)")
+                raise LLMError(f"{_name(t)} returned {r.status_code} (retry-after {wait:g}s)")
             time.sleep(wait)
             continue
         if r.status_code != 200:
-            raise LLMError(f"{t.provider}/{t.model} returned {r.status_code}: {r.text[:300]}")
+            raise LLMError(f"{_name(t)} returned {r.status_code}: {r.text[:300]}")
         return r.json()  # type: ignore[no-any-return]
     raise AssertionError("unreachable")
 
@@ -164,7 +179,7 @@ def structured[T: BaseModel](
     errors: list[str] = []
     for i, t in enumerate(tier_chain(tier_name)):
         if exclude_families and t.family in exclude_families:
-            errors.append(f"{t.provider}/{t.model}: skipped (family {t.family} excluded)")
+            errors.append(f"{_name(t)}: skipped (family {t.family} excluded)")
             continue
         traced = traceable(
             name=run_name if i == 0 else f"{run_name}:fallback",
@@ -178,7 +193,9 @@ def structured[T: BaseModel](
             errors.append(str(e))
             continue
         if meta is not None:
-            meta.update(provider=t.provider, model=t.model, family=t.family, fallback=str(i > 0).lower())
+            meta.update(
+                provider=t.provider, model=t.model, family=t.family, account=str(t.account), fallback=str(i > 0).lower()
+            )
         return out
     raise LLMError(f"{tier_name}: every provider failed: " + " | ".join(errors))
 

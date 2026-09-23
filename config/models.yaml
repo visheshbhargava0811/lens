@@ -21,16 +21,22 @@ tiers:
 # per model, so each model is its own fallback slot. `family` keeps the judge independent: a judge
 # fallback of the same family as the summary that produced the text is skipped (fail closed).
 fallbacks:
-  # Each Groq model has its own quota, so the two gpt-oss models back each other up before Gemini.
+  # Order: the same Groq model on the second key (GROQ_API_KEY_2, its own quota), then the other
+  # gpt-oss model on each key, then Gemini. Families stay separate so the judge remains independent.
   analysis:
+    - { provider: groq, account: 2, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
     - { provider: groq, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
+    - { provider: groq, account: 2, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0, reasoning_effort: low }
     - &gemini36 { provider: gemini, model: gemini-3.6-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
     - &gemini35 { provider: gemini, model: gemini-3.5-flash, family: gemini, max_tokens: 8192, temperature: 0, reasoning_effort: low }
   synthesis:
+    - { provider: groq, account: 2, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
     - { provider: groq, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
+    - { provider: groq, account: 2, model: openai/gpt-oss-20b, family: gpt-oss, max_tokens: 8192, temperature: 0.2, reasoning_effort: low }
     - *gemini36
     - *gemini35
   judge:
+    - { provider: groq, account: 2, model: qwen/qwen3.8-27b, family: qwen, max_tokens: 2048, temperature: 0 }
     - *gemini36
     - *gemini35
     # Returns 402 until credits are topped up; failing fast costs nothing.

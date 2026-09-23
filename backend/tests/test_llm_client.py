@@ -44,8 +44,8 @@ class Fake:
         self.requests: list[dict[str, Any]] = []
         self.slept: list[float] = []
 
-    def post(self, provider: str, body: dict[str, Any]) -> httpx.Response:
-        self.requests.append({"provider": provider, **body})
+    def post(self, provider: str, body: dict[str, Any], account: int = 1) -> httpx.Response:
+        self.requests.append({"provider": provider, "account": account, **body})
         q = self.queues[provider]
         return q.pop(0) if q else _err(503, headers={"retry-after": "999"})
 
@@ -101,7 +101,13 @@ def test_long_retry_after_fails_over_to_gemini_without_waiting(fake: Fake) -> No
     # The other Groq model is down too (empty queue), so the chain reaches Gemini; nobody waited.
     first_gemini = next(t for t in tier_chain("synthesis") if t.provider == "gemini")
     assert fake.slept == [] and fake.providers()[-1] == "gemini"
-    assert meta == {"provider": "gemini", "model": first_gemini.model, "family": "gemini", "fallback": "true"}
+    assert meta == {
+        "provider": "gemini",
+        "model": first_gemini.model,
+        "family": "gemini",
+        "account": "1",
+        "fallback": "true",
+    }
     assert "max_tokens" in fake.requests[-1]  # Gemini's OpenAI-compatible body
 
 
@@ -119,11 +125,22 @@ def test_second_gemini_model_is_tried_when_the_first_is_down(fake: Fake) -> None
     assert models == [t.model for t in tier_chain("analysis") if t.provider == "gemini"][:2]
 
 
-def test_groq_models_back_each_other_up_before_gemini(fake: Fake) -> None:
-    fake.queues["groq"].extend([_resp(429, headers={"retry-after": "900"}), _resp(200, OK)])
+def test_second_groq_key_is_tried_for_the_same_model_first(fake: Fake) -> None:
+    fake.queues["groq"].extend([_resp(429, headers={"retry-after": "900"}), _resp(200, OK)])  # key 1 out of quota
     meta: dict[str, str] = {}
     structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
-    assert fake.providers() == ["groq", "groq"] and meta["model"] == tier_chain("analysis")[1].model
+    first, second = fake.requests
+    assert (first["account"], second["account"]) == (1, 2) and first["model"] == second["model"]
+    assert meta["account"] == "2" and meta["fallback"] == "true"
+
+
+def test_missing_second_key_fails_fast_without_a_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    from lens.core.settings import get_settings
+
+    monkeypatch.setattr(get_settings(), "groq_api_key_2", None)
+    monkeypatch.setattr(httpx, "post", lambda *a, **k: pytest.fail("no request without a key"))
+    with pytest.raises(LLMError, match="GROQ_API_KEY_2 is not set"):
+        client._post("groq", {}, account=2)
 
 
 def test_every_provider_failing_raises_with_all_reasons(fake: Fake) -> None:

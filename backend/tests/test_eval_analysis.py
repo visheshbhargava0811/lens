@@ -15,7 +15,7 @@ def test_import_keeps_only_labeled_rows(tmp_path: Path, monkeypatch: pytest.Monk
     csv_path.write_text(
         "row,supported,notes,sentence,evidence,languages,summary_id,section,article_ids\n"
         "1,Yes,,S1,E1,en,x,,a\n"
-        "2,no,hard,S2,E2,\"en,hi\",x,,a\n"
+        '2,no,hard,S2,E2,"en,hi",x,,a\n'
         "3,,,S3,E3,hi,x,,a\n"
         "4,maybe,,S4,E4,hi,x,,a\n",
         encoding="utf-8",
