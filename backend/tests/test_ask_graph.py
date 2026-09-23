@@ -109,6 +109,7 @@ def test_happy_path_answers_from_evidence_with_guards() -> None:
         "G-GEN-01",
         "G-IN-05",
         "G-GEN-08",
+        "G-OUT-03",
         "G-GEN-03",
         "G-OUT-05",
         "G-OUT-07",
@@ -421,3 +422,33 @@ def test_scope_guard_records_refusals() -> None:
 
     assert not check_scope("unsupported", "asks for a slogan").passed
     assert check_scope("story_lookup", "").passed
+
+
+def test_unattributed_allegations_are_dropped_before_the_judge() -> None:
+    from lens.core.config_files import load_yaml
+
+    a = load_yaml("guardrails.yaml")["attribution"]
+    fact = "The minister took a bribe."
+    attributed = "According to A2, the minister took a bribe."
+    d = _draft().model_copy(update={"what_happened": [_cs(fact, "A2"), _cs(attributed, "A2")]})
+    llm, ret = FakeLLM({QueryUnderstanding: [_qu()], AskDraft: [d], FaithfulnessVerdict: [PASS]}), FakeRetriever(_ev())
+    state: AskState = {"raw_query": "q", "windows": [30, 90]}
+    out = build(
+        llm, ret, lambda ids: None, attribution={"terms": a["allegation_terms"], "markers": a["markers"]}
+    ).invoke(state)
+    draft = out["draft"]
+    assert draft is not None and [x.text for x in draft.what_happened] == [attributed]
+    assert fact in [x.text for x in out["pruned"]] and fact not in llm.prompts[FaithfulnessVerdict][0]
+
+
+def test_attribution_guard_hindi_and_word_boundaries() -> None:
+    from lens.core.config_files import load_yaml
+    from lens.guardrails.generation import check_attribution
+
+    a = load_yaml("guardrails.yaml")["attribution"]
+    kw = {"terms": a["allegation_terms"], "markers": a["markers"]}
+    assert not check_attribution({"s": [_cs("मंत्री ने रिश्वत ली।", "A1")]}, **kw).passed
+    assert check_attribution({"s": [_cs("विपक्ष ने आरोप लगाया कि मंत्री ने रिश्वत ली।", "A1")]}, **kw).passed
+    assert check_attribution(
+        {"s": [_cs("The bank flagged fraudulent-looking entries? No: it filed returns.", "A1")]}, **kw
+    ).passed

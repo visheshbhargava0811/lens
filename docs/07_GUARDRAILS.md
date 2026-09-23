@@ -71,6 +71,14 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 | G-OPS-03 | Kill switch per story, per topic, and global for generation | Flag in DB | Serve precomputed only |
 | G-OPS-04 | Audit trail: query, evidence ids, prompt and model versions, verifier result, guard events | Logging | Block release if missing |
 
+## Implementation status (Phase 6, 2026-09-23)
+
+Built, traced with `traced_guard`, logged to `guard_events`, with passing and failing tests: G-IN-01 (from query understanding), G-IN-02 (deterministic override screening, before any model call), G-IN-03, G-IN-04, G-IN-05, G-EV-01 (instruction-like sentences redacted), G-EV-03, G-GEN-01, G-GEN-02, G-GEN-03, G-GEN-08, G-OUT-03 (rules: allegation terms need an attribution marker, `config/guardrails.yaml: attribution`), G-OUT-05 (outputs, logs, traces, and the question before it reaches a provider), G-OUT-07 (Ask routes sensitive topics to reviewed summaries before synthesis), G-OPS-01 (bounded loops), G-OPS-04 (`ask_turns` audit rows).
+
+Enforced in code without a separate guard result: G-EV-05 (syndicated copies collapsed in balancing), G-EV-06 (`link_only` sources contribute headlines only).
+
+Not built yet: G-OUT-01 (hate and incitement), G-OUT-02 (victim and minor identity), G-OUT-04 (graphic violence) need an Indic-capable classifier. Until then the highest-risk topics (communal violence, sexual-offence cases, minors, terror incidents) never reach live generation: G-OUT-07 serves only reviewed summaries for them. G-OUT-06 lands with the localization node. G-GEN-04/05/06 rely on the synthesis prompt and the judge; G-OPS-02/03 exist for Graph 1 (fallback chain, circuit breaker, kill switch) and apply to Ask through the same client and visibility filter.
+
 ## `GuardResult` and tracing
 
 ```python

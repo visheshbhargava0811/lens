@@ -59,3 +59,13 @@ ask:
   rate_per_day: 40
   min_language_confidence: 0.6     # G-IN-04: below this, answer in English and say so
   retention_days: 30               # ask_turns purge (docs/03, DPDP); raw queries are stored PII-masked
+
+# G-OUT-03 defamation caution (docs/07): a sentence using an allegation term must carry an
+# attribution marker, or it is dropped before the judge. Lowercase; Latin terms match whole words.
+attribution:
+  allegation_terms: [corrupt, corruption, bribe, bribery, scam, fraud, rigged, rigging, looted, embezzled, guilty,
+    criminal, murdered, harassed, extortion, money laundering, "भ्रष्ट", "भ्रष्टाचार", "घोटाला", "घूस", "रिश्वत",
+    "धोखाधड़ी", "हेराफेरी", "दोषी"]
+  markers: [according to, said, says, alleged, allegedly, accused, accuses, claimed, claims, charged, charges,
+    told, reported, reports, fir, complaint, denied, denies, "आरोप", "कहा", "के अनुसार", "मुताबिक", "दावा",
+    "शिकायत", "एफआईआर"]

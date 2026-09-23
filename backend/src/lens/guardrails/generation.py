@@ -147,3 +147,26 @@ def check_premises(removed: Sequence[str], addressed: Sequence[str]) -> GuardRes
             meta={"missing": missing},
         )
     return GuardResult(guard_id="G-IN-05", passed=True, action="allow", reason=f"{len(removed)} premises addressed")
+
+
+@traced_guard("G-OUT-03", "generation")
+def check_attribution(
+    sections: Mapping[str, Sequence[CitedSentence]], terms: Sequence[str], markers: Sequence[str]
+) -> GuardResult:
+    """Defamation caution (docs/07): an allegation must be attributed to its source ("according to A2",
+    "police said", "alleged"), never stated as fact. Unattributed sentences are dropped (meta.drop)."""
+    drop: list[str] = []
+    for sentences in sections.values():
+        for s in sentences:
+            low = s.text.lower()
+            if any(_matches(t, low) for t in terms) and not any(_matches(m, low) for m in markers):
+                drop.append(s.text)
+    if drop:
+        return GuardResult(
+            guard_id="G-OUT-03",
+            passed=False,
+            action="redact",
+            reason=f"{len(drop)} unattributed allegation(s) dropped",
+            meta={"drop": drop},
+        )
+    return GuardResult(guard_id="G-OUT-03", passed=True, action="allow", reason="allegations attributed")

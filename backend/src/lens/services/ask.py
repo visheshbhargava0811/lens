@@ -393,4 +393,5 @@ def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any
         g["min_sources_for_bar"],
         g["sensitive_keywords"],
         g["ask"]["min_language_confidence"],
+        {"terms": g["attribution"]["allegation_terms"], "markers": g["attribution"]["markers"]},
     )

@@ -24,6 +24,7 @@ from lens.agents.prompts import skill, system_prompt
 from lens.guardrails.base import GuardResult
 from lens.guardrails.evidence import check_injection, check_min_evidence, redact_injection
 from lens.guardrails.generation import (
+    check_attribution,
     check_citations,
     check_faithfulness,
     check_premises,
@@ -90,6 +91,7 @@ def build(
     min_sources: int = 4,
     sensitive_keywords: dict[str, list[str]] | None = None,
     min_language_confidence: float = 0.6,
+    attribution: dict[str, list[str]] | None = None,
 ) -> Any:
     def call(
         state: AskState,
@@ -220,12 +222,27 @@ def build(
             return {"draft": None, "attempts": attempts, "feedback": "\n".join(why), "guards": guards, **rec}
         # G-GEN-08: drop sentences whose scope words contradict their own citations.
         scope = check_scope({k: getattr(d, k) for k in SECTIONS}, len(ev.articles))
-        guards.append(scope)
-        drop = set(scope.meta.get("drop", []))
+        # G-OUT-03: allegations stated as fact are dropped the same way, before the judge.
+        attr = check_attribution(cited_sections(d), **(attribution or {"terms": [], "markers": []}))
+        guards += [scope, attr]
+        drop = set(scope.meta.get("drop", [])) | set(attr.meta.get("drop", []))
         pruned = [*state.get("pruned", []), *(x for k in SECTIONS for x in getattr(d, k) if x.text in drop)]
-        kept = d.model_copy(update={k: [x for x in getattr(d, k) if x.text not in drop] for k in SECTIONS})
+        kept = d.model_copy(
+            update={
+                **{k: [x for x in getattr(d, k) if x.text not in drop] for k in SECTIONS},
+                "premises": [
+                    p.model_copy(update={"evidence_says": None})
+                    if p.evidence_says is not None and p.evidence_says.text in drop
+                    else p
+                    for p in d.premises
+                ],
+            }
+        )
         if not kept.tldr:
-            feedback = "\n".join(f"{t} ({why})" for t, why in scope.meta["why"].items())
+            feedback = "\n".join(
+                [f"{t} ({why})" for t, why in scope.meta.get("why", {}).items()]
+                + [f"{t} (attribute this allegation to its source)" for t in attr.meta.get("drop", [])]
+            )
             return {
                 "draft": None,
                 "attempts": attempts,
