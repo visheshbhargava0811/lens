@@ -42,3 +42,11 @@ def test_fresh_export_excludes_sentences_already_in_any_gold_file(
     )
     (tmp_path / "gold_v2.jsonl").write_text(json.dumps({"inputs": {"sentence": "Also seen."}}) + "\n", encoding="utf-8")
     assert analysis._labeled_sentences() == {"Seen before.", "Also seen."}
+
+
+def test_run_resolves_a_relative_gold_path_before_calling_the_judge(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[Path] = []
+    monkeypatch.setattr(analysis, "run", lambda name, gold: seen.append(gold))
+    monkeypatch.setattr("sys.argv", ["x", "run", "--gold", "../data/evals/judge_calibration/gold_v3a.jsonl"])
+    analysis.main()
+    assert seen[0].is_absolute()

@@ -329,6 +329,8 @@ def main() -> int:
         import_labels(a.file, a.annotator, a.name)
     else:
         gold = a.gold or next(iter(sorted(GOLD_DIR.glob("gold_*.jsonl"))), None)
+        if gold is not None:
+            gold = gold.resolve()  # absolute before any model call, so reporting cannot fail late
         run(a.name, gold)
     return 0
 

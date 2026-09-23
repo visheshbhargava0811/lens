@@ -69,7 +69,7 @@ judge-label-import:
 	$(UV) python -m lens.evals.analysis import ../$(FILE) --annotator $(ANNOTATOR) --name $(NAME)
 
 eval-analysis:
-	$(UV) python -m lens.evals.analysis run --name $(or $(NAME),baseline)
+	$(UV) python -m lens.evals.analysis run --name $(or $(NAME),baseline) $(if $(GOLD),--gold ../$(GOLD),)
 
 review:
 	$(UV) python -m lens.services.review $(ARGS)
