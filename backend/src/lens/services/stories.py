@@ -22,6 +22,7 @@ from lens.db.models import (
     AnalysisDepth,
     Article,
     Chunk,
+    ImagePolicy,
     Source,
     SourceOwnership,
     SourceRating,
@@ -97,7 +98,7 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: st
         status=story.status.value,
         updated_at=story.last_updated_at,
         topic=story.topic,
-        image=None,  # no source has image_policy=hotlink; images are never stored (docs/01)
+        image=None,  # set by story_cards from hotlink sources (story_images)
         counts=api.Counts(sources=n, articles=story.article_count, by_language=by_lang),
         coverage=coverage,
         factuality=api.FactualityCounts(
@@ -116,8 +117,32 @@ def _card(story: Story, stats: StoryStats | None, g: dict[str, Any], preview: st
 def story_cards(session: Session, q: Select[Any]) -> list[api.StoryCard]:
     g = _cfg()
     rows = session.execute(q.outerjoin(StoryStats, StoryStats.story_id == Story.id).add_columns(StoryStats)).all()
-    latest = latest_published(session, [r[0].id for r in rows])
-    return [_card(r[0], r[1], g, _preview(latest.get(r[0].id))) for r in rows]
+    ids = [r[0].id for r in rows]
+    latest, images = latest_published(session, ids), story_images(session, ids)
+    cards = [_card(r[0], r[1], g, _preview(latest.get(r[0].id))) for r in rows]
+    for c in cards:
+        c.image = images.get(c.id)
+    return cards
+
+
+def story_images(session: Session, story_ids: list[uuid.UUID]) -> dict[str, api.StoryImage]:
+    """Newest article image per story, only from sources whose image_policy is hotlink (docs/09, ADR-0034).
+    The URL points at the outlet's own server: never fetched, cached or re-hosted by Lens."""
+    if not story_ids:
+        return {}
+    rows = session.execute(
+        select(StoryArticle.story_id, Article.image_url, Source.name)
+        .join(Article, Article.id == StoryArticle.article_id)
+        .join(Source, Source.id == Article.source_id)
+        .where(
+            StoryArticle.story_id.in_(story_ids),
+            Article.image_url.is_not(None),
+            Source.image_policy == ImagePolicy.hotlink,
+        )
+        .order_by(StoryArticle.story_id, Article.published_at.desc())
+        .distinct(StoryArticle.story_id)
+    ).all()
+    return {str(sid): api.StoryImage(url=url, source_name=name) for sid, url, name in rows}
 
 
 def latest_published(session: Session, story_ids: list[uuid.UUID]) -> dict[uuid.UUID, StorySummary]:

@@ -51,3 +51,24 @@ inactive:
   the-telegraph: "Homepage and robots.txt return HTTP 403 (Akamai) to automated clients. Needs publisher permission, a license or a licensed news API."
   the-wire: "Site reachable, but no RSS feed or news sitemap advertised on the homepage or in robots.txt."
   lokmat: "Site reachable, but no RSS feed or news sitemap advertised on the homepage or in robots.txt."
+
+# Owner decision 2026-09-23 (ADR-0034): hotlink each outlet's feed thumbnail on story cards, with
+# attribution, never re-hosted. Remove a slug to stop showing that outlet's images.
+image_hotlink:
+  - times-of-india
+  - the-hindu
+  - indian-express
+  - hindustan-times
+  - india-today
+  - republic-world
+  - the-print
+  - scroll
+  - economic-times
+  - deccan-herald
+  - aaj-tak
+  - dainik-bhaskar
+  - dainik-jagran
+  - amar-ujala
+  - hindustan-hindi
+  - sakal
+  - loksatta

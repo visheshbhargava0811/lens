@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from lens.core.config_files import load_yaml
-from lens.db.models import AnalysisDepth, Article, LicenseMode, Source
+from lens.db.models import AnalysisDepth, Article, ImagePolicy, LicenseMode, Source
 from lens.ingest.parse import RawItem
 from lens.ingest.triage import classify_news, detect_language, detect_wire
 from lens.nlp.textkeys import canonical_url, content_hash, is_near_duplicate, normalize_text, simhash64
@@ -81,7 +81,8 @@ def article_values(source: Source, item: RawItem, now: datetime, cfg: dict[str, 
         "is_opinion": verdict.is_opinion,
         "is_syndicated": wire is not None,
         "syndicated_from": wire,
-        "image_url": None,  # image_policy: never fetched or stored here (docs/04)
+        # Only the URL, and only for hotlink sources (owner decision, ADR-0034): never fetched or re-hosted.
+        "image_url": item.image_url if source.image_policy == ImagePolicy.hotlink else None,
         "schema_version": SCHEMA_VERSION,
     }
 

@@ -19,6 +19,43 @@ from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import fromstring as safe_fromstring
 
 _TAG = re.compile(r"<[^>]+>")
+_IMG = re.compile(r"""<img[^>]+src=["']([^"']+)["']""", re.I)
+
+
+PLACEHOLDER_IMAGE = re.compile(r"(default|placeholder|no[-_]?image|logo|fallback)[^/]*$", re.I)
+
+
+def _https(url: str | None) -> str | None:
+    """https image URLs only, and not an outlet's generic placeholder or logo (worse than a text tile)."""
+    url = (url or "").strip()
+    ok = url.startswith("https://") and len(url) < 2000 and not PLACEHOLDER_IMAGE.search(url.split("?")[0])
+    return url if ok else None
+
+
+def _entry_image(e: Any) -> str | None:
+    """media:content / media:thumbnail / image enclosures / first <img> in the summary HTML."""
+    for m in e.get("media_content") or []:
+        if (m.get("medium") == "image" or str(m.get("type", "")).startswith("image/") or not m.get("type")) and _https(
+            m.get("url")
+        ):
+            return _https(m.get("url"))
+    for m in e.get("media_thumbnail") or []:
+        if _https(m.get("url")):
+            return _https(m.get("url"))
+    for link in e.get("links") or []:
+        if (
+            link.get("rel") == "enclosure"
+            and str(link.get("type", "")).startswith("image/")
+            and _https(link.get("href"))
+        ):
+            return _https(link.get("href"))
+    for html_text in (e.get("summary") or "", *(c.get("value", "") for c in e.get("content") or [])):
+        m = _IMG.search(html_text)
+        if m and _https(html.unescape(m.group(1))):
+            return _https(html.unescape(m.group(1)))
+    return None
+
+
 _WS = re.compile(r"\s+")
 
 
@@ -30,6 +67,7 @@ class RawItem:
     published_at: datetime | None
     byline: str | None
     language: str | None  # as declared by the feed, if any; triage detects it anyway
+    image_url: str | None = None  # the item's own image URL, https only; stored only for hotlink sources
 
 
 @dataclass(frozen=True)
@@ -101,6 +139,7 @@ def _parse_sitemap(root: ET.Element) -> Parsed:
                 published_at=_iso(_text(news, "publication_date")),
                 byline=None,
                 language=_text(news, "publication", "language") or None,
+                image_url=_https(next((_text(i, "loc") for i in url if _local(i) == "image"), None)),
             )
         )
     return Parsed("sitemap", items, [])
@@ -132,6 +171,7 @@ def parse_payload(content: bytes) -> Parsed:
                 published_at=_struct_to_dt(e.get("published_parsed") or e.get("updated_parsed")),
                 byline=clean_text(e.get("author")),
                 language=lang,
+                image_url=_entry_image(e),
             )
         )
     return Parsed("rss", items, [])

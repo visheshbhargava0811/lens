@@ -120,3 +120,20 @@ def test_inactive_source_is_never_fetched(db: Session) -> None:
     state = _feed(db, active=False)
     with _client(handler) as c:
         assert run_feed(db, c, state, RobotsCache(3600), NOW).error == "source inactive"
+
+
+def test_feed_images_are_parsed_https_only_and_placeholders_skipped() -> None:
+    from lens.ingest.parse import parse_payload
+
+    rss = b"""<?xml version="1.0"?><rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel>
+    <item><title>A</title><link>https://x.in/a</link><media:content url="https://img.x.in/a.jpg" medium="image"/></item>
+    <item><title>B</title><link>https://x.in/b</link><enclosure url="https://img.x.in/b.jpg" type="image/jpeg"/></item>
+    <item><title>C</title><link>https://x.in/c</link><description>&lt;img src="http://img.x.in/c.jpg"&gt;</description></item>
+    <item><title>D</title><link>https://x.in/d</link><media:thumbnail url="https://x.in/default_image_new.jpg"/></item>
+    </channel></rss>"""
+    assert [i.image_url for i in parse_payload(rss).items] == [
+        "https://img.x.in/a.jpg",
+        "https://img.x.in/b.jpg",
+        None,
+        None,
+    ]

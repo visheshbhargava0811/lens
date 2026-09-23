@@ -71,7 +71,8 @@ def build() -> list[dict[str, Any]]:
                 "is_wire": False,
                 "is_fact_checker": False,
                 "license_mode": "snippet_only",
-                "image_policy": "none",
+                # Feed thumbnails are hotlinked (never re-hosted) only where the owner allowed it (ADR-0034).
+                "image_policy": "hotlink" if slug in selection.get("image_hotlink", []) and feeds else "none",
                 "robots_ok": robots_ok,
                 "active": bool(feeds) and not inactive_reason,
                 "inactive_reason": inactive_reason,

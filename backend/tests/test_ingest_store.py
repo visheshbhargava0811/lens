@@ -217,3 +217,22 @@ def test_sanitize_published_at(published: datetime | None, expected: datetime, n
 
     cfg = {"future_tolerance_min": 10, "ist_offset_min": 330}
     assert sanitize_published_at(published, NOW, cfg) == (expected, note)
+
+
+def test_image_url_is_stored_only_for_hotlink_sources() -> None:
+    from datetime import UTC, datetime
+
+    from lens.core.config_files import load_yaml
+    from lens.db.models import ImagePolicy, LicenseMode, Source
+    from lens.ingest.parse import RawItem
+    from lens.ingest.store import article_values
+
+    item = RawItem("https://x.in/a", "Headline", None, None, None, "en", image_url="https://img.x.in/a.jpg")
+    cfg, now = load_yaml("ingest.yaml"), datetime.now(UTC)
+    src = Source(
+        slug="x", name="X", homepage_url="https://x.in", language_codes=["en"], license_mode=LicenseMode.snippet_only
+    )
+    src.image_policy = ImagePolicy.none
+    assert article_values(src, item, now, cfg)["image_url"] is None
+    src.image_policy = ImagePolicy.hotlink
+    assert article_values(src, item, now, cfg)["image_url"] == "https://img.x.in/a.jpg"

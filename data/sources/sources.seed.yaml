@@ -33,7 +33,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -68,7 +68,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -103,7 +103,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -132,7 +132,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -161,7 +161,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -213,7 +213,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -242,7 +242,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -293,7 +293,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -322,7 +322,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -380,7 +380,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -438,7 +438,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -467,7 +467,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -496,7 +496,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -525,7 +525,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -560,7 +560,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -611,7 +611,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
@@ -640,7 +640,7 @@
   is_wire: false
   is_fact_checker: false
   license_mode: snippet_only
-  image_policy: none
+  image_policy: hotlink
   robots_ok: true
   active: true
   inactive_reason: null
