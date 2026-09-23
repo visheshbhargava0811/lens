@@ -43,10 +43,14 @@ COLUMNS = ["row", "supported", "notes", "sentence", "evidence", "languages", "su
 KAPPA_TARGET = 0.6  # docs/08 starting target
 
 
-def _sentences(session: Session) -> list[dict[str, Any]]:
-    """Every stored sentence with citations: summary, agreements, disagreements, and pruned ones."""
+def _sentences(session: Session, prompt: str | None = None) -> list[dict[str, Any]]:
+    """Every stored sentence with citations: summary, agreements, disagreements, and pruned ones.
+    `prompt` keeps only versions whose prompt_version contains it (e.g. "synthesis_system@1.1")."""
     out: list[dict[str, Any]] = []
-    for row in session.execute(select(StorySummary)).scalars():
+    q = select(StorySummary)
+    if prompt:
+        q = q.where(StorySummary.prompt_version.contains(prompt))
+    for row in session.execute(q).scalars():
         pruned = [p for p in (row.verifier_result or {}).get("pruned", []) if isinstance(p, dict)]
         for section, sentences in (
             ("summary", row.summary),
@@ -75,9 +79,20 @@ def _evidence(session: Session, article_ids: list[str]) -> tuple[str, list[str]]
     return "\n\n".join(parts), sorted(set(langs))
 
 
-def export(n: int, seed: int = 7) -> Path:
+def _labeled_sentences() -> set[str]:
+    """Sentences already in any gold file: a fresh set must not repeat them."""
+    return {
+        json.loads(line)["inputs"]["sentence"]
+        for gold in GOLD_DIR.glob("gold_*.jsonl")
+        for line in gold.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    }
+
+
+def export(n: int, seed: int = 7, prompt: str | None = None, name: str | None = None) -> Path:
     with Session(get_engine()) as session:
-        items = _sentences(session)
+        seen = _labeled_sentences()
+        items = [s for s in _sentences(session, prompt) if clean(s["text"]) not in seen]
         # Keep every judge-flagged sentence (likely negatives) and sample the rest, so both labels occur.
         flagged = [s for s in items if s["section"] == "pruned"]
         rest = [s for s in items if s["section"] != "pruned"]
@@ -85,7 +100,7 @@ def export(n: int, seed: int = 7) -> Path:
         chosen = (flagged + rest)[:n]
         random.Random(seed + 1).shuffle(chosen)  # the labeler cannot tell flagged ones by position
         GOLD_DIR.mkdir(parents=True, exist_ok=True)
-        path = GOLD_DIR / f"to_label_{datetime.now(UTC):%Y%m%d}.csv"
+        path = GOLD_DIR / f"to_label_{name or datetime.now(UTC).strftime('%Y%m%d')}.csv"
         with path.open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=COLUMNS)
             w.writeheader()
@@ -298,6 +313,8 @@ def main() -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     e = sub.add_parser("export")
     e.add_argument("--n", type=int, default=120)
+    e.add_argument("--prompt", default=None, help="only summaries whose prompt_version contains this")
+    e.add_argument("--name", default=None, help="file suffix (default: today's date)")
     i = sub.add_parser("import")
     i.add_argument("file", type=Path)
     i.add_argument("--annotator", required=True)
@@ -307,7 +324,7 @@ def main() -> int:
     r.add_argument("--gold", type=Path, default=None)
     a = p.parse_args()
     if a.cmd == "export":
-        export(a.n)
+        export(a.n, prompt=a.prompt, name=a.name)
     elif a.cmd == "import":
         import_labels(a.file, a.annotator, a.name)
     else:

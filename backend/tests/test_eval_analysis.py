@@ -31,3 +31,14 @@ def test_kappa_is_undefined_with_one_class_and_perfect_when_identical() -> None:
     assert analysis._kappa([True, True], [True, True]) is None
     assert analysis._kappa([True, False, True], [True, False, True]) == 1.0
     assert analysis._kappa([True], [False]) is None
+
+
+def test_fresh_export_excludes_sentences_already_in_any_gold_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(analysis, "GOLD_DIR", tmp_path)
+    (tmp_path / "gold_v1.jsonl").write_text(
+        json.dumps({"inputs": {"sentence": "Seen before."}}) + "\n", encoding="utf-8"
+    )
+    (tmp_path / "gold_v2.jsonl").write_text(json.dumps({"inputs": {"sentence": "Also seen."}}) + "\n", encoding="utf-8")
+    assert analysis._labeled_sentences() == {"Seen before.", "Also seen."}
