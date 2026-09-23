@@ -1,5 +1,6 @@
 """Ask graph (Graph 2) with a scripted fake LLM, retriever and stored-summary lookup."""
 
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any
 
@@ -12,6 +13,7 @@ from lens.schemas.ask import AskDraft, PremiseNote, QueryUnderstanding
 from tests.test_story_graph import FakeLLM
 
 T0 = datetime(2026, 9, 23, tzinfo=UTC)
+ST1 = "00000000-0000-0000-0000-0000000000a1"
 PREMISE = "the election commission is rigging the voter list"
 
 
@@ -44,7 +46,7 @@ def _ev(n: int = 2) -> Evidence:
     ]
     return Evidence(
         [EvidenceArticle(f"A{i + 1}", a, article_text(a.title, a.snippet)) for i, a in enumerate(arts)],
-        ["st1"],
+        [ST1],
         "stories",
         0.8,
     )
@@ -163,8 +165,8 @@ def test_unverifiable_tldr_falls_back_to_stored_summary_or_abstains() -> None:
         AskDraft: [_draft()],
         FaithfulnessVerdict: [_fail(tl)],
     }
-    out, _, _ = _run(script, stored={"story_id": "st1", "detail": "stored"})
-    assert out["outcome"] == "fallback" and out["fallback"] == {"story_id": "st1", "detail": "stored"}
+    out, _, _ = _run(script, stored={"story_id": ST1, "detail": "stored"})
+    assert out["outcome"] == "fallback" and out["fallback"] == {"story_id": ST1, "detail": "stored"}
     out, _, _ = _run(script, stored=None)
     assert (out["outcome"], out["abstain_reason"]) == ("abstain", "insufficient_coverage")
 
@@ -247,7 +249,7 @@ def test_rate_guard_blocks_over_the_minute_limit() -> None:
     assert check_rate(c, "k", cfg, 180).passed  # next minute window
 
 
-def test_ask_endpoint_streams_sse_and_rate_limits(client: Any, monkeypatch: Any) -> None:
+def test_ask_endpoint_streams_sse_and_rate_limits(client: Any, db: Any, monkeypatch: Any) -> None:
     from lens.api.routers import ask as router
     from lens.services import ask as svc
 
@@ -256,6 +258,7 @@ def test_ask_endpoint_streams_sse_and_rate_limits(client: Any, monkeypatch: Any)
     monkeypatch.setattr(router, "get_qdrant", lambda: None)
     monkeypatch.setattr(router, "get_embedder", lambda: None)
     monkeypatch.setattr(router, "_redis", lambda: FakeCounter())  # fresh counter: never limited
+    monkeypatch.setattr(router, "open_session", lambda: nullcontext(db))
     r = client.post("/api/v1/ask", json={"query": "voter list"})
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
     assert "no-store" in r.headers["cache-control"]
@@ -329,7 +332,7 @@ def test_sensitive_topic_never_generates_live() -> None:
     ev = _ev()
     riot = replace(ev, articles=[replace(ev.articles[0], text="Communal riot in the district; curfew imposed.")])
     kw = {"communal_violence": ["communal riot"]}
-    for stored, outcome in (({"story_id": "st1", "detail": "reviewed"}, "fallback"), (None, "abstain")):
+    for stored, outcome in (({"story_id": ST1, "detail": "reviewed"}, "fallback"), (None, "abstain")):
         llm, ret = FakeLLM({QueryUnderstanding: [_qu()]}), FakeRetriever(riot)
         state: AskState = {"raw_query": "q", "windows": [30, 90]}
 
@@ -360,3 +363,28 @@ def test_sse_answer_carries_cited_articles_from_the_db(db: Any) -> None:
         ("ONE", "en", rows[0][0].url),
         ("TWO", "hi", rows[1][0].url),
     ]
+
+
+def test_every_turn_is_audited_with_masked_text_and_guard_events(db: Any) -> None:
+    from datetime import timedelta
+
+    from sqlalchemy import select
+
+    from lens.db.models import AskTurn, GuardEvent
+    from lens.services.ask import ask_events, purge_ask_turns
+
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    graph = build(FakeLLM(script), FakeRetriever(_ev()), lambda ids: None)
+    list(ask_events(db, "call me on 9876543210 about the voter list", graph))
+    turn = db.execute(select(AskTurn)).scalar_one()
+    assert turn.raw_query == "call me on [phone] about the voter list"  # G-OUT-05 before storage
+    assert turn.outcome == "answer" and turn.verifier["verdict"] == "pass"
+    assert len(turn.evidence_article_ids) == 2 and turn.prompt_versions["ask_synthesis"]
+    assert turn.latency_ms is not None and turn.model_versions["ask_synthesis"]["provider"] == "fake"
+    events = db.execute(select(GuardEvent).where(GuardEvent.stage == "ask")).scalars().all()
+    assert {e.guard_id for e in events} >= {"G-GEN-01", "G-GEN-03", "G-OUT-05"}
+    assert all(e.meta["ask_turn_id"] == str(turn.id) for e in events)
+
+    assert purge_ask_turns(db, datetime.now(UTC)) == 0
+    assert purge_ask_turns(db, datetime.now(UTC) + timedelta(days=31)) == 1
+    assert db.execute(select(GuardEvent).where(GuardEvent.stage == "ask")).first() is None

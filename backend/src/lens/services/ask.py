@@ -17,7 +17,8 @@ from sqlalchemy.orm import Session
 from lens.agents.offline.evidence import ArticleIn, EvidenceArticle, article_text
 from lens.agents.online.ask_graph import AskState, Evidence, build
 from lens.core.config_files import load_yaml
-from lens.db.models import Article, Chunk, LicenseMode, Source, Story
+from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story
+from lens.guardrails.pii import mask, mask_any
 from lens.llm.client import structured
 from lens.nlp.embed import Embedder
 from lens.pipeline.stats import best_ratings
@@ -267,8 +268,78 @@ def abstain_event(session: Session, state: AskState) -> api.AskAbstain:
     return api.AskAbstain(reason=reason, message=ABSTAIN_MESSAGES[reason], closest_stories=closest)
 
 
-def ask_events(session: Session, query: str, graph: Any) -> Iterator[tuple[str, BaseModel]]:
-    """Runs the graph and yields (event, payload) for SSE. Only verified answers are ever sent."""
+def record_turn(
+    session: Session,
+    state: dict[str, Any],
+    query: str,
+    session_id: str | None,
+    final: BaseModel | None,
+    latency_ms: int,
+) -> AskTurn:
+    """G-OPS-04 audit trail: one ask_turns row per question and its guard events. The query and every
+    free-text field are PII-masked before storage (G-OUT-05); rows are purged after `retention_days`."""
+    try:
+        sid = uuid.UUID(session_id or "")
+    except ValueError:
+        sid = uuid.uuid4()
+    qu, ev, v = state.get("qu"), state.get("evidence"), state.get("verdict")
+    outcome = state.get("outcome") or "error"
+    turn = AskTurn(
+        session_id=sid,
+        raw_query=mask(query)[0],
+        neutral_query=mask(qu.neutral_query)[0] if qu else None,
+        lang=qu.language if qu else None,
+        intent=qu.intent if qu else None,
+        story_ids=[uuid.UUID(i) for i in ev.story_ids] if ev else None,
+        answer=mask_any(final.model_dump(mode="json")) if final is not None else None,
+        abstained=outcome == "abstain",
+        outcome=outcome,
+        abstain_reason=state.get("abstain_reason"),
+        evidence_article_ids=[a.article.article_id for a in ev.articles] if ev else None,
+        verifier=mask_any(v.model_dump()) if v is not None else None,
+        errors=mask_any(state.get("errors") or []),
+        model_versions=state.get("models"),
+        prompt_versions=state.get("prompt_versions"),
+        latency_ms=latency_ms,
+    )
+    session.add(turn)
+    session.flush()
+    for g in state.get("guards", []):
+        session.add(
+            GuardEvent(
+                run_id=g.run_id or f"ask:{turn.id}",
+                guard_id=g.guard_id,
+                stage="ask",
+                passed=g.passed,
+                action=g.action,
+                reason=mask(g.reason)[0],
+                score=g.score,
+                meta=mask_any({"ask_turn_id": str(turn.id), **g.meta}),
+            )
+        )
+    session.flush()
+    return turn
+
+
+def purge_ask_turns(session: Session, now: datetime) -> int:
+    """docs/03 retention (DPDP): delete Ask turns and their guard events after `ask.retention_days`."""
+    from datetime import timedelta
+
+    from sqlalchemy import delete
+
+    cutoff = now - timedelta(days=load_yaml("guardrails.yaml")["ask"]["retention_days"])
+    session.execute(delete(GuardEvent).where(GuardEvent.stage == "ask", GuardEvent.created_at < cutoff))
+    return session.execute(delete(AskTurn).where(AskTurn.created_at < cutoff)).rowcount  # type: ignore[attr-defined, no-any-return]
+
+
+def ask_events(
+    session: Session, query: str, graph: Any, session_id: str | None = None
+) -> Iterator[tuple[str, BaseModel]]:
+    """Runs the graph and yields (event, payload) for SSE. Only verified answers are ever sent.
+    Records the turn (audit trail) before the final event; the caller commits."""
+    import time
+
+    t0 = time.monotonic()
     yield "status", api.AskStatus(step="understanding", message="Understanding the question")
     state: dict[str, Any] = dict(initial_state(query))
     sent_status: set[str] = set()
@@ -299,12 +370,14 @@ def ask_events(session: Session, query: str, graph: Any) -> Iterator[tuple[str, 
                 sent_status.add(step)
                 yield "status", api.AskStatus(step=step, message=msg)
     outcome = state.get("outcome")
+    final: api.AskAnswer | api.AskAbstain
     if outcome in ("answer", "fallback"):
-        ans = answer_event(session, state) if outcome == "answer" else fallback_event(state)  # type: ignore[arg-type]
-        ans.articles = cited_articles(session, ans)
-        yield "answer_final", ans
+        final = answer_event(session, state) if outcome == "answer" else fallback_event(state)  # type: ignore[arg-type]
+        final.articles = cited_articles(session, final)
     else:
-        yield "abstain", abstain_event(session, state)  # type: ignore[arg-type]
+        final = abstain_event(session, state)  # type: ignore[arg-type]
+    record_turn(session, state, query, session_id, final, int((time.monotonic() - t0) * 1000))
+    yield ("answer_final" if isinstance(final, api.AskAnswer) else "abstain"), final
 
 
 def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:

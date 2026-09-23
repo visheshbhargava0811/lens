@@ -26,6 +26,12 @@ router = APIRouter(tags=["ask"])
 log = structlog.get_logger()
 
 
+def open_session() -> Session:
+    """The stream's own session (dependency teardown timing differs for streamed responses).
+    Tests replace this to use their rolled-back session."""
+    return Session(get_engine())
+
+
 class RateLimited(Exception):
     def __init__(self, retry_after_s: int, reason: str) -> None:
         self.retry_after_s, self.reason = retry_after_s, reason
@@ -55,11 +61,12 @@ def before_stream(request: Request, response: Response) -> None:
     },
 )
 def ask(body: api.AskRequest, _: Annotated[None, Depends(before_stream)]) -> Iterator[ServerSentEvent]:
-    # The session lives inside the stream (dependency teardown timing differs for streamed responses).
-    with Session(get_engine()) as db:
+    with open_session() as db:
         try:
             graph = svc.ask_graph(db, get_qdrant(), get_embedder())
-            for event, payload in svc.ask_events(db, body.query, graph):
+            for event, payload in svc.ask_events(db, body.query, graph, body.session_id):
+                if event in ("answer_final", "abstain"):
+                    db.commit()  # the audit row (G-OPS-04) is stored before the answer is sent
                 yield ServerSentEvent(event=event, data=payload)
         except Exception:
             log.exception("ask.failed")  # query text is not logged (PII, G-OUT-05)

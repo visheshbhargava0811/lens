@@ -430,6 +430,7 @@ class StoryView(Base):
 
 class AskTurn(Base):
     __tablename__ = "ask_turns"
+    __table_args__ = (Index("ix_ask_turns_created_at", "created_at"),)  # retention purge
 
     id: Mapped[uuid.UUID] = _pk()
     session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
@@ -444,6 +445,13 @@ class AskTurn(Base):
     model_versions: Mapped[Any | None] = mapped_column(JSONB)
     prompt_versions: Mapped[Any | None] = mapped_column(JSONB)
     langsmith_run_id: Mapped[str | None] = mapped_column(Text)
+    # G-OPS-04 audit trail (ADR-0033): what was retrieved, how it was judged, how it ended.
+    outcome: Mapped[str | None] = mapped_column(Text)  # answer | fallback | abstain | error
+    abstain_reason: Mapped[str | None] = mapped_column(Text)
+    evidence_article_ids: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    verifier: Mapped[Any | None] = mapped_column(JSONB)
+    errors: Mapped[Any | None] = mapped_column(JSONB)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = _now()
 
 

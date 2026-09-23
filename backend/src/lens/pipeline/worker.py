@@ -28,6 +28,7 @@ from lens.pipeline.cluster import cluster_pending, update_lifecycle
 from lens.pipeline.index import index_pending
 from lens.pipeline.stats import compute_all
 from lens.retrieval.qdrant_store import get_qdrant
+from lens.services.ask import purge_ask_turns
 
 log = get_logger(__name__)
 QUEUE = "lens:pipeline"
@@ -45,6 +46,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
+        purged = purge_ask_turns(session, now)  # docs/03 retention for Ask turns
     # LLM analysis for 4+ source stories, time-boxed (ADR-0022); can be paused to leave quota for Ask (ADR-0030).
     analysed = analyze_pending() if load_yaml("clustering.yaml")["analysis"]["scheduled"] else "paused"
     out = {
@@ -54,6 +56,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         "assigned": cl.assigned,
         "lifecycle": life,
         "stats": stats,
+        "ask_turns_purged": purged,
         "analysed": analysed,
         "seconds": round(time.monotonic() - t0, 1),
     }
