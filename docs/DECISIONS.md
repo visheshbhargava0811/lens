@@ -209,3 +209,9 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
   - **Source-balanced selection kept**: outlets 4.50 → 4.65 (of 4.93 available), largest outlet share 0.323 → 0.296, language groups 0.981 → 0.997, syndicated copies 0.13 → 0, at about 0.05 ms.
   - **Chunking comparison N/A**: every article is one chunk under `snippet_only`.
 - Consequences: Phase 6's retriever is dense, plus story filter, plus balancing. The owner accepted the query set without corrections, so no re-run was needed (identical labels). Revisit if a new query set (for example more loaded or entity queries) shows hybrid or ColBERT gaining.
+
+## ADR-0030: Scheduled story analysis paused so Ask gets the LLM quota (2026-09-23) — owner decision
+
+- Context: Ask (Phase 6) and the pipeline's story analysis share the same free-tier models (Groq gpt-oss-20b/120b on both keys, then Gemini). The first live Ask smoke run got 429 on every provider while the worker was analysing stories: the worker drains each model's daily token budget and its fallbacks spill onto the rest.
+- Decision: `analysis.scheduled: false` in `config/clustering.yaml`. The worker keeps ingesting, indexing, clustering and computing stats; LLM story analysis stops. `make analyze` still runs it by hand. Already published summaries stay (and serve as Ask's verified fallback).
+- Consequences: New stories get no summaries until analysis is re-enabled. Re-enable once Ask has its own quota (a separate key or paid tier), or split the budget by time of day.

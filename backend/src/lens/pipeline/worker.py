@@ -45,7 +45,8 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
-    analysed = analyze_pending()  # LLM analysis for 4+ source stories, time-boxed (ADR-0022)
+    # LLM analysis for 4+ source stories, time-boxed (ADR-0022); can be paused to leave quota for Ask (ADR-0030).
+    analysed = analyze_pending() if load_yaml("clustering.yaml")["analysis"]["scheduled"] else "paused"
     out = {
         "indexed": idx.articles,
         "clustered": cl.articles,
