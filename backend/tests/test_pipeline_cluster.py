@@ -79,6 +79,10 @@ def test_same_event_across_outlets_forms_one_story(db: Session, qdrant: QdrantCl
     assert [s.article_count for s in stories] == [3, 1]
     assert stories[0].source_count == 3 and stories[0].status == "developing"
     assert stories[0].slug.startswith("state-cabinet-okays-new-metro-line-budget")
+    # Chunks carry their story so tier-2 retrieval can filter by it (docs/05).
+    chunks, _ = qdrant.scroll("chunks", limit=100, with_payload=True)
+    assert chunks and all(p.payload and p.payload.get("story_id") for p in chunks)
+    assert str(stories[0].id) in {p.payload["story_id"] for p in chunks if p.payload}
 
 
 def test_wire_copies_join_the_original_story_and_count_once(db: Session, qdrant: QdrantClient) -> None:

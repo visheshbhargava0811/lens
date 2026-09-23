@@ -25,7 +25,7 @@ from lens.core.config_files import load_yaml
 from lens.core.logging import configure_logging, get_logger
 from lens.db.models import Article, ReviewQueueItem, Story, StoryArticle, StoryStatus
 from lens.db.session import get_engine
-from lens.retrieval.qdrant_store import ARTICLES, STORIES, fetch_article_vectors, get_qdrant, iso
+from lens.retrieval.qdrant_store import ARTICLES, CHUNKS, STORIES, fetch_article_vectors, get_qdrant, iso
 
 log = get_logger(__name__)
 _SLUG = re.compile(r"[^a-z0-9]+")
@@ -243,7 +243,27 @@ def cluster_pending(session: Session, client: QdrantClient, limit: int = 5000) -
         session.refresh(story)
         _write_story_point(client, story, state.centroid)
         client.set_payload(ARTICLES, payload={"story_id": str(sid)}, points=[str(a.id)])
+        # Tier-2 retrieval filters chunks by story (docs/05), so chunks carry it too.
+        client.set_payload(CHUNKS, payload={"story_id": str(sid)}, points=_article_filter(a.id))
     return stats
+
+
+def _article_filter(article_id: uuid.UUID) -> models.Filter:
+    return models.Filter(must=[models.FieldCondition(key="article_id", match=models.MatchValue(value=str(article_id)))])
+
+
+def backfill_chunk_story_ids(session: Session, client: QdrantClient) -> int:
+    """One-off repair: chunks indexed before this fix have no story_id payload."""
+    rows = session.execute(select(StoryArticle.story_id, StoryArticle.article_id)).all()
+    ops = [
+        models.SetPayloadOperation(
+            set_payload=models.SetPayload(payload={"story_id": str(sid)}, filter=_article_filter(aid))
+        )
+        for sid, aid in rows
+    ]
+    for i in range(0, len(ops), 500):
+        client.batch_update_points(CHUNKS, update_operations=ops[i : i + 500])
+    return len(ops)
 
 
 def _rows(result: Any) -> int:
