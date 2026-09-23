@@ -1,0 +1,173 @@
+id,correct,fix_or_note,query,query_lang,type,relevant_story_headlines
+ret-v1-013,,,Kartik Aaryan Chandu Champion best actor,en,entity,'Chandu Champion' Kartik Aaryan makes his National Film Award debut as best actor
+ret-v1-069,,,West Bengal chief minister wants fresh polls and the chief election commissioner arrested,en,paraphrase,"Mamata Banerjee demands repoll in Bengal, seeks CEC Gyanesh Kumar's arrest"
+ret-v1-037,,,Indigo 6E4 London Delhi technical fault,en,entity,"लंदन से दिल्ली आ रही इंडिगो की उड़ान 6E4 में तकनीकी खराबी, 24 हजार फीट की ऊंचाई से लौटा विमान"
+ret-v1-109,,,फिलाडेल्फिया में उड़ानें रद्द एफएए सिस्टम फेल,hi,cross_lingual,US Northeast flight cancellations surge after Philadelphia FAA systems fail
+ret-v1-015,,,Kapil Sibal Gyanesh Kumar suspension CEC,en,entity,"'Majority not with Gyanesh Kumar': Kapil Sibal demands suspension of CEC, halt to SIR process"
+ret-v1-086,,,young woman's throat slit with a saw in Kasganj,en,cross_lingual,"कासगंज में युवती की आरी से गला रेतकर हत्या: ट्यूबवेल की छत पर खून से लथपथ मिला शव, रात से लापता थी; अक्टूबर में होनी थी "
+ret-v1-103,,,ताइवान अमेरिका हथियार बिक्री संपर्क,hi,cross_lingual,Taiwan to maintain ‘close contact’ with US on arms sales
+ret-v1-055,,,influencer removes hundreds of kilos of trash from the Yamuna in Delhi,en,paraphrase,"585kg waste gone in 4.5 hrs, Bittu Tabahi takes cleanliness mission to Delhi’s Yamuna"
+ret-v1-161,,,IPL 2027 mega auction retained players list,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-025,,,NHAI stray cattle shelters Supreme Court special bench,en,entity,SC to set up special bench to hear NHAI plea against direction to build shelters for stray cattle
+ret-v1-130,,,Akhilesh Yadav Raebareli daura PDA rath,hinglish,hinglish,"रायबरेली में कल अखिलेश यादव का दौरा, तैयारियां तेज: विधायक के घर होगी चाय पर चर्चा, 'पीडीए रथ' को रवाना करेंगे"
+ret-v1-172,,,Bharat Ratna 2026 recipients,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-144,,,"हिमाचल में गाड़ी खाई में गिरी, चार लोगों की जान गई",hi,paraphrase,"हिमाचल में कार दुर्घटनाग्रस्त, 4 लोगों की मौत: एक गंभीर घायल, 200 मीटर गहरी खाई में गिरी गाड़ी; सुबह तक चला रेस्क्यू"
+ret-v1-145,,,"मध्य प्रदेश में पानी की टंकी जांच के दौरान गिर गई, इंजीनियरों पर कार्रवाई",hi,paraphrase,"मऊगंज में जल जीवन मिशन में 3.85 करोड़ का खेल! परीक्षण में ढही टंकी, 740 नल कनेक्शन कागजों में; 3 इंजीनियरों और ठेकेदार प"
+ret-v1-148,,,"जयपुर में कार सर्विस सेंटर में लगी आग, कई गाड़ियां जलीं",hi,paraphrase,"जयपुर के सीतापुरा में मर्सिडीज वर्कशॉप में भीषण आग: 50 से ज्यादा कारों में से 8 जलकर खाक, 10 दमकलों ने 2 घंटे में पाया क"
+ret-v1-154,,,साबण आणि टूथपेस्टवर शाकाहारी मांसाहारी खूण,mr,cross_lingual,"Green for veg, red for non-veg: New labelling rule for soap, shampoo, toothpaste"
+ret-v1-129,,,Kichha nagar nigam chunav vidhayak Behad hamla,hinglish,hinglish,"Kichha Municipal Election: विधायक बेहड़ पर हमले पर आक्रोश, ऊधमसिंह नगर में प्रशासन का पुतला फूंकेगी कांग्रेस"
+ret-v1-074,,,actress Rani Mukerji's mother passes away,en,paraphrase,रानी मुखर्जी की मां कृष्णा मुखर्जी का निधन: 75 साल की उम्र में ली अंतिम सांस; बंगाली सिनेमा में प्लेबैक सिंगर थीं
+ret-v1-116,,,Noida me naya iPhone chheena bike wale,hinglish,hinglish,"ग्रेटर नोएडा में बाइक सवारों ने महिला से आईफोन छीना: 3 दिन पहले ही खरीदा था, बदमाशों ने पूछा- नया आईफोन है क्या?"
+ret-v1-057,,,engineers suspended after contaminated drinking water in Nainital,en,paraphrase,"नैनीताल-ज्योलीकोट में गंदे पानी की सप्लाई, 6 इंजीनियर्स सस्पेंड: भास्कर इंपैक्ट; जांच रिपोर्ट- पीने लायक नहीं था पानी, 3"
+ret-v1-122,,,Bittu Tabahi Gurugram safai 2435 kilo kachra,hinglish,hinglish,"After Delhi, Bittu Tabahi clears 2,435 kg waste in Gurugram, wraps up in Noida"
+ret-v1-162,,,Kumbh Mela 2027 Nashik bathing dates,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-007,,,Philadelphia FAA system failure flight cancellations,en,entity,US Northeast flight cancellations surge after Philadelphia FAA systems fail
+ret-v1-042,,,top court to decide whether refusing to sing the national song is a crime,en,paraphrase,Is not singing Vande Mataram punishable offence? Supreme Court to examine || 'धार्मिक वजह से वंदे मातरम न गाना अपराध नहीं': सुप्रीम कोर्ट बोला- आपराधिक कार्रवाई नहीं हो; 47 दिन पहले बने कानून पर के
+ret-v1-073,,,"developing countries face crises but have little say, says Indian minister",en,paraphrase,"Jaishankar says Global South bears crises but lacks a voice in key decisions || EAM Jaishankar discusses regional, global issues with foreign counterparts on margins of UNGA session"
+ret-v1-028,,,Medha Roopam Noida DM Supreme Court,en,entity,"SC में नोएडा डीएम मेधा रूपम की याचिका पर सुनवाई, फैसला सुरक्षित"
+ret-v1-119,,,IIT me suicide ke aankde Supreme Court report,hinglish,hinglish,"IITs में सुसाइड की वजह क्या, चौंका देंगे आंकड़े; SC की रिपोर्ट भी बेहद शॉकिंग"
+ret-v1-085,,,Ali son of Atiq Ahmed sent back to Jhansi jail,en,cross_lingual,अतीक का बेटा अली फिर झांसी जेल भेजा गया: प्रयागराज कोर्ट में बयान दर्ज; आते वक्त पीछे-पीछे चल रही भाई की गाड़ी को रोका
+ret-v1-067,,,women's A team match moved because the Dharamshala ground was wet,en,paraphrase,India A Women vs Australia A Women match shifted to Mohali from Dharamshala
+ret-v1-070,,,search company will send child sexual abuse material reports straight to Indian agencies,en,paraphrase,Google to report child abuse content directly to Indian authorities: Spokesperson
+ret-v1-050,,,New Delhi condemns Pakistan bombing Afghan territory,en,paraphrase,India strongly condemns Pakistani airstrikes on Afghanistan: 'Such aggression goes against regional peace'
+ret-v1-030,,,Yashwant Varma FIR plea Delhi High Court,en,entity,‘Wild witch hunt’: Delhi HC refuses to entertain plea seeking FIR against ex-judge Yashwant Varma
+ret-v1-017,,,OIC Jammu Kashmir remarks India rejects,en,entity,"‘Factually Incorrect’: India Rejects OIC Remarks on JK, Says ‘Pakistan Peddling Fabricated Motivated Propaganda’"
+ret-v1-097,,,"teenager stabbed 16 times in Delhi, two minors among accused",en,cross_lingual,रास्ते में एक-दूसरे से टकराए थे; दिल्ली में किशोर को 16 बार चाकू गोदने वालों में 2 नाबालिग भी
+ret-v1-079,,,lawyer slaps accused in Jamui case during court appearance,en,cross_lingual,"जमुई कांड के आरोपी पर हमला, पेशी के दौरान वकील ने जड़ा थप्पड़, VIDEO"
+ret-v1-158,,,Wimbledon 2026 women's singles final result,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-134,,,is the Supreme Court jailing people who don't sing Vande Mataram,en,loaded,Is not singing Vande Mataram punishable offence? Supreme Court to examine || 'धार्मिक वजह से वंदे मातरम न गाना अपराध नहीं': सुप्रीम कोर्ट बोला- आपराधिक कार्रवाई नहीं हो; 47 दिन पहले बने कानून पर के
+ret-v1-089,,,Uttarakhand school mobile addiction activity scared children blindfolded,en,cross_lingual,उत्तराखंड में मोबाइल लत छुड़ाने की एक्टिविटी से घबराए बच्चे: स्कूल में पट्टी बांधकर कहा- आंखें निकाल दीं; रोते हुए बोले-
+ret-v1-118,,,Jodhpur AIIMS doctor suicide injection,hinglish,hinglish,"जोधपुर AIIMS के डॉक्टर ने किया सुसाइड, इंजेक्शन लगाकर दी जान"
+ret-v1-088,,,former ED officer joins Amritpal Singh's party,en,cross_lingual,सांसद अमृतपाल की पार्टी में शामिल होंगे पूर्व ED अफसर: ड्रग्स केस में बिक्रम मजीठिया से पूछताछ कर चुके; बोले- पंजाब में 
+ret-v1-153,,,राणी मुखर्जीच्या आईचे निधन,mr,paraphrase,रानी मुखर्जी की मां कृष्णा मुखर्जी का निधन: 75 साल की उम्र में ली अंतिम सांस; बंगाली सिनेमा में प्लेबैक सिंगर थीं
+ret-v1-011,,,Tata Trusts Chandrasekaran reappointment casting vote,en,entity,"Tata Trusts challenges Chandrasekaran's reappointment, says casting vote cannot override AoA"
+ret-v1-031,,,Googlebook Gemini laptop pre-order,en,entity,"Google takes on MacBook with Gemini AI-powered Googlebook, pre-orders now open"
+ret-v1-112,,,कॉकरोच जेडब्ल्यू मैरियट हृदय रोग विशेषज्ञ,hi,cross_lingual,"Cockroach crashes cardiologist’s dinner at JW Marriott, he tags Tukaram Mundhe"
+ret-v1-084,,,woman molested on morning walk in Muzaffarnagar caught on CCTV,en,cross_lingual,"मॉर्निंग वॉक से लौट रही महिला से छेड़छाड़: मुजफ्फरनगर में CCTV में कैद वारदात, FIR दर्ज"
+ret-v1-102,,,इदुक्की में भूस्खलन से दो लोगों की मौत,hi,cross_lingual,"Two killed, one injured after mudslide in Keralam's Idukki"
+ret-v1-132,,,Barmer panchayati raj chunav lottery,hinglish,hinglish,"बाड़मेर में पंचायती राज चुनाव की लॉटरी कल: 17 प्रधान, 37 जिला परिषद, 269 पंचायत समिति की वर्गवार होगी लॉटरी"
+ret-v1-065,,,crude stays over 100 dollars while markets wait for Washington Tehran talks,en,paraphrase,Oil remains above $100 per barrel as traders await potential US-Iran talks
+ret-v1-170,,,RBI repo rate cut October policy decision,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-021,,,CDSCO painkiller antibiotic kidney AMR warning,en,entity,"CDSCO warns against painkiller, antibiotic misuse over kidney and AMR risks"
+ret-v1-110,,,बीसीआई कानून कॉलेजों पर सुप्रीम कोर्ट का सवाल,hi,cross_lingual,"How can BCI regulate law colleges, asks SC"
+ret-v1-020,,,Roshibina Devi wushu medal,en,entity,"एशियन गेम्स वुशु में भारत का पहला पदक पक्का, रोशिबिना देवी ने मकाओ की खिलाड़ी को हराया; सेमीफाइनल में पहुंचीं"
+ret-v1-083,,,Kejriwal demands arrest of Gyanesh Kumar and cancellation of elections,en,cross_lingual,"अरविंद केजरीवाल ने कहा- ज्ञानेश कुमार को गिरफ्तार किया जाए, दिल्ली समेत कई चुनाव रद्द हों"
+ret-v1-035,,,LPG biometric Aadhaar October 1,en,entity,"Biometric Aadhaar Must For Subsidised LPG From October 1, 89.9% Already Authenticated: Petroleum Ministry"
+ret-v1-115,,,Kolkata me BJP TMC jhadap ande eet,hinglish,hinglish,"कोलकाता में भाजपा-ममता तृणमूल कार्यकर्ताओं में झड़प, जमकर हुई अंडे और ईंटों की बरसात"
+ret-v1-018,,,CBSE sample papers 2027 class 10 12,en,entity,"CBSE Class 10, 12 sample papers 2027 out. Direct link to check here"
+ret-v1-063,,,bees attack passengers after hive falls into Kerala state bus,en,paraphrase,Keralam: 17 injured in bee attack after beehive falls into KSRTC bus
+ret-v1-010,,,Karnataka Lokayukta raids DA case officers,en,entity,Karnataka Lokayukta raid eight govt officers in DA case
+ret-v1-059,,,Punjab government employees get higher dearness allowance,en,paraphrase,पंजाब के मुलाजिमों का DA 8% बढ़ा: सरकार ने नोटिफिकेशन जारी किया; हाईकोर्ट के चीफ सेक्रेटरी को तलब करने के बाद फैसला
+ret-v1-082,,,Jal Jeevan Mission water tank collapsed during test in Mauganj,en,cross_lingual,"मऊगंज में जल जीवन मिशन में 3.85 करोड़ का खेल! परीक्षण में ढही टंकी, 740 नल कनेक्शन कागजों में; 3 इंजीनियरों और ठेकेदार प"
+ret-v1-106,,,टाटा ट्रस्ट्स चंद्रशेखरन पुनर्नियुक्ति विवाद,hi,cross_lingual,"Tata Trusts challenges Chandrasekaran's reappointment, says casting vote cannot override AoA"
+ret-v1-150,,,संगरूर में मां ने बच्चों को मिठाई में जहर दिया,hi,paraphrase,"प्यार में रोड़ा बने 3 बच्चों को मां ने राखी पर दी जहरीली मिठाई, संगरूर पुलिस ने किया गिरफ्तार; आशिक फरार"
+ret-v1-124,,,Modi December me America ja sakte Trump se mulakat,hinglish,hinglish,"दिसंबर में अमेरिका जा सकते हैं PM मोदी, राष्ट्रपति ट्रंप से हो सकती है मुलाकात"
+ret-v1-156,,,निवडणूक आयोगात मुख्य आयुक्तांच्या निर्णयांवर मतभेद,mr,paraphrase,"निवडणूक आयोगात दुभंग! मुख्य आयुक्तांच्या निर्णयावर दोन्ही सदस्यांचा आक्षेप, दहा महिन्यांत १४ वेळा विरोधाची अधिकृत नोंद || Election Commissioners flagged issues but poll body unanimous on SIR decisions: Officials"
+ret-v1-012,,,Yami Gautam National Award Article 370,en,entity,President Murmu confers Best Actress National Award on Yami Gautam for Article 370
+ret-v1-138,,,"Bihar is lawless, girl molested in Jamui",en,loaded,"'Samrat Choudhary must resign over 'maha goonda raj': Opposition slams Bihar CM over Jamui molestation case || जमुई कांड के आरोपी पर हमला, पेशी के दौरान वकील ने जड़ा थप्पड़, VIDEO"
+ret-v1-005,,,Idukki mudslide two killed,en,entity,"Two killed, one injured after mudslide in Keralam's Idukki"
+ret-v1-038,,,Mercedes workshop fire Sitapura Jaipur,en,entity,"जयपुर के सीतापुरा में मर्सिडीज वर्कशॉप में भीषण आग: 50 से ज्यादा कारों में से 8 जलकर खाक, 10 दमकलों ने 2 घंटे में पाया क"
+ret-v1-048,,,women's cyclist from Afghanistan who once dressed as a man wins a medal,en,paraphrase,Afghan cyclist Fariba Hashimi who disguised herself as man wins Asian Games silver
+ret-v1-164,,,Mumbai coastal road toll rates,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-113,,,bank hadtal 28 se 30 september,hinglish,hinglish,Bank strike from September 28: SBI issues advisory on possible service disruptions
+ret-v1-095,,,Rahul Gandhi letter to Mohan Yadav on 27 percent OBC reservation,en,cross_lingual,राहुल गांधी ने सीएम मोहन यादव को लिखा पत्र: 27% OBC आरक्षण लागू कर चयनित अभ्यर्थियों को नियुक्ति देने की मांग
+ret-v1-068,,,dissent within the Election Commission over roll revision decisions,en,paraphrase,"Election Commissioners flagged issues but poll body unanimous on SIR decisions: Officials || निवडणूक आयोगात दुभंग! मुख्य आयुक्तांच्या निर्णयावर दोन्ही सदस्यांचा आक्षेप, दहा महिन्यांत १४ वेळा विरोधाची अधिकृत नोंद"
+ret-v1-093,,,Gambhir hints at rest for Gill and Bumrah before New Zealand series,en,cross_lingual,"ग‍िल, बुमराह को ब्रेक? न्यूजीलैंड सीरीज से पहले गौतम गंभीर ने दी हिंट"
+ret-v1-171,,,Cyclone landfall Odisha coast,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-045,,,landslide in Kerala hill district kills two,en,paraphrase,"Two killed, one injured after mudslide in Keralam's Idukki"
+ret-v1-060,,,aircraft flying to Sri Lanka lands in Chennai after engine trouble,en,paraphrase,Vietnam to Colombo flight makes emergency landing at Chennai airport
+ret-v1-032,,,Pulkit Mani shows cancelled Modi mimicry,en,entity,'Threats from goon activists': Comedian Pulkit Mani says UP shows cancelled amid row over mimicry of PM Modi
+ret-v1-016,,,BCI law colleges Supreme Court,en,entity,"How can BCI regulate law colleges, asks SC"
+ret-v1-026,,,SBI advisory bank strike September 28,en,entity,Bank strike from September 28: SBI issues advisory on possible service disruptions
+ret-v1-080,,,Ketan Agarwal murder conspiracy father suspects family,en,cross_lingual,केतन अग्रवाल हत्याकांड क्या सिया गोयल के परिवार के लोग भी साजिश में शामिल थे पिता ने जताया शक
+ret-v1-101,,,ट्रंप ने यूएन में एआई को सुपर इंटेलिजेंस कहा,hi,cross_lingual,"'AI is amazing, want to name it 'super intelligence': Trump at UNGA"
+ret-v1-006,,,Fariba Hashimi Asian Games silver cycling,en,entity,Afghan cyclist Fariba Hashimi who disguised herself as man wins Asian Games silver
+ret-v1-058,,,clash between saffron party and Trinamool workers in Kolkata,en,paraphrase,"कोलकाता में भाजपा-ममता तृणमूल कार्यकर्ताओं में झड़प, जमकर हुई अंडे और ईंटों की बरसात"
+ret-v1-157,,,आयआयटी मुंबई विद्यार्थी साहिल वाकोडे परीक्षा सीसीटीव्ही,mr,entity,"परीक्षा में फोन से नकल कर रहा था IIT बॉम्बे का छात्र साहिल वाकोडे, सामने आई CCTV फुटेज || ‘माझ्याकडून चूक झाली’, साहिल वाकोडेने शेवटच्या कॉलमध्ये मित्राला काय सांगितलं? नवी माहिती समोर"
+ret-v1-135,,,how corrupt is the Karnataka government with all these Lokayukta raids,en,loaded,Karnataka Lokayukta raid eight govt officers in DA case
+ret-v1-049,,,apex court declines petition on sharing of southern river water,en,paraphrase,SC refuses to entertain plea concerning allocation of Cauvery river water
+ret-v1-126,,,Meerut high court bench vakeel BJP saansad pravesh rok,hinglish,hinglish,"मेरठ हाईकोर्ट बेंच को लेकर अधिवक्ताओं का बड़ा एलान, भाजपा के सांसद-विधायक और मंत्री के कचहरी प्रवेश पर रोक"
+ret-v1-125,,,CM Yogi Bharat taxi krishak samriddhi yojana,hinglish,hinglish,"CM योगी देंगे बड़ी सौगात, भारत टैक्सी-कृषक समृद्धि योजना की होगी शुरुआत"
+ret-v1-071,,,green dot for vegetarian and red for non-vegetarian on toiletries,en,paraphrase,"Green for veg, red for non-veg: New labelling rule for soap, shampoo, toothpaste"
+ret-v1-094,,,"silver price falls, gold cheaper today",en,cross_lingual,"चांदी ₹2,412 गिरकर ₹2.33 लाख किलो पर आई: दो दिन में दाम ₹4 हजार कम हुए, 10 ग्राम सोना आज ₹1,205 सस्ता हुआ"
+ret-v1-052,,,India's women beat Pakistan at table tennis without handshake controversy,en,paraphrase,Asian Games: Handshake not an issue in table tennis as India women thrash Pakistan
+ret-v1-107,,,यामी गौतम को सर्वश्रेष्ठ अभिनेत्री का राष्ट्रीय पुरस्कार,hi,cross_lingual,President Murmu confers Best Actress National Award on Yami Gautam for Article 370
+ret-v1-127,,,Ajit Singh ke naam par Janata PG college,hinglish,hinglish,"अजीत सिंह के नाम पर होगा जनता PG कॉलेज, योगी सरकार का फैसला"
+ret-v1-143,,,पटना में पूर्व पार्षद को घर में घुसकर गोली मारी गई,hi,paraphrase,"पटना में पूर्व वार्ड पार्षद की हत्या: अपार्टमेंट में घुसकर बाइक सवारों ने गोली मारी, पुलिस जांच में जुटी"
+ret-v1-169,,,Amarnath Yatra 2026 registration,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-023,,,Airtel Apple TV iCloud+ free,en,entity,"Many Airtel users now eligible for free Apple TV and iCloud+ subscription, check here if you are"
+ret-v1-111,,,भारत न्यूजीलैंड व्यापार समझौता 20 अक्टूबर से लागू,hi,cross_lingual,India-New Zealand trade pact to come into force on Oct 20: Piyush Goyal
+ret-v1-061,,,ex IIT Delhi head wants engineering degree to be five years,en,paraphrase,"Former IIT-D Director calls for 5-year BTechs, says one-size-fits-all hurts students"
+ret-v1-104,,,अफगान साइकिलिस्ट फरीबा हाशिमी रजत पदक,hi,cross_lingual,Afghan cyclist Fariba Hashimi who disguised herself as man wins Asian Games silver
+ret-v1-024,,,Chitra Ramkrishna bail CBI phone tapping Delhi HC,en,entity,Delhi HC rejects CBI plea against bail to ex-NSE chief Chitra Ramkrishna in phone tapping case
+ret-v1-155,,,भारत न्यूझीलंड मुक्त व्यापार करार ऑक्टोबरपासून लागू,mr,paraphrase,India-New Zealand trade pact to come into force on Oct 20: Piyush Goyal
+ret-v1-090,,,"Thar SUV runs over couple on scooter in Greater Noida, husband dies",en,cross_lingual,"ग्रेटर नोएडा में थार ने स्कूटी सवार दंपती को रौंदा: पति की मौत, पत्नी घायल; ड्राइवर गाड़ी छोड़कर फरार"
+ret-v1-062,,,onion still expensive in big cities despite cheap government sales,en,paraphrase,Onion prices stay elevated in metros despite govt’s subsidised sale at Rs 35/kg
+ret-v1-108,,,ग्रीनलैंड में अमेरिका के नए सैन्य अड्डे,hi,cross_lingual,"Exclusive-US to open two new military bases in Greenland, sources say"
+ret-v1-117,,,Amritsar nasha taskari module heroin 20 kilo,hinglish,hinglish,"अमृतसर में नशा तस्करी मॉड्यूल बेनकाब, 4 तस्कर अरेस्ट: काउंटर इंटेलिजेंस ने 20 किलो की हेरोइन पकड़ी; दुबई से चल रहा था नेट"
+ret-v1-046,,,Taipei will keep in touch with Washington over weapons purchases,en,paraphrase,Taiwan to maintain ‘close contact’ with US on arms sales
+ret-v1-040,,,JSW Ampstar electric truck bus,en,entity,डिझेल दरवाढीची चिंता संपणार! JSW चा इलेक्ट्रिक ट्रक अन् बसचा Ampstar ब्रँड लाँच! छत्रपती संभाजीनगरमध्ये होणार उत्पादन
+ret-v1-123,,,Punjab police vardi pehan kar na jaaye advisory fake,hinglish,hinglish,'वर्दी पहनकर न जाएं' वाली एडवाइजरी को पंजाब पुलिस ने बताया फेक
+ret-v1-044,,,"Telugu film star asked for security, chief minister says he will sit with the crowd",en,paraphrase,'Want to sit among audience': Telangana CM responds to Nani’s security request for ‘The Paradise’
+ret-v1-091,,,10 foot crocodile on highway near Khurja rescued,en,cross_lingual,"छतारी- खुर्जा हाईवे पर 10 फीट का मगरमच्छ देख हड़कंप: ग्रामीणों ने पकड़ा, वन विभाग ने नरौरा नहर में सुरक्षित छोड़ा; बड़ा "
+ret-v1-087,,,ABVP wins student union election in Kerala after 40 years,en,cross_lingual,"केरलम में ABVP ने लेफ्ट के गढ़ में लगाई सेंध, 40 साल बाद कॉलेज के छात्र संघ चुनाव में हासिल की जीत"
+ret-v1-128,,,Banda buzurg mahila maut aaropi giraftar,hinglish,hinglish,"बांदा बुजुर्ग महिला की मौत के मामले में आरोपी गिरफ्तार, नाक की कील बरामद"
+ret-v1-141,,,did IIT Bombay professor drive the student to suicide,en,loaded,"परीक्षा में फोन से नकल कर रहा था IIT बॉम्बे का छात्र साहिल वाकोडे, सामने आई CCTV फुटेज || ‘माझ्याकडून चूक झाली’, साहिल वाकोडेने शेवटच्या कॉलमध्ये मित्राला काय सांगितलं? नवी माहिती समोर || Former IIT-D Director calls for 5-year BTechs, says one-size-fits-all hurts students || IITs में सुसाइड की वजह क्या, चौंका देंगे आंकड़े; SC की रिपोर्ट भी बेहद शॉकिंग"
+ret-v1-076,,,"उत्तर प्रदेश में बड़े पैमाने पर प्रशासनिक फेरबदल, कई जिलों के कलेक्टर बदले",hi,paraphrase,"यूपी में 34 IAS के तबादले, 14 DM बदले: मुख्तार का किला ध्वस्त करने वाले मंगला प्रसाद साइडलाइन; महेंद्र सिंह तंवर जिलाधिक || कानपुर के नए डीएम बने महेन्द्र सिंह तंवर: गरीबों की मदद और अपने औचक निरीक्षण से चर्चा में रहे DM जितेन्द्र प्रताप का लखन"
+ret-v1-078,,,former ward councillor shot dead in Patna apartment,en,cross_lingual,"पटना में पूर्व वार्ड पार्षद की हत्या: अपार्टमेंट में घुसकर बाइक सवारों ने गोली मारी, पुलिस जांच में जुटी"
+ret-v1-151,,,गाजियाबाद में नकली गहने गिरवी रखकर बैंक से करोड़ों का कर्ज,hi,paraphrase,"नकली सोना देकर फेडरल बैंक से ले लिया 1.46 करोड़ का गोल्ड लोन, गाजियाबाद में वैल्यूअर समेत 18 पर FIR"
+ret-v1-039,,,Spinny IPO Sachin Tendulkar,en,entity,Spinny: सचिन तेंडुलकरशी संबंधित कंपनी आणणार ३ हजार कोटींचा IPO; सेबीकडे गोपनीय कागदपत्रे दाखल!
+ret-v1-168,,,Hockey World Cup 2026 India squad announced,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-009,,,Elon Musk Xi Jinping interview CCTV,en,entity,Elon Musk praises Xi Jinping as great leader in interview with Chinese state television
+ret-v1-142,,,airlines looting passengers in festive season and government does nothing,en,loaded,"Govt rules out festive airfare cap, urges airlines to keep prices reasonable"
+ret-v1-146,,,अदालत में पेशी के वक्त आरोपी को वकील ने मारा थप्पड़,hi,paraphrase,"जमुई कांड के आरोपी पर हमला, पेशी के दौरान वकील ने जड़ा थप्पड़, VIDEO"
+ret-v1-166,,,केदारनाथ धाम कपाट बंद होने की तारीख,hi,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-022,,,Justice Dipankar Datta collegium,en,entity,Criticism of ‘judges appointing judges’ through collegium system a myth: Justice Dipankar Datta
+ret-v1-139,,,toothpaste will now tell you if it has meat in it,en,loaded,"Green for veg, red for non-veg: New labelling rule for soap, shampoo, toothpaste"
+ret-v1-131,,,Khagaria expressway Buxar Bhagalpur Patna Purnia,hinglish,hinglish,"खगड़िया की बदलेगी तस्वीर: बक्सर-भागलपुर और पटना-पूर्णिया एक्सप्रेस-वे से जोड़ने की तैयारी, DM ने भेजा प्रस्ताव"
+ret-v1-003,,,Kasturirangan report DK Shivakumar farmers,en,entity,"Will consider public, farmers' views before taking a decision on Kasturirangan report: CM DK Shivakumar"
+ret-v1-077,,,"IAS transfers in Uttar Pradesh, 14 district magistrates changed",en,cross_lingual,"यूपी में 34 IAS के तबादले, 14 DM बदले: मुख्तार का किला ध्वस्त करने वाले मंगला प्रसाद साइडलाइन; महेंद्र सिंह तंवर जिलाधिक || कानपुर के नए डीएम बने महेन्द्र सिंह तंवर: गरीबों की मदद और अपने औचक निरीक्षण से चर्चा में रहे DM जितेन्द्र प्रताप का लखन"
+ret-v1-099,,,Pitru Paksha 2026 dates,en,cross_lingual,"पितृपक्ष : 26 सितंबर से 10 अक्टूबर तक चलेगा, दान-पुण्य की है परंपरा"
+ret-v1-133,,,why is the Election Commission rigging the voter list revision,en,loaded,"SIR explained: What has happened since the voter list revision began || Election Commissioners flagged issues but poll body unanimous on SIR decisions: Officials || निवडणूक आयोगात दुभंग! मुख्य आयुक्तांच्या निर्णयावर दोन्ही सदस्यांचा आक्षेप, दहा महिन्यांत १४ वेळा विरोधाची अधिकृत नोंद || SC asks EC to explain ‘logical discrepancy’ notices issued during Delhi SIR"
+ret-v1-149,,,"भर्ती परीक्षा में गड़बड़ी, कंपनी के निदेशक गिरफ्तार",hi,paraphrase,"SSC GD परीक्षा धांधली में बड़ा खुलासा: परीक्षा केंद्र चुनने वाली कंपनी के 2 डायरेक्टर अरेस्ट, 7 राज्यों तक फैले सेंटरों "
+ret-v1-053,,,foreign minister meets counterparts on sidelines of the UN General Assembly,en,paraphrase,"EAM Jaishankar discusses regional, global issues with foreign counterparts on margins of UNGA session"
+ret-v1-051,,,Islamabad claims it downed drones coming from across the Afghan border,en,paraphrase,Pakistan says it shot down eight drones from Afghanistan amid border firing
+ret-v1-081,,,"car falls 200 metres into gorge in Himachal, four dead",en,cross_lingual,"हिमाचल में कार दुर्घटनाग्रस्त, 4 लोगों की मौत: एक गंभीर घायल, 200 मीटर गहरी खाई में गिरी गाड़ी; सुबह तक चला रेस्क्यू"
+ret-v1-075,,,"IIT Bombay student caught cheating in exam, CCTV footage released",en,paraphrase,"परीक्षा में फोन से नकल कर रहा था IIT बॉम्बे का छात्र साहिल वाकोडे, सामने आई CCTV फुटेज || ‘माझ्याकडून चूक झाली’, साहिल वाकोडेने शेवटच्या कॉलमध्ये मित्राला काय सांगितलं? नवी माहिती समोर"
+ret-v1-137,,,Google finally forced to stop hiding child abuse from India,en,loaded,Google to report child abuse content directly to Indian authorities: Spokesperson
+ret-v1-043,,,what has happened so far in the electoral roll revision,en,paraphrase,SIR explained: What has happened since the voter list revision began
+ret-v1-152,,,विमान को तकनीकी दिक्कत के कारण हवा से लौटाना पड़ा,hi,paraphrase,"लंदन से दिल्ली आ रही इंडिगो की उड़ान 6E4 में तकनीकी खराबी, 24 हजार फीट की ऊंचाई से लौटा विमान"
+ret-v1-054,,,court asks poll body to justify notices sent to Delhi voters for mismatched details,en,paraphrase,SC asks EC to explain ‘logical discrepancy’ notices issued during Delhi SIR || 125-year-old Delhi voter gets SIR notice over ‘self name mismatch’
+ret-v1-002,,,Mayawati Ishan Anand national coordinator Akash,en,entity,Mayawati appoints younger nephew Ishan as national coordinator after removing Akash from party
+ret-v1-001,,,Trump UNGA speech super intelligence AI,en,entity,"'AI is amazing, want to name it 'super intelligence': Trump at UNGA"
+ret-v1-034,,,JW Marriott cockroach cardiologist Tukaram Mundhe,en,entity,"Cockroach crashes cardiologist’s dinner at JW Marriott, he tags Tukaram Mundhe"
+ret-v1-033,,,Suchika Tariyal MMA bronze,en,entity,Suchika Tariyal wins bronze in MMA at Asian Games
+ret-v1-114,,,Rajya Sabha chunav UP 10 seat voting kab,hinglish,hinglish,"राज्यसभा चुनाव का ऐलान, UP की 10 सीटों पर वोटिंग कब? 8 भाजपा सांसद होंगे रिटायर"
+ret-v1-036,,,SSC GD exam scam directors arrested,en,entity,"SSC GD परीक्षा धांधली में बड़ा खुलासा: परीक्षा केंद्र चुनने वाली कंपनी के 2 डायरेक्टर अरेस्ट, 7 राज्यों तक फैले सेंटरों "
+ret-v1-019,,,UDP MLAs join BJP Meghalaya,en,entity,मेघालय- UDP के 8 विधायक भाजपा में शामिल: BJP विधायक 2 से 10 हुए; राज्य में दूसरी सबसे बड़ी पार्टी बनी
+ret-v1-163,,,Union Budget 2027 income tax slabs,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-100,,,Vaibhav Suryavanshi batting at number three Asian Games cricket,en,cross_lingual,"Asian Games Cricket : वैभव सूर्यवंशी तिसऱ्या क्रमांकावर, संजू सॅमसन-अभिषेक शर्मा ओपनर; टीम इंडियाची बॅटिंग लाईनअप..."
+ret-v1-047,,,"theft at Ayodhya temple, state to file chargesheet soon",en,paraphrase,"Ram Temple theft case: Uttar Pradesh to file charge sheet in 2 days, Supreme Court told"
+ret-v1-072,,,trade agreement with New Zealand takes effect in October,en,paraphrase,India-New Zealand trade pact to come into force on Oct 20: Piyush Goyal
+ret-v1-105,,,भारत ने पाकिस्तान के अफगानिस्तान पर हवाई हमलों की निंदा की,hi,cross_lingual,India strongly condemns Pakistani airstrikes on Afghanistan: 'Such aggression goes against regional peace'
+ret-v1-056,,,opposition demands Bihar chief minister quit after molestation of a girl in Jamui,en,paraphrase,'Samrat Choudhary must resign over 'maha goonda raj': Opposition slams Bihar CM over Jamui molestation case
+ret-v1-004,,,G7 foreign ministers Iran Houthis,en,entity,G7 foreign ministers call on Iran to stop arming Houthis
+ret-v1-159,,,Nehru Trophy boat race winner,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-147,,,दिल्ली में महिलाओं के लिए इलेक्ट्रिक ऑटो की नई योजना,hi,paraphrase,"दिल्ली में महिला सुरक्षा को लेकर बड़ा फैसला, ‘दुर्गा EV ऑटो’ योजना को मंजूरी"
+ret-v1-027,,,Kalkaji Mandir gangrape fake policemen,en,entity,"Three men pose as policemen, rape 17-year-old girl near Delhi’s Kalkaji Mandir"
+ret-v1-140,,,Mamata wants to cancel Bengal elections because she lost,en,loaded,"Mamata Banerjee demands repoll in Bengal, seeks CEC Gyanesh Kumar's arrest"
+ret-v1-098,,,mother poisons three children with sweets on Rakhi in Sangrur,en,cross_lingual,"प्यार में रोड़ा बने 3 बच्चों को मां ने राखी पर दी जहरीली मिठाई, संगरूर पुलिस ने किया गिरफ्तार; आशिक फरार"
+ret-v1-165,,,Nobel Prize in Literature 2026 winner,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-121,,,Shahpur kharab sadak naliyan gaon wale pareshan,hinglish,hinglish,"शाहपुर में खराब सड़कें और नालियां: ग्रामीणों को आवागमन में परेशानी, 10 से अधिक घरों का रास्ता बदहाल"
+ret-v1-096,,,fake gold used to take 1.46 crore loan from Federal Bank in Ghaziabad,en,cross_lingual,"नकली सोना देकर फेडरल बैंक से ले लिया 1.46 करोड़ का गोल्ड लोन, गाजियाबाद में वैल्यूअर समेत 18 पर FIR"
+ret-v1-029,,,Mark Wood retirement international cricket,en,entity,"मार्क वुड ने इंटरनेशनल क्रिकेट से संन्यास लिया: 11 साल का रहा करियर, दो वर्ल्ड कप और चार एशेज सीरीज जीतीं"
+ret-v1-041,,,US president says artificial intelligence could be called superintelligence at the UN,en,paraphrase,"'AI is amazing, want to name it 'super intelligence': Trump at UNGA"
+ret-v1-014,,,US military bases Greenland,en,entity,"Exclusive-US to open two new military bases in Greenland, sources say"
+ret-v1-064,,,stock indices fall as software shares drag,en,paraphrase,"Sensex drops 330 points, Nifty down to 23,329 dragged by IT stocks"
+ret-v1-120,,,Hamirpur Himachal social media activity hirasat,hinglish,hinglish,हिमाचल हमीरपुर में जांच एजेंसी के इनपुट से हड़कंप! सोशल मीडिया गतिविधियों पर हिरासत में लिया गया व्यक्ति
+ret-v1-008,,,Macron Strait of Hormuz energy market,en,entity,"Macron says France, US to 'act together' to ease energy market tensions, protect Strait of Hormuz"
+ret-v1-136,,,Pakistan destroying Afghanistan with airstrikes again,en,loaded,India strongly condemns Pakistani airstrikes on Afghanistan: 'Such aggression goes against regional peace' || Pakistan says it shot down eight drones from Afghanistan amid border firing
+ret-v1-167,,,दिल्ली मेट्रो किराया बढ़ोतरी नई दरें,hi,no_answer,"(none: no-answer query, nothing in the corpus should match)"
+ret-v1-092,,,Durga EV auto scheme for women's safety in Delhi approved,en,cross_lingual,"दिल्ली में महिला सुरक्षा को लेकर बड़ा फैसला, ‘दुर्गा EV ऑटो’ योजना को मंजूरी"
+ret-v1-066,,,government will not cap ticket prices for flights during festivals,en,paraphrase,"Govt rules out festive airfare cap, urges airlines to keep prices reasonable"
+ret-v1-160,,,Chandrayaan-5 launch date announced,en,no_answer,"(none: no-answer query, nothing in the corpus should match)"
