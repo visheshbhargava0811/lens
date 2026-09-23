@@ -58,9 +58,16 @@ class FakeLLM:
     def __init__(self, script: dict[type, list[Any]]) -> None:
         self.script = {k: list(v) for k, v in script.items()}
         self.prompts: dict[type, list[str]] = defaultdict(list)
+        self.kwargs: dict[type, list[dict[str, Any]]] = defaultdict(list)
+        self.families: dict[str, str] = {}
 
-    def __call__(self, tier_name: str, model: type[Any], system: str, user: str, **_: Any) -> Any:
+    def __call__(self, tier_name: str, model: type[Any], system: str, user: str, **kw: Any) -> Any:
         self.prompts[model].append(user)
+        self.kwargs[model].append(kw)
+        if kw.get("meta") is not None:
+            kw["meta"].update(
+                provider="fake", model=f"{tier_name}-model", family=self.families.get(tier_name, tier_name)
+            )
         out = self.script[model].pop(0) if len(self.script[model]) > 1 else self.script[model][0]
         if isinstance(out, Exception):
             raise out
@@ -169,3 +176,14 @@ def test_prompts_never_contain_outlet_names() -> None:
     )
     for prompts in llm.prompts.values():
         assert all("Outlet One" not in p and "Outlet Two" not in p for p in prompts)
+
+
+def test_judge_excludes_the_family_that_wrote_the_summary_and_models_are_recorded() -> None:
+    llm = FakeLLM(
+        {ClaimList: [GOOD_CLAIMS], StoryFraming: [FRAMING], SummaryDraft: [SUMMARY], FaithfulnessVerdict: [PASS]}
+    )
+    llm.families = {"synthesis": "gemini"}  # e.g. Groq was down and Gemini wrote the summary
+    out = build(llm).invoke(_state())
+    assert llm.kwargs[FaithfulnessVerdict][0]["exclude_families"] == {"gemini"}
+    assert out["models"]["synthesis_system"]["family"] == "gemini"
+    assert set(out["models"]) == {"claims_extraction", "framing_contrast", "synthesis_system", "judge_faithfulness"}

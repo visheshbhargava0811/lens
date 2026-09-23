@@ -1,4 +1,5 @@
-"""LLM client: schema shaping, validation retries, rate-limit retries. `_post` is faked; no real calls."""
+"""LLM client: schema shaping, validation and rate-limit retries, and provider fallback (Gemini).
+`_post` is faked per provider; no test calls a real provider."""
 
 import json
 from typing import Any
@@ -8,7 +9,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 from lens.llm import client
-from lens.llm.client import LLMError, strict_schema, structured
+from lens.llm.client import LLMError, strict_schema, structured, tier_chain
 
 
 class Inner(BaseModel):
@@ -30,17 +31,26 @@ def _resp(status: int, content: Any = None, headers: dict[str, str] | None = Non
     return httpx.Response(status, json=body, headers=headers or {}, request=httpx.Request("POST", "https://x"))
 
 
+def _err(status: int, text: str = "err", headers: dict[str, str] | None = None) -> httpx.Response:
+    return httpx.Response(status, text=text, headers=headers or {}, request=httpx.Request("POST", "https://x"))
+
+
 class Fake:
-    """Stands in for the provider: returns queued responses and records requests and sleeps."""
+    """Stands in for the providers: per-provider response queues; records requests and sleeps.
+    A provider with an empty queue behaves as down (HTTP 503)."""
 
     def __init__(self) -> None:
-        self.queue: list[httpx.Response] = []
+        self.queues: dict[str, list[httpx.Response]] = {"groq": [], "sarvam": [], "gemini": []}
         self.requests: list[dict[str, Any]] = []
         self.slept: list[float] = []
 
     def post(self, provider: str, body: dict[str, Any]) -> httpx.Response:
         self.requests.append({"provider": provider, **body})
-        return self.queue.pop(0)
+        q = self.queues[provider]
+        return q.pop(0) if q else _err(503, headers={"retry-after": "999"})
+
+    def providers(self) -> list[str]:
+        return [r["provider"] for r in self.requests]
 
 
 @pytest.fixture
@@ -61,40 +71,73 @@ def test_strict_schema_inlines_refs_and_requires_everything() -> None:
 
 
 def test_valid_output_is_parsed_and_request_uses_json_schema(fake: Fake) -> None:
-    fake.queue.append(_resp(200, {"reasoning": "r", "items": [{"n": 1}], "note": None}))
-    out = structured("synthesis", Out, "sys", "user", run_name="t", prompt_version="1")
+    fake.queues["groq"].append(_resp(200, {"reasoning": "r", "items": [{"n": 1}], "note": None}))
+    meta: dict[str, str] = {}
+    out = structured("synthesis", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
     assert out.items[0].n == 1
     req = fake.requests[0]
     assert req["provider"] == "groq" and req["response_format"]["json_schema"]["strict"] is True
     assert "max_completion_tokens" in req
+    assert meta["provider"] == "groq" and meta["fallback"] == "false"
 
 
 def test_invalid_output_is_retried_with_the_error(fake: Fake) -> None:
-    fake.queue.extend([_resp(200, "not json"), _resp(200, OK)])
+    fake.queues["groq"].extend([_resp(200, "not json"), _resp(200, OK)])
     assert structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1").reasoning == "r"
     assert "invalid" in fake.requests[1]["messages"][-1]["content"]
 
 
-def test_gives_up_after_bounded_fix_retries(fake: Fake) -> None:
-    fake.queue.extend([_resp(200, "")] * (client.MAX_FIX_RETRIES + 1))
-    with pytest.raises(LLMError, match="empty content"):
-        structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
-
-
-def test_rate_limit_waits_retry_after_then_succeeds(fake: Fake) -> None:
-    fake.queue.extend([_resp(429, headers={"retry-after": "7"}), _resp(200, OK)])
+def test_rate_limit_waits_short_retry_after_then_succeeds(fake: Fake) -> None:
+    fake.queues["groq"].extend([_resp(429, headers={"retry-after": "7"}), _resp(200, OK)])
     structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
-    assert fake.slept == [7.0]
+    assert fake.slept == [7.0] and fake.providers() == ["groq", "groq"]
+
+
+def test_long_retry_after_fails_over_to_gemini_without_waiting(fake: Fake) -> None:
+    fake.queues["groq"].append(_resp(429, headers={"retry-after": "300"}))
+    fake.queues["gemini"].append(_resp(200, OK))
+    meta: dict[str, str] = {}
+    structured("synthesis", Out, "sys", "user", run_name="t", prompt_version="1", meta=meta)
+    assert fake.slept == [] and fake.providers() == ["groq", "gemini"]
+    assert meta == {
+        "provider": "gemini",
+        "model": tier_chain("synthesis")[1].model,
+        "family": "gemini",
+        "fallback": "true",
+    }
+    assert "max_tokens" in fake.requests[1]  # Gemini's OpenAI-compatible body
+
+
+def test_invalid_output_after_fix_retries_fails_over(fake: Fake) -> None:
+    fake.queues["groq"].extend([_resp(200, "")] * (client.MAX_FIX_RETRIES + 1))
+    fake.queues["gemini"].append(_resp(200, OK))
+    assert structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1").reasoning == "r"
+
+
+def test_second_gemini_model_is_tried_when_the_first_is_down(fake: Fake) -> None:
+    fake.queues["groq"].append(_err(400, "bad"))
+    fake.queues["gemini"].extend([_err(503, headers={"retry-after": "999"}), _resp(200, OK)])
+    structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
+    models = [r["model"] for r in fake.requests if r["provider"] == "gemini"]
+    assert models == [t.model for t in tier_chain("analysis")[1:3]]
+
+
+def test_every_provider_failing_raises_with_all_reasons(fake: Fake) -> None:
+    fake.queues["groq"].append(_err(400, "bad schema"))
+    with pytest.raises(LLMError, match="every provider failed") as exc:
+        structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
+    assert "bad schema" in str(exc.value) and "gemini" in str(exc.value)
+
+
+def test_judge_skips_a_fallback_of_the_summarizers_family(fake: Fake) -> None:
+    # Sarvam (the judge) is down; Gemini wrote the summary, so a Gemini judge would grade its own family.
+    with pytest.raises(LLMError, match="family gemini excluded"):
+        structured("judge", Out, "sys", "user", run_name="t", prompt_version="1", exclude_families={"gemini"})
+    assert set(fake.providers()) == {"sarvam"}
 
 
 def test_judge_tier_uses_sarvam_body(fake: Fake) -> None:
-    fake.queue.append(_resp(200, OK))
+    fake.queues["sarvam"].append(_resp(200, OK))
     structured("judge", Out, "sys", "user", run_name="t", prompt_version="1")
     req = fake.requests[0]
     assert req["provider"] == "sarvam" and "max_tokens" in req and req["reasoning_effort"] == "low"
-
-
-def test_client_error_is_not_retried(fake: Fake) -> None:
-    fake.queue.append(httpx.Response(400, text="bad schema", request=httpx.Request("POST", "https://x")))
-    with pytest.raises(LLMError, match="400"):
-        structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")

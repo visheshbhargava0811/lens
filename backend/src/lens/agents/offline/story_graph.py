@@ -40,6 +40,8 @@ class LLM(Protocol):
         run_name: str,
         prompt_version: str,
         tags: list[str] | None = None,
+        exclude_families: set[str] | None = None,
+        meta: dict[str, str] | None = None,
     ) -> Any: ...
 
 
@@ -56,6 +58,7 @@ class StoryState(TypedDict, total=False):
     feedback: str | None
     guards: list[GuardResult]
     prompt_versions: dict[str, str]
+    models: dict[str, dict[str, str]]  # task -> provider/model/family actually used (audit, G-OPS-04)
     errors: list[str]
     outcome: Literal["published", "review", "failed"]
     pruned: list[CitedSentence]
@@ -79,8 +82,13 @@ def _sentences(summary: SummaryDraft) -> str:
 
 
 def build(llm: LLM) -> Any:
-    def call(state: StoryState, task: str, tier: str, model: type[BaseModel], user: str) -> tuple[Any, dict[str, str]]:
+    def call(
+        state: StoryState, task: str, tier: str, model: type[BaseModel], user: str, exclude: set[str] | None = None
+    ) -> tuple[Any, dict[str, Any]]:
+        """Returns the output and the state update recording prompt version and model used.
+        (LangGraph merges only what a node returns, so nodes must return this update.)"""
         system, version = system_prompt(task)
+        meta: dict[str, str] = {}
         out = llm(
             tier,
             model,
@@ -89,21 +97,26 @@ def build(llm: LLM) -> Any:
             run_name=f"story.{task}",
             prompt_version=version,
             tags=[f"story:{state['story_id']}"],
+            exclude_families=exclude,
+            meta=meta,
         )
-        return out, {**state.get("prompt_versions", {}), task: version}
+        return out, {
+            "prompt_versions": {**state.get("prompt_versions", {}), task: version},
+            "models": {**state.get("models", {}), task: meta},
+        }
 
     def claims(state: StoryState) -> dict[str, Any]:
         try:
-            out, versions = call(state, "claims_extraction", "analysis", ClaimList, _user(state))
+            out, rec = call(state, "claims_extraction", "analysis", ClaimList, _user(state))
         except LLMError as e:
             return {"claims": [], "errors": [*state.get("errors", []), f"claims: {e}"]}
         res = check_quotes(out.claims, {e.ref: e for e in state["evidence"]})
         kept = [out.claims[i] for i in res.meta["kept"]]
-        return {"claims": kept, "guards": [*state.get("guards", []), res], "prompt_versions": versions}
+        return {"claims": kept, "guards": [*state.get("guards", []), res], **rec}
 
     def framing(state: StoryState) -> dict[str, Any]:
         try:
-            out, versions = call(state, "framing_contrast", "analysis", StoryFraming, _user(state))
+            out, rec = call(state, "framing_contrast", "analysis", StoryFraming, _user(state))
         except LLMError as e:
             return {"framing": None, "errors": [*state.get("errors", []), f"framing: {e}"]}
         refs = {e.ref for e in state["evidence"]}
@@ -113,14 +126,14 @@ def build(llm: LLM) -> Any:
         return {
             "framing": out if res.passed else None,
             "guards": [*state.get("guards", []), res],
-            "prompt_versions": versions,
+            **rec,
         }
 
     def summarize(state: StoryState) -> dict[str, Any]:
         attempts = state.get("attempts", 0) + 1
         fix = f"\n\n{RETRY_NOTE}\n{state['feedback']}" if state.get("feedback") else ""
         try:
-            out, versions = call(state, "synthesis_system", "synthesis", SummaryDraft, _user(state, fix))
+            out, rec = call(state, "synthesis_system", "synthesis", SummaryDraft, _user(state, fix))
         except LLMError as e:
             return {"summary": None, "attempts": attempts, "errors": [*state.get("errors", []), f"summary: {e}"]}
         res = check_citations(
@@ -132,7 +145,7 @@ def build(llm: LLM) -> Any:
             "attempts": attempts,
             "feedback": None if res.passed else "\n".join(res.meta["sentences"]),
             "guards": [*state.get("guards", []), res],
-            "prompt_versions": versions,
+            **rec,
         }
 
     def judge(state: StoryState) -> dict[str, Any]:
@@ -140,7 +153,11 @@ def build(llm: LLM) -> Any:
         assert summary is not None
         user = _user(state, f"\n\nSentences to check:\n{_sentences(summary)}")
         try:
-            verdict, versions = call(state, "judge_faithfulness", "judge", FaithfulnessVerdict, user)
+            # The judge must not share a family with the model that wrote this summary (docs/08).
+            writer = state.get("models", {}).get("synthesis_system", {}).get("family")
+            verdict, rec = call(
+                state, "judge_faithfulness", "judge", FaithfulnessVerdict, user, exclude={writer} if writer else None
+            )
         except LLMError as e:
             # No verdict means no publication: the summary is never shown unverified.
             return {
@@ -153,7 +170,7 @@ def build(llm: LLM) -> Any:
             "verdict": verdict,
             "feedback": None if res.passed else "\n".join(verdict.unsupported_sentences),
             "guards": [*state.get("guards", []), res],
-            "prompt_versions": versions,
+            **rec,
         }
 
     def prune(state: StoryState) -> dict[str, Any]:

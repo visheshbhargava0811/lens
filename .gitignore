@@ -38,3 +38,4 @@ frontend/playwright-report/
 # Local browser and design-review scratch
 .playwright-mcp/
 .impeccable/review/
+.run/

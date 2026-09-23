@@ -141,7 +141,11 @@ def store(session: Session, story: Story, state: StoryState) -> StorySummary:
         }
         if framing
         else None,
-        model=f"{tier('synthesis').model}; judge {tier('judge').model}",
+        # The models that actually produced this version (primary or fallback), for the audit trail.
+        model=";".join(
+            f"{task}={m.get('provider')}/{m.get('model')}" for task, m in sorted(state.get("models", {}).items())
+        )
+        or f"{tier('synthesis').model}; judge {tier('judge').model}",
         prompt_version=";".join(f"{k}={v}" for k, v in sorted(versions.items())),
         verifier_result={
             "verdict": verdict.model_dump() if verdict else None,

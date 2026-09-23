@@ -4,7 +4,11 @@
 - The provider and model come from config/models.yaml; nothing here names a model.
 - Output is constrained with the provider's JSON-schema mode (never "answer in JSON" prose).
 - Invalid output is retried with the validation error (max `MAX_FIX_RETRIES`); rate limits
-  honour `retry-after` (max `MAX_RATE_RETRIES`). Then `LLMError` is raised for the caller's fallback.
+  honour `retry-after` (max `MAX_RATE_RETRIES`), but a retry-after longer than `FAST_FAIL_WAIT_S`
+  fails over at once instead of stalling.
+- If the tier's primary still fails, the `fallbacks` of that tier are tried in order (Gemini).
+  `exclude_families` skips candidates (the judge must not share a family with the summarizer).
+  `LLMError` is raised only when every candidate failed. `meta` receives the model actually used.
 - Every call is a named LangSmith run carrying tier, model and prompt version.
 Tests replace `_post` (see tests/test_llm_client.py); no test calls a real provider.
 """
@@ -27,11 +31,13 @@ from lens.core.settings import get_settings
 MAX_FIX_RETRIES = 2
 MAX_RATE_RETRIES = 3
 MAX_RATE_WAIT_S = 60.0
+FAST_FAIL_WAIT_S = 20.0  # a longer retry-after means a quota window: fail over to the fallback
 USER_AGENT = "lens-backend/0.1"  # Groq's CDN rejects the default Python-urllib agent
 
 ENDPOINTS = {
     "groq": "https://api.groq.com/openai/v1/chat/completions",
     "sarvam": "https://api.sarvam.ai/v1/chat/completions",
+    "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
 }
 
 
@@ -47,10 +53,10 @@ class Tier:
     max_tokens: int
     temperature: float
     reasoning_effort: str | None = None
+    family: str = ""
 
 
-def tier(name: str) -> Tier:
-    cfg = load_yaml("models.yaml")["tiers"][name]
+def _tier(name: str, cfg: dict[str, Any]) -> Tier:
     if cfg.get("provider") not in ENDPOINTS:
         raise LLMError(f"tier {name!r} has no supported provider configured: {cfg}")
     return Tier(
@@ -60,7 +66,18 @@ def tier(name: str) -> Tier:
         max_tokens=int(cfg.get("max_tokens", 1024)),
         temperature=float(cfg.get("temperature", 0)),
         reasoning_effort=cfg.get("reasoning_effort"),
+        family=cfg.get("family") or cfg["model"],
     )
+
+
+def tier(name: str) -> Tier:
+    return _tier(name, load_yaml("models.yaml")["tiers"][name])
+
+
+def tier_chain(name: str) -> list[Tier]:
+    """The tier's primary, then its configured fallbacks, in order."""
+    cfg = load_yaml("models.yaml")
+    return [tier(name), *(_tier(name, f) for f in (cfg.get("fallbacks") or {}).get(name, []))]
 
 
 def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
@@ -87,7 +104,7 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
 
 def _post(provider: str, body: dict[str, Any]) -> httpx.Response:
     s = get_settings()
-    key = {"groq": s.groq_api_key, "sarvam": s.sarvam_api_key}[provider]
+    key = {"groq": s.groq_api_key, "sarvam": s.sarvam_api_key, "gemini": s.gemini_api_key}[provider]
     if key is None:
         raise LLMError(f"{provider.upper()}_API_KEY is not set")
     headers = {"User-Agent": USER_AGENT, "Content-Type": "application/json"}
@@ -121,13 +138,13 @@ def _send(t: Tier, body: dict[str, Any]) -> dict[str, Any]:
             time.sleep(2**attempt)
             continue
         if r.status_code == 429 or r.status_code >= 500:
-            if attempt == MAX_RATE_RETRIES:
-                raise LLMError(f"{t.provider} returned {r.status_code} after {attempt + 1} tries")
             wait = float(r.headers.get("retry-after") or 2**attempt)
-            time.sleep(min(wait, MAX_RATE_WAIT_S))
+            if attempt == MAX_RATE_RETRIES or wait > FAST_FAIL_WAIT_S:
+                raise LLMError(f"{t.provider}/{t.model} returned {r.status_code} (retry-after {wait:g}s)")
+            time.sleep(wait)
             continue
         if r.status_code != 200:
-            raise LLMError(f"{t.provider} returned {r.status_code}: {r.text[:300]}")
+            raise LLMError(f"{t.provider}/{t.model} returned {r.status_code}: {r.text[:300]}")
         return r.json()  # type: ignore[no-any-return]
     raise AssertionError("unreachable")
 
@@ -141,15 +158,29 @@ def structured[T: BaseModel](
     run_name: str,
     prompt_version: str,
     tags: list[str] | None = None,
+    exclude_families: set[str] | None = None,
+    meta: dict[str, str] | None = None,
 ) -> T:
-    t = tier(tier_name)
-    traced = traceable(
-        name=run_name,
-        run_type="llm",
-        tags=["graph:offline", f"tier:{t.name}", *(tags or [])],
-        metadata={"tier": t.name, "provider": t.provider, "model": t.model, "prompt_version": prompt_version},
-    )(_structured)
-    return cast(T, traced(t, model, system, user))  # traceable erases the return type
+    errors: list[str] = []
+    for i, t in enumerate(tier_chain(tier_name)):
+        if exclude_families and t.family in exclude_families:
+            errors.append(f"{t.provider}/{t.model}: skipped (family {t.family} excluded)")
+            continue
+        traced = traceable(
+            name=run_name if i == 0 else f"{run_name}:fallback",
+            run_type="llm",
+            tags=["graph:offline", f"tier:{t.name}", *(["fallback"] if i else []), *(tags or [])],
+            metadata={"tier": t.name, "provider": t.provider, "model": t.model, "prompt_version": prompt_version},
+        )(_structured)
+        try:
+            out = cast(T, traced(t, model, system, user))  # traceable erases the return type
+        except LLMError as e:
+            errors.append(str(e))
+            continue
+        if meta is not None:
+            meta.update(provider=t.provider, model=t.model, family=t.family, fallback=str(i > 0).lower())
+        return out
+    raise LLMError(f"{tier_name}: every provider failed: " + " | ".join(errors))
 
 
 def _structured[T: BaseModel](t: Tier, model: type[T], system: str, user: str) -> T:
