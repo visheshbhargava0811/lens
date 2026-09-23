@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     langsmith_project: str = "lens-dev"
 
     web_origin: str = "http://localhost:3000"
+    admin_token: SecretStr | None = None  # /api/v1/admin/*; unset disables admin endpoints
 
     # Ingestion. The user agent names the crawler honestly; robots.txt rules are matched against "LensBot".
     ingest_user_agent: str = "LensBot/0.1 (news comparison research prototype)"

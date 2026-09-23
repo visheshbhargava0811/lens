@@ -5,13 +5,17 @@ from collections.abc import Awaitable, Callable
 
 import structlog
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException  # also covers unknown routes (404)
 
 from lens import __version__
-from lens.api.routers import health
+from lens.api.routers import admin, health, public
 from lens.core.logging import configure_logging
 from lens.core.settings import get_settings
 from lens.core.tracing import configure_tracing
+from lens.schemas.common import ErrorBody, ErrorResponse
 
 API_PREFIX = "/api/v1"
 
@@ -40,7 +44,24 @@ def create_app() -> FastAPI:
         response.headers["x-request-id"] = rid
         return response
 
+    # docs/09: every error uses the { error: { code, message } } shape.
+    @app.exception_handler(HTTPException)
+    async def http_error(request: Request, exc: HTTPException) -> JSONResponse:
+        code = {401: "unauthorized", 403: "forbidden", 404: "not_found", 503: "unavailable"}.get(
+            exc.status_code, "http_error"
+        )
+        body = ErrorResponse(error=ErrorBody(code=code, message=str(exc.detail)))
+        return JSONResponse(body.model_dump(exclude_none=True), status_code=exc.status_code)
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        fields = ", ".join(".".join(str(p) for p in e["loc"][1:]) for e in exc.errors())
+        body = ErrorResponse(error=ErrorBody(code="invalid_request", message=f"Check these parameters: {fields}."))
+        return JSONResponse(body.model_dump(exclude_none=True), status_code=422)
+
     app.include_router(health.router, prefix=API_PREFIX)
+    app.include_router(public.router, prefix=API_PREFIX)
+    app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(health.router)  # bare /health for container probes
     return app
 

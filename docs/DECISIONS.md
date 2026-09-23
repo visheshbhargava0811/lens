@@ -114,3 +114,16 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Context: The owner found the Phase 1B UI generic ("looks AI generated") and asked for a look close in tone to Ground News.
 - Decision: Newsprint-grey ground, near-black ink, flat tinted panels, squared corners, Noto Sans 800 headlines, a dark date/language strip, and a flat stance bar with labels set inside the segments. Stance colors stay violet/teal with patterns (no party colors). Only interaction patterns are borrowed, never Ground News assets or exact colors (docs/10). The design system is recorded in `DESIGN.md`; product context in `PRODUCT.md`.
 - Consequences: Line heights stay at the docs/10 values. Compact story cards now show confidence and a methodology link like every other card. The rail heading "Topics to follow" became "Browse topics" until following exists. Nav links to unbuilt routes (For you, Local, Ask, Search, Sign in) still 404; the owner decides whether to hide them or add placeholders.
+
+## ADR-0018: Phase 3 stats rules and API shapes not fixed by the docs (2026-09-23) — proposed, owner to review
+
+- Context: docs/01 and docs/04 §11 define stats and blindspots loosely ("near-zero", "based on source count…"). docs/09 names `/sources`, `/sources/{id}` and `/methodology` without shapes.
+- Decision (stats, all starting values in `config/guardrails.yaml`, tested in `tests/test_stats_coverage.py`):
+  - One stance per distinct source: the most common medium- or high-confidence article stance. A tie, low confidence, `not_applicable` or no stance all count as `unclassified`.
+  - A syndicated copy is dropped only when its original is in the same story, so a source is never lost because the original sits elsewhere.
+  - Coverage confidence is `low` when more than 50% of sources are unclassified or the average stance confidence is below medium. It is `high` with 10+ sources and at most 20% unclassified, and `medium` otherwise.
+  - Factuality confidence depends on the rated share of sources: 80% or more is `high`, 50% or more is `medium`, anything else is `low` (ADR-0008).
+  - Stance blindspot: at least 70% of *classified* sources in one bucket, with at least `min_sources_for_blindspot` (6) classified sources. Language blindspot: at least 90% of 6+ sources in one group (`en` vs `indic`). Stance wins if both apply.
+  - Feed and blindspot lists hide stories with fewer than `feed_min_sources` (2) sources. Otherwise single-article stories (about 78% of the 2026-09-23 data) would flood the feed. Story pages still resolve for them.
+- Decision (API): `/sources` → `{ items: SourceSummary[] }`; `/sources/{id|slug}` → `{ source, ownership[], ratings[], recent_stories, methodology_url }`, with every provenance field shown. `/methodology` serves the live parameters and the list of raters; the prose stays in the translated UI messages. `POST /admin/sources/import` takes the CSV as a raw `text/csv` body (no `python-multipart` dependency) with `Authorization: Bearer $ADMIN_TOKEN`. Admin is disabled when `ADMIN_TOKEN` is unset. Any invalid row rejects the whole file.
+- Consequences: Until Phase 4 stance lands, every story shows 100% unclassified, `low` confidence and no stance blindspots. That is intended; the UI must not suggest otherwise. Thresholds are to be tuned once stance exists.

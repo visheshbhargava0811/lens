@@ -72,7 +72,7 @@ disallow_untyped_defs = true
 files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["lens.schemas.*", "lens.guardrails.*", "lens.retrieval.*"]
+module = ["lens.schemas.*", "lens.guardrails.*", "lens.retrieval.*", "lens.stats.*"]
 strict = true
 
 [[tool.mypy.overrides]]

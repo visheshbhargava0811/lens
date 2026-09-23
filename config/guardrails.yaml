@@ -10,3 +10,16 @@ sensitive_topics:
 route_to_review_for: all     # precomputed + reviewed summaries only
 min_sources_for_bar: 4
 min_sources_for_blindspot: 6
+feed_min_sources: 2            # feed and blindspot lists hide single-source stories (ADR-0018)
+# Coverage stats and blindspots (docs/01, docs/04 section 11). Starting values; tune in Phase 3+.
+stats:
+  blindspot_stance_share: 0.70      # share of classified sources in one stance bucket
+  blindspot_language_share: 0.90    # share of sources in one language group ("near zero" in the other)
+  language_groups: { en: [en] }     # every language not listed falls in group "indic"
+  confidence:
+    high_min_sources: 10
+    high_max_unclassified: 0.20
+    low_max_unclassified: 0.50      # above this share of unclassified sources, confidence is low
+  factuality_confidence:            # by share of the story's sources that have a factuality rating
+    high_min_rated_share: 0.80
+    medium_min_rated_share: 0.50

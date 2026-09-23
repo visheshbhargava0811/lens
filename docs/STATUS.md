@@ -12,6 +12,7 @@ _Last updated: 2026-09-23_
 | 1B UI shell with fixtures | Done | Home, Story, Blindspot and Methodology pages on MSW fixtures, English and Hindi. Review: `reports/phase1b_ui_review.md`. ADR-0008 accepted. Redesigned in a Ground News tone (ADR-0017, `DESIGN.md`) |
 | 1A Sources and ingestion | Done | 24 h acceptance run (ADR-0016) passed 2026-09-22 22:42 UTC: all 17 sources ingested new articles in the window (22 to 6,915 each), 1,947 jobs completed and 0 failed, 0 dead letters. Amar Ujala had 2 "payload is not a feed" errors but still ingested 2,503 articles |
 | 2 Chunk, embed, cluster | Done (pending second-annotator check) | Gold set `data/evals/clustering/gold_v1.jsonl`: 436 articles, 211 stories (93 cross-lingual, 16 hard-negative groups with 42 stories, 29 developing), labeled by the owner 2026-09-23 from `to_label_20260922.csv` (raw: `labeled_20260922_raw.csv`; cleaned: `labeled_20260922_v1.csv`, which drops rows 18-19 and clears hard-negative tags used on only one story). Baseline `reports/clustering_baseline.md`: docs thresholds B³ F1 0.82, cross-lingual recall 0.40; tuned on half A (high 0.72, low 0.62) B³ F1 0.99 on held-out half B. **Optimistic:** the gold set started from the clusterer's own draft groups and only 2 rows changed. On all data the tuned config makes 8 hard-negative merges and has 0.76 cross-lingual precision. Tuned thresholds are in `config/clustering.yaml`. `make cluster` has been run on all indexed articles |
+| 3 Source metadata, stats, UI | In progress | Done: coverage and blindspot math (`lens.stats`, ADR-0018), `make stats` (all 14,942 stories), CSV import for ownership and ratings (`python -m lens.ingest.source_import`, `POST /api/v1/admin/sources/import`), and the public endpoints for feed, stories, articles, blindspots, topics, sources and methodology, with contract and `G-BIAS-01` tests. Next: generate the TS client, switch the frontend from MSW to the API, and connect the methodology parameters. Stance is a stub (all unclassified) until Phase 4. No outlet ratings or ownership are loaded (rule 7): the owner supplies the CSVs |
 
 ## What is running
 
@@ -48,4 +49,6 @@ _Last updated: 2026-09-23_
 
 - Clustering gold set: a second person should label a 20% sample so we can measure agreement. It would show how optimistic the 0.99 score is.
 - Same-outlet duplicates: 45 were stored before the 2026-09-23 fix (same source, same `content_hash`, a new URL within 6 h). They were left in place; new ones are skipped (`fetch.same_source_dup_hours`).
+- Outlet ownership and factuality ratings: provide a CSV (format in `lens/ingest/source_import.py`) with an evidence or method URL on every row. Until then every outlet shows "Not rated".
+- Review ADR-0018 (stats rules, `feed_min_sources: 2`, shapes for `/sources` and `/methodology`).
 - The JS budget is over target (about 163 KB gzipped vs 150).
