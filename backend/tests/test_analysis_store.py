@@ -129,6 +129,7 @@ def test_review_queue_approve_publishes_the_held_version(
         f"/api/v1/admin/review-queue/{items[0]['id']}/resolve", params={"decision": "approve"}, headers=auth
     )
     assert r.json() == {"status": "approved"}
+    assert db.execute(select(ReviewQueueItem.status)).scalar_one() == "approved"
     assert client.get("/api/v1/stories/analysed-story").json()["summary"]["version"] == 1
     again = client.post(
         f"/api/v1/admin/review-queue/{items[0]['id']}/resolve", params={"decision": "approve"}, headers=auth
@@ -153,3 +154,13 @@ def test_masked_refs_become_outlet_names(text: str, expected: str) -> None:
     from lens.services.stories import _unmask
 
     assert _unmask(text, {"A1": "AN-1", "A2": "AN-2"}) == expected
+
+
+def test_review_reject_marks_item_and_version_rejected(db: Session, four: Story) -> None:
+    from lens.services.review import resolve
+
+    row = _analyze(db, four, headline="Court convicts accused in bombing case")
+    item_id = db.execute(select(ReviewQueueItem.id)).scalar_one()
+    assert resolve(db, item_id, "reject", reviewer="t")
+    assert db.execute(select(ReviewQueueItem.status)).scalar_one() == "rejected"
+    assert row.state == "rejected"

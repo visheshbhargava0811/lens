@@ -45,7 +45,8 @@ def resolve(session: Session, item_id: uuid.UUID, decision: Literal["approve", "
         return False
     summary = session.get_one(StorySummary, item.ref_id)
     summary.state = "published" if decision == "approve" else "rejected"
-    item.status, item.assigned_to, item.resolved_at = decision + "d", reviewer, datetime.now(UTC)
+    item.status = "approved" if decision == "approve" else "rejected"
+    item.assigned_to, item.resolved_at = reviewer, datetime.now(UTC)
     return True
 
 
