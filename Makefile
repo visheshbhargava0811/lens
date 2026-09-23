@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster stats eval-summary-ab review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats eval-summary-ab review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval eval-adversarial up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -88,6 +88,10 @@ cluster-label-import:
 
 eval-clustering:
 	$(UVML) python -m lens.evals.clustering_run --name $(or $(NAME),baseline) $(if $(GOLD),--gold $(GOLD),)
+
+# Phase 6: Ask adversarial + benign suites, live (resumable; spends LLM quota). ARGS="--limit 20" to batch.
+eval-adversarial:
+	$(UVML) python -m lens.evals.ask_adversarial --name $(or $(NAME),v1) $(ARGS)
 
 # Phase 5: retrieval ablation (docs/05). QUERIES defaults to queries_v1.jsonl.
 eval-retrieval:

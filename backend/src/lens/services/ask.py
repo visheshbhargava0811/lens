@@ -337,7 +337,7 @@ def record_turn(
         evidence_article_ids=[a.article.article_id for a in ev.articles] if ev else None,
         verifier=mask_any(v.model_dump()) if v is not None else None,
         errors=mask_any(state.get("errors") or []),
-        model_versions=state.get("models"),
+        model_versions={**(state.get("models") or {}), "tokens": state.get("tokens") or {}},
         prompt_versions=state.get("prompt_versions"),
         latency_ms=latency_ms,
     )
@@ -425,8 +425,18 @@ def ask_events(
     yield ("answer_final" if isinstance(final, api.AskAnswer) else "abstain"), final
 
 
-def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any:
+def ask_graph(
+    session: Session,
+    client: QdrantClient,
+    embedder: Embedder,
+    *,
+    checkpoint: bool = True,
+    wrap_retriever: Callable[[Callable[[str, int], Evidence]], Callable[[str, int], Evidence]] | None = None,
+) -> Any:
+    """The production Ask graph. `wrap_retriever` lets evals plant evidence (adversarial set)."""
     retriever = make_retriever(session, client, embedder, lambda: datetime.now(UTC))
+    if wrap_retriever is not None:
+        retriever = wrap_retriever(retriever)
     fcfg = load_yaml("retrieval.yaml")["freshness"]
 
     def freshness() -> dict[str, Any]:
@@ -447,5 +457,5 @@ def ask_graph(session: Session, client: QdrantClient, embedder: Embedder) -> Any
         {"terms": g["attribution"]["allegation_terms"], "markers": g["attribution"]["markers"]},
         freshness,
         fcfg["stale_hours"],
-        checkpointer=ask_checkpointer(),
+        checkpointer=ask_checkpointer() if checkpoint else None,
     )

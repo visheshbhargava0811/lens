@@ -71,6 +71,7 @@ class AskState(TypedDict, total=False):
     guards: list[GuardResult]
     prompt_versions: dict[str, str]
     models: dict[str, dict[str, str]]
+    tokens: dict[str, int]
     errors: list[str]
     pruned: list[CitedSentence]
     ui_lang: str | None  # from the request: output language only (docs/06)
@@ -125,9 +126,12 @@ def build(
             exclude_families=exclude,
             meta=meta,
         )
+        spent = int(meta.get("prompt_tokens", 0)) + int(meta.get("completion_tokens", 0))
+        tokens = state.get("tokens", {})
         return out, {
             "prompt_versions": {**state.get("prompt_versions", {}), task: system[1]},
             "models": {**state.get("models", {}), task: meta},
+            "tokens": {**tokens, task: tokens.get(task, 0) + spent},  # summed over retries (cost per Ask)
         }
 
     def err(state: AskState, where: str, e: Exception) -> list[str]:
