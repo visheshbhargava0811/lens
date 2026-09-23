@@ -93,7 +93,10 @@ def test_api_serves_latest_published_summary_with_numbered_citations(
     s = body["summary"]
     assert s["verified"] is True and s["version"] == 1
     assert [c["n"] for sent in s["sentences"] for c in sent["citations"]] == [1, 2, 3]
-    assert [f["text"] for f in body["framing_differences"]] == ["A1 leads with X.", "Only A2 names Y."]
+    # Masked refs in the text become the cited outlets' names (re-attached in code).
+    diffs = body["framing_differences"]
+    assert diffs[0]["text"] == f"{diffs[0]['citations'][0]['source_name']} leads with X."
+    assert diffs[1]["text"] == f"Only {diffs[1]['citations'][0]['source_name']} names Y."
     assert body["framing_differences"][0]["citations"][0]["n"] == 4  # numbering continues after the summary
     card = next(c for c in client.get("/api/v1/feed").json()["items"] if c["slug"] == "analysed-story")
     assert card["summary_preview"] == "First."
@@ -132,3 +135,21 @@ def test_review_queue_approve_publishes_the_held_version(
     )
     assert again.status_code == 404
     assert client.get("/api/v1/admin/review-queue").status_code == 401
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "Some coverage leads with the score (A1, A2), while other coverage does not (A2).",
+            "Some coverage leads with the score, while other coverage does not.",
+        ),
+        ("According to A2, police made arrests.", "According to AN-2, police made arrests."),
+        ("A1 and A2 agree on the date.", "AN-1 and AN-2 agree on the date."),
+        ("A total of A12 things (Asian Games 2026).", "A total of A12 things (Asian Games 2026)."),  # unknown ref kept
+    ],
+)
+def test_masked_refs_become_outlet_names(text: str, expected: str) -> None:
+    from lens.services.stories import _unmask
+
+    assert _unmask(text, {"A1": "AN-1", "A2": "AN-2"}) == expected

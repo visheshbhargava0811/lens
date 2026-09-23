@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
@@ -128,11 +129,28 @@ def latest_published(session: Session, story_ids: list[uuid.UUID]) -> dict[uuid.
 
 
 def _preview(row: StorySummary | None) -> str | None:
-    return row.summary[0]["text"] if row is not None and row.summary else None
+    if row is None or not row.summary:
+        return None
+    names = {c["ref"]: c["source_name"] for s in row.summary for c in s["citations"] if "ref" in c}
+    return _unmask(row.summary[0]["text"], names)
+
+
+_REF_GROUP = re.compile(r"\s*\((?:A\d+(?:\s*(?:,|and|&)\s*)?)+\)")
+_REF = re.compile(r"\bA(\d+)\b")
+
+
+def _unmask(text: str, names: dict[str, str]) -> str:
+    """The model cites masked refs (A1..An). Readers get outlet names, re-attached in code (docs/06):
+    parenthetical ref lists are dropped (citations are shown as chips) and remaining refs become names."""
+    text = _REF_GROUP.sub("", text)
+    return _REF.sub(lambda m: names.get(f"A{m.group(1)}", m.group(0)), text).strip()
 
 
 def _cited(sections: list[list[dict[str, Any]]], chunk_of: dict[str, str]) -> list[list[api.CitedSentence]]:
     """Stored sentences -> API shape, numbering citations continuously across all sections."""
+    names = {
+        c["ref"]: c["source_name"] for sentences in sections for s in sentences for c in s["citations"] if "ref" in c
+    }
     n = 0
     out: list[list[api.CitedSentence]] = []
     for sentences in sections:
@@ -149,7 +167,7 @@ def _cited(sections: list[list[dict[str, Any]]], chunk_of: dict[str, str]) -> li
                         chunk_id=chunk_of.get(c["article_id"], ""),
                     )
                 )
-            section.append(api.CitedSentence(text=s["text"], citations=cites))
+            section.append(api.CitedSentence(text=_unmask(s["text"], names), citations=cites))
         out.append(section)
     return out
 
@@ -269,7 +287,9 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
             lang=row.lang,
             version=row.version,
             generated_at=row.created_at,
-            verified=(row.verifier_result or {}).get("verdict", {}).get("verdict") == "pass",
+            # Only published rows are served, and publishing requires a judge verdict: every shown
+            # sentence passed it (flagged ones were pruned, see story_graph).
+            verified=(row.verifier_result or {}).get("verdict") is not None,
             sentences=sents,
             agreements=agree,
             disagreements=disagree,
