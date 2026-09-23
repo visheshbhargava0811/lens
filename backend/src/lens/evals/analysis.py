@@ -34,7 +34,7 @@ from lens.agents.prompts import system_prompt
 from lens.core.settings import REPO_ROOT
 from lens.db.models import Article, Claim, GuardEvent, StorySummary
 from lens.db.session import get_engine
-from lens.llm.client import LLMError, structured
+from lens.llm.client import LLMError, structured, tier, tier_chain
 from lens.schemas.analysis import FaithfulnessVerdict
 
 GOLD_DIR = REPO_ROOT / "data/evals/judge_calibration"
@@ -138,14 +138,23 @@ def import_labels(csv_path: Path, annotator: str, name: str) -> Path:
 
 
 def _judge_one(item: dict[str, Any]) -> bool | None:
-    """The production judge prompt on one sentence. None if the judge was unavailable."""
+    """The production judge prompt on one sentence, on the primary judge model only: a fallback
+    would mix two judges into one kappa. None if the primary judge was unavailable."""
+    chain = tier_chain("judge")
+    others = {t.family for t in chain[1:]} - {chain[0].family}
     system, version = system_prompt("judge_faithfulness")
     ev = item["inputs"]["evidence"]
     sentence = item["inputs"]["sentence"]
     user = f"<evidence>\n{ev}\n</evidence>\n\nSentences to check:\n- {sentence} (cites all articles above)"
     try:
         v = structured(
-            "judge", FaithfulnessVerdict, system, user, run_name="eval.judge_calibration", prompt_version=version
+            "judge",
+            FaithfulnessVerdict,
+            system,
+            user,
+            run_name="eval.judge_calibration",
+            prompt_version=version,
+            exclude_families=others,
         )
     except LLMError:
         return None
@@ -204,7 +213,9 @@ def run(name: str, gold: Path | None) -> dict[str, Any]:
             }
         report["judge_calibration"] = {
             "gold": str(gold.relative_to(REPO_ROOT)),
+            "judge": f"{tier('judge').provider}/{tier('judge').model}",
             "n": len(human),
+            "unscored": len(items) - len(human),
             "kappa": _kappa(human, judge),
             "agreement": round(sum(a == b for a, b in zip(human, judge, strict=True)) / len(human), 3)
             if human
@@ -251,7 +262,8 @@ def _markdown(r: dict[str, Any]) -> str:
             "",
             f"## Judge calibration (`{jc['gold']}`)",
             "",
-            f"n = {jc['n']}, Cohen's kappa = **{jc['kappa']}** (target {jc['target']}), "
+            f"Judge `{jc['judge']}` (primary only). n = {jc['n']} ({jc['unscored']} unscored: judge unavailable), "
+            f"Cohen's kappa = **{jc['kappa']}** (target {jc['target']}), "
             f"raw agreement {jc['agreement']}, human-supported share {jc['human_supported_share']}.",
             "",
             "| Languages | n | kappa | agreement |",
