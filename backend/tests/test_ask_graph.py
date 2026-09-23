@@ -98,7 +98,15 @@ def test_happy_path_answers_from_evidence_with_guards() -> None:
     out, llm, ret = _run({QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]})
     assert out["outcome"] == "answer"
     assert ret.calls == [("voter list revision", 30)]  # searched with the neutral query, not the raw one
-    assert {g.guard_id for g in out["guards"]} == {"G-EV-03", "G-EV-01", "G-GEN-01", "G-IN-05", "G-GEN-08", "G-GEN-03"}
+    assert {g.guard_id for g in out["guards"]} == {
+        "G-EV-03",
+        "G-EV-01",
+        "G-GEN-01",
+        "G-IN-05",
+        "G-GEN-08",
+        "G-GEN-03",
+        "G-OUT-05",
+    }
     assert set(out["prompt_versions"]) == {"query_understanding", "ask_synthesis", "judge_faithfulness"}
     assert all(k["tags"] == ["graph:online"] for k in llm.kwargs[AskDraft])
 
@@ -285,3 +293,22 @@ def test_min_evidence_guard() -> None:
     limited = check_min_evidence(_ev(2).articles, 4)
     assert not limited.passed and limited.meta["limited"]
     assert check_min_evidence(_ev(4).articles, 4).passed
+
+
+def test_pii_is_masked_in_answers_logs_and_traces() -> None:
+    from lens.guardrails.pii import mask, mask_any
+
+    text = (
+        "Call 98765 43210 or +91-9876543210, mail a.b@x.in, Aadhaar 2345 6789 0123, PAN ABCDE1234F, car MH 12 AB 1234."
+    )
+    masked, counts = mask(text)
+    assert counts == {"email": 1, "aadhaar": 1, "pan": 1, "phone": 2, "vehicle_plate": 1}
+    assert "9876" not in masked and "ABCDE1234F" not in masked
+    assert mask("Budget of Rs 1,20,000 crore; 2026 polls; 400 seats")[1] == {}  # ordinary figures survive
+    assert mask_any({"q": ["PAN ABCDE1234F"]}) == {"q": ["PAN [pan]"]}
+
+    pii = _draft(tldr="Police said the caller used 9876543210.")
+    out, _, _ = _run({QueryUnderstanding: [_qu()], AskDraft: [pii], FaithfulnessVerdict: [PASS]})
+    d = out["draft"]
+    assert d is not None and d.tldr[0].text == "Police said the caller used [phone]."
+    assert next(g for g in out["guards"] if g.guard_id == "G-OUT-05").action == "redact"

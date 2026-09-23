@@ -14,11 +14,20 @@ def test_tracing_disabled_without_key(monkeypatch: pytest.MonkeyPatch) -> None:
     assert os.environ["LANGSMITH_TRACING"] == "false"
 
 
-def test_tracing_enabled_with_key(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_tracing_enabled_with_key_masks_pii(monkeypatch: pytest.MonkeyPatch) -> None:
+    import langsmith
+
+    from lens.core import tracing
+    from lens.guardrails.pii import mask_any
+
+    configured: dict[str, object] = {}
+    monkeypatch.setattr(langsmith, "configure", lambda **kw: configured.update(kw))  # no real global client
+    monkeypatch.setattr(tracing, "Client", lambda **kw: kw)
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
     s = Settings(langsmith_tracing=True, langsmith_api_key=SecretStr("x"), _env_file=None)
     assert configure_tracing(s) is True
     assert os.environ["LANGSMITH_TRACING"] == "true"
+    assert configured["client"] == {"hide_inputs": mask_any, "hide_outputs": mask_any}  # G-OUT-05 on traces
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
 
 

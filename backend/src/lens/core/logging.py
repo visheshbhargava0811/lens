@@ -5,6 +5,8 @@ import sys
 
 import structlog
 
+from lens.guardrails.pii import structlog_processor
+
 
 def configure_logging(level: str = "INFO", *, json: bool = True) -> None:
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=level.upper())
@@ -21,7 +23,7 @@ def configure_logging(level: str = "INFO", *, json: bool = True) -> None:
             structlog.processors.TimeStamper(fmt="iso", utc=True),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            # TODO(G-OUT-05): PII masking processor goes here before rendering.
+            structlog_processor,  # G-OUT-05: mask PII before anything is rendered
             renderer,
         ],
         wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelName(level.upper())),

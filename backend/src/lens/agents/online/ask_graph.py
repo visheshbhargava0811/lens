@@ -24,6 +24,7 @@ from lens.agents.prompts import skill, system_prompt
 from lens.guardrails.base import GuardResult
 from lens.guardrails.evidence import check_injection, check_min_evidence, redact_injection
 from lens.guardrails.generation import check_citations, check_faithfulness, check_premises, check_scope
+from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
 from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, cited_sections
@@ -254,7 +255,27 @@ def build(
         return "answer" if state.get("draft") is not None else "fallback"
 
     def answer(state: AskState) -> dict[str, Any]:
-        return {"outcome": "answer"}
+        """G-OUT-05 on the verified draft: personal identifiers are masked before anything is sent."""
+        d = state["draft"]
+        assert d is not None
+        texts = [x.text for sec in cited_sections(d).values() for x in sec] + d.follow_up_questions
+        res = check_pii(texts)
+        if not res.passed:
+
+            def m(xs: list[CitedSentence]) -> list[CitedSentence]:
+                return [x.model_copy(update={"text": mask(x.text)[0]}) for x in xs]
+
+            d = d.model_copy(
+                update={
+                    **{k: m(getattr(d, k)) for k in SECTIONS},
+                    "premises": [
+                        p.model_copy(update={"evidence_says": m([p.evidence_says])[0]}) if p.evidence_says else p
+                        for p in d.premises
+                    ],
+                    "follow_up_questions": [mask(q)[0] for q in d.follow_up_questions],
+                }
+            )
+        return {"outcome": "answer", "draft": d, "guards": [*state.get("guards", []), res]}
 
     def fallback(state: AskState) -> dict[str, Any]:
         """docs/06 fallback_precomputed: the stored, already-verified story summary, else abstain."""

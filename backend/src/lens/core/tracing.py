@@ -6,7 +6,8 @@ from the process environment, so settings are exported there at startup.
 
 import os
 
-from langsmith import traceable
+import langsmith
+from langsmith import Client, traceable
 
 from lens.core.settings import Settings
 
@@ -18,6 +19,12 @@ def configure_tracing(settings: Settings) -> bool:
     os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
     if settings.langsmith_api_key is not None:
         os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key.get_secret_value()
+    if enabled:
+        from lens.guardrails.pii import mask_any
+
+        # G-OUT-05: every run's inputs and outputs are masked on the client before they are sent,
+        # including LangGraph's own tracer (it uses this global client).
+        langsmith.configure(client=Client(hide_inputs=mask_any, hide_outputs=mask_any))
     return enabled
 
 
