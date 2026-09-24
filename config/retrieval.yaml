@@ -23,6 +23,6 @@ retry:
   widen_window_days: [30, 90]
 freshness:
   enabled: true
-  timeout_s: 8
+  timeout_s: 3
   max_articles: 20
   stale_hours: 6             # G-EV-04: newest evidence older than this triggers freshness once, then a "latest report" note
