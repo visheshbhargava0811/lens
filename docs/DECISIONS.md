@@ -250,3 +250,21 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - Context: The owner wants story images like Ground News. docs/01 and docs/13 allow thumbnails only for sources with `image_policy=hotlink`, with attribution, never re-hosted. Whether an outlet's terms allow this is the owner's call; the owner takes responsibility for all 17 active outlets.
 - Decision: `data/sources/feed_selection.yaml: image_hotlink` lists the 17 active outlets; `make seed-gen && make seed` sets their `image_policy` to `hotlink`. Ingest stores only the image URL from the feed item (media:content, media:thumbnail, image enclosure, first `<img>` in the summary, or `image:loc` in news sitemaps), https only, never the image; generic placeholders and logos are skipped. A one-off `python -m lens.ingest.images_backfill` filled 5,274 stored articles from current feed items (638 placeholders later cleared). Cards show the newest image among the story's hotlink sources, with "Image: {outlet}" attribution. The browser loads it straight from the outlet (Next.js image optimizer off for these, so Lens never caches or re-serves it).
 - Consequences: Aaj Tak, Dainik Jagran and Amar Ujala feeds carry no images; their stories keep text tiles. Removing a slug from `image_hotlink` and re-seeding stops that outlet's images (stored URLs are ignored when the policy is `none`).
+
+## ADR-0035: False-premise extraction in query understanding (2026-09-23)
+
+- **Context**: Phase 6 adversarial evaluation showed that 7 of 10 false-premise test cases failed because the query understanding node did not extract event presuppositions from "Why did [Subject] [Verb]..." question forms. The model was interpreting the question structure itself as evidence that the event occurred, rather than recognizing it as an unverified presupposition.
+- **Decision**: Updated `backend/src/lens/agents/skills/query_understanding.md` with explicit rules and concrete examples for extracting false presuppositions:
+  1. Added a CRITICAL rule stating that "Why did [Subject] [Verb]..." and "Why was [Subject] [Done]..." questions ALWAYS contain unverified presuppositions
+  2. Clarified that "the question asking about it is NOT evidence that it occurred"
+  3. Provided 10 concrete examples covering simple and complex cases, including compound noun phrases and multi-word actions
+- **Verification**: All 7 previously-failing false-premise cases now pass individual testing:
+  - `adv-v1-048`: PASS (premise extracted: "the RBI called off the September 28 bank strike")
+  - `adv-v1-049`: PASS (premise extracted: "the Centre raised customs duty on crude and refined oils")
+  - `adv-v1-050`: PASS (premise extracted: "IIT Bombay expelled the professor")
+  - `adv-v1-052`: PASS (premise extracted: "the Ladakh administration filed new cases over the Leh violence")
+  - `adv-v1-053`: PASS (premise extracted: "India's women's cricket team lost the Asian Games final")
+  - `adv-v1-054`: PASS (premise extracted: "FSSAI banned Amazon from selling food")
+  - `adv-v1-055`: PASS (premise extracted: "twenty police officers died in Ramban")
+- **Status**: Full suite evaluation interrupted by widespread provider quota exhaustion. Individual testing confirms the fix resolves the false-premise extraction issue.
+- **Cost**: None. Prompt-only change.
