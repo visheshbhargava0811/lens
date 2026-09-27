@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, cast
 
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel
@@ -33,7 +33,7 @@ from lens.guardrails.generation import (
     check_sensitive,
     check_translation,
 )
-from lens.guardrails.input import check_language, check_user_injection
+from lens.guardrails.input import check_language, check_premises_recorded, check_user_injection
 from lens.guardrails.input import check_scope as check_intent
 from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
@@ -104,7 +104,11 @@ def build(
     stale_hours: float = 6,
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
     checkpointer: Any = None,
+    judge_retries: int = MAX_VERIFIER_RETRIES,
+    loaded_terms: list[str] | None = None,
 ) -> Any:
+    loaded_terms = loaded_terms or []
+
     def call(
         state: AskState,
         task: str,
@@ -163,6 +167,20 @@ def build(
                 "errors": err(state, "understand", e),
                 "guards": guards,
             }
+        rec_q = check_premises_recorded(text, qu.removed_premises, loaded_terms)  # G-IN-05, recorded half
+        guards.append(rec_q)
+        if not rec_q.passed and qu.intent != "unsupported":
+            try:  # one retry with the reason; an answer still follows if the model again finds none
+                qu, rec = call(
+                    cast(AskState, {**state, **rec}),  # tokens sum over both calls
+                    "query_understanding",
+                    "query_understanding",
+                    QueryUnderstanding,
+                    (s.text, f"query_understanding@{s.version}"),
+                    f"{user}\n\nA check of your first reading found a problem: {rec_q.meta['feedback']}",
+                )
+            except LLMError as e:
+                rec |= {"errors": err(state, "understand", e)}
         guards += [
             check_intent(qu.intent, qu.rationale),  # G-IN-01
             check_language(qu.language, qu.language_confidence, min_language_confidence),  # G-IN-04
@@ -318,7 +336,7 @@ def build(
             return "fallback"
         if v.verdict == "pass" and not v.unsupported_sentences:
             return "answer"
-        return "synthesize" if state.get("attempts", 0) <= MAX_VERIFIER_RETRIES else "prune"
+        return "synthesize" if state.get("attempts", 0) <= judge_retries else "prune"
 
     def prune(state: AskState) -> dict[str, Any]:
         """G-GEN-03 fallback: keep only sentences the judge did not flag (all were checked)."""

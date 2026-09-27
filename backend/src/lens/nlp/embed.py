@@ -88,11 +88,18 @@ def _best_device() -> str:
     return "cpu"
 
 
+class EmbeddingUnavailableError(RuntimeError):
+    """The local embedding model could not be loaded (missing weights or ML stack)."""
+
+
 @lru_cache
 def get_embedder() -> Embedder:
     tier = load_yaml("models.yaml")["tiers"]["embedding"]
     if tier.get("provider") == "local" and tier.get("model") == "BAAI/bge-m3":
-        return BGEM3Embedder(tier["model"], tier.get("device"))
+        try:
+            return BGEM3Embedder(tier["model"], tier.get("device"))
+        except (OSError, ImportError) as e:
+            raise EmbeddingUnavailableError(f"embedding service unavailable: {e}") from e
     if tier.get("provider") == "test":
         return HashEmbedder()
     raise ValueError(f"unsupported embedding tier: {tier}")

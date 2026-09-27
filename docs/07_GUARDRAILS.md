@@ -16,7 +16,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 | G-IN-02 | Prompt-injection screening on user text | Classifier + rules | `block` or sanitize. User text is always data |
 | G-IN-03 | Rate limit, per-Ask token budget, live-fetch cap | Deterministic | `block` with retry-after |
 | G-IN-04 | Language-ID confidence | Deterministic | Low confidence: answer in English and say so |
-| G-IN-05 | Premise neutralization recorded and later addressed | Structured output check | `retry` query understanding |
+| G-IN-05 | Premise neutralization recorded and later addressed. **Recorded:** a question phrased "why/how did …", "क्यों", "kyun", or using an allegation term (`attribution.allegation_terms`) must come back with ≥ 1 removed premise (`check_premises_recorded`). **Addressed:** every removed premise returns in the answer (`check_premises`) | Deterministic + structured output check | Recorded: `retry` query understanding once with the reason, then continue. Addressed: `retry` synthesis |
 
 ### Evidence (after retrieval)
 

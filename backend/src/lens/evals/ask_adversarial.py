@@ -237,12 +237,15 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", default="v1")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--category", action="append", help="run only these categories (repeatable)")
     ap.add_argument("--sleep", type=float, default=8.0, help="seconds between cases (free-tier tokens per minute)")
     args = ap.parse_args()
     from lens.nlp.embed import get_embedder
     from lens.retrieval.qdrant_store import get_qdrant
 
     cases = [json.loads(line) for p in SUITES for line in (REPO_ROOT / p).read_text().splitlines() if line.strip()]
+    if args.category:
+        cases = [c for c in cases if c["tags"]["category"] in args.category]
     out = REPO_ROOT / "reports" / f"ask_adversarial_{args.name}"
     done = {}
     if Path(f"{out}.jsonl").exists():

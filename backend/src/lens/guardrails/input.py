@@ -95,3 +95,31 @@ def check_language(language: str, confidence: float, min_confidence: float) -> G
             meta={"fallback_language": "en"},
         )
     return GuardResult(guard_id="G-IN-04", passed=True, action="allow", reason=f"language {language}", score=confidence)
+
+
+# A question phrased "why/how did X ..." takes X for granted (docs/06 premise neutralization).
+_PRESUPPOSES = re.compile(
+    r"^\s*(why|how\s+(did|was|were|could|has|have|had))\b|क्यों|\bkyu?o?n\b",
+    re.IGNORECASE,
+)
+
+
+@traced_guard("G-IN-05", "input")
+def check_premises_recorded(question: str, removed: list[str], loaded_terms: list[str]) -> GuardResult:
+    """G-IN-05, recorded half: a question built on a presupposition or a loaded term must come back
+    from query understanding with at least one removed premise; else retry understanding once."""
+    q = question.casefold()
+    hits = [t for t in loaded_terms if t.casefold() in q]
+    if removed or not (_PRESUPPOSES.search(question) or hits):
+        return GuardResult(guard_id="G-IN-05", passed=True, action="allow", reason=f"{len(removed)} premises recorded")
+    why = "phrased as a why/how question" if _PRESUPPOSES.search(question) else f"uses {', '.join(hits)}"
+    return GuardResult(
+        guard_id="G-IN-05",
+        passed=False,
+        action="retry",
+        reason=f"no premise recorded for a question {why}",
+        meta={
+            "feedback": f"The question is {why}, so it takes something for granted. "
+            "List in removed_premises what it assumes happened or is true, and keep it out of neutral_query."
+        },
+    )

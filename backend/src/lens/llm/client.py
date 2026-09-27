@@ -55,6 +55,7 @@ class Tier:
     reasoning_effort: str | None = None
     family: str = ""
     account: int = 1  # which API key of the provider (GROQ_API_KEY, GROQ_API_KEY_2, GROQ_API_KEY_3)
+    max_wait_s: float = FAST_FAIL_WAIT_S  # longest retry-after worth sleeping before failing over
 
 
 def _tier(name: str, cfg: dict[str, Any]) -> Tier:
@@ -69,6 +70,7 @@ def _tier(name: str, cfg: dict[str, Any]) -> Tier:
         reasoning_effort=cfg.get("reasoning_effort"),
         family=cfg.get("family") or cfg["model"],
         account=int(cfg.get("account", 1)),
+        max_wait_s=float((load_yaml("models.yaml").get("max_wait_s") or {}).get(name, FAST_FAIL_WAIT_S)),
     )
 
 
@@ -155,7 +157,7 @@ def _send(t: Tier, body: dict[str, Any]) -> dict[str, Any]:
             continue
         if r.status_code == 429 or r.status_code >= 500:
             wait = float(r.headers.get("retry-after") or 2**attempt)
-            if attempt == MAX_RATE_RETRIES or wait > FAST_FAIL_WAIT_S:
+            if attempt == MAX_RATE_RETRIES or wait > t.max_wait_s:
                 raise LLMError(f"{_name(t)} returned {r.status_code} (retry-after {wait:g}s)")
             time.sleep(wait)
             continue
@@ -218,7 +220,8 @@ def _structured[T: BaseModel](t: Tier, model: type[T], system: str, user: str) -
         for k in usage:
             usage[k] += int((data.get("usage") or {}).get(k) or 0)
         choice = (data.get("choices") or [{}])[0]
-        content = choice.get("message", {}).get("content") or ""
+        # Models occasionally emit NUL; Postgres text/JSONB rejects it, which crashed the audit write.
+        content = (choice.get("message", {}).get("content") or "").replace("\\u0000", "").replace("\x00", "")
         try:
             return model.model_validate(json.loads(content)), usage
         except (json.JSONDecodeError, ValidationError) as e:

@@ -458,4 +458,6 @@ def ask_graph(
         freshness,
         fcfg["stale_hours"],
         checkpointer=ask_checkpointer() if checkpoint else None,
+        judge_retries=g["ask"]["max_judge_retries"],
+        loaded_terms=g["attribution"]["allegation_terms"],
     )

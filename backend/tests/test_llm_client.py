@@ -9,7 +9,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 from lens.llm import client
-from lens.llm.client import LLMError, strict_schema, structured, tier_chain
+from lens.llm.client import LLMError, strict_schema, structured, tier, tier_chain
 
 
 class Inner(BaseModel):
@@ -81,6 +81,12 @@ def test_valid_output_is_parsed_and_request_uses_json_schema(fake: Fake) -> None
     assert meta["provider"] == "groq" and meta["fallback"] == "false"
 
 
+def test_nul_characters_are_stripped_so_outputs_can_be_stored(fake: Fake) -> None:
+    fake.queues["groq"].append(_resp(200, {"reasoning": "strike on 27\u0000 September", "items": [], "note": None}))
+    out = structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
+    assert out.reasoning == "strike on 27 September"  # Postgres rejects NUL in text and JSONB
+
+
 def test_invalid_output_is_retried_with_the_error(fake: Fake) -> None:
     fake.queues["groq"].extend([_resp(200, "not json"), _resp(200, OK)])
     assert structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1").reasoning == "r"
@@ -91,6 +97,14 @@ def test_rate_limit_waits_short_retry_after_then_succeeds(fake: Fake) -> None:
     fake.queues["groq"].extend([_resp(429, headers={"retry-after": "7"}), _resp(200, OK)])
     structured("analysis", Out, "sys", "user", run_name="t", prompt_version="1")
     assert fake.slept == [7.0] and fake.providers() == ["groq", "groq"]
+
+
+def test_interactive_tiers_fail_over_instead_of_sleeping(fake: Fake) -> None:
+    # The same 7 s retry-after that analysis sleeps through (above) makes an Ask tier move on at once.
+    assert tier("ask_synthesis").max_wait_s < 7 <= tier("analysis").max_wait_s
+    fake.queues["groq"].extend([_resp(429, headers={"retry-after": "7"}), _resp(200, OK)])
+    structured("ask_synthesis", Out, "sys", "user", run_name="t", prompt_version="1")
+    assert fake.slept == [] and len(fake.requests) == 2  # second request went to the next candidate
 
 
 def test_long_retry_after_fails_over_to_gemini_without_waiting(fake: Fake) -> None:

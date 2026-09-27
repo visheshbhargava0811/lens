@@ -25,6 +25,7 @@ _INJECTION = re.compile(
     r"|\byou\s+are\s+(now\s+)?(an?\s+)?(ai|assistant|language\s+model|chatgpt|claude|llm)\b"
     r"|\b(system|developer)\s+(prompt|message|instructions)\b"
     r"|\byou\s+are\s+now\s+dan\b|\bdo\s+anything\s+now\b"
+    r"|\[\s*/?\s*(assistant|system|user|inst)\s*\]|<\|?\s*(im_start|im_end|system|assistant)\s*\|?>"  # chat role tags
     r"|पिछले\s+(सभी\s+)?निर्देश(ों)?\s+(को\s+)?(अनदेखा|नज़रअंदाज़|नजरअंदाज)"
     r"|सिस्टम\s+प्रॉम्प्ट",
     re.IGNORECASE,

@@ -16,7 +16,7 @@ from lens.core.config_files import load_yaml
 from lens.core.settings import get_settings
 from lens.db.session import get_engine
 from lens.guardrails.input import check_rate, client_key
-from lens.nlp.embed import get_embedder
+from lens.nlp.embed import EmbeddingUnavailableError, get_embedder
 from lens.retrieval.qdrant_store import get_qdrant
 from lens.schemas import api
 from lens.schemas.common import ErrorResponse
@@ -68,6 +68,16 @@ def ask(body: api.AskRequest, _: Annotated[None, Depends(before_stream)]) -> Ite
                 if event in ("answer_final", "abstain"):
                     db.commit()  # the audit row (G-OPS-04) is stored before the answer is sent
                 yield ServerSentEvent(event=event, data=payload)
+        except EmbeddingUnavailableError:
+            log.exception("ask.embedding_unavailable")
+            yield ServerSentEvent(
+                event="abstain",
+                data=api.AskAbstain(
+                    reason="service_unavailable",
+                    message="Lens can't answer right now. Please try again in a few minutes.",
+                    closest_stories=[],
+                ),
+            )
         except Exception:
             log.exception("ask.failed")  # query text is not logged (PII, G-OUT-05)
             err = api.AskError(code="internal", message="Something went wrong. Please try again.", retry_after_s=5)

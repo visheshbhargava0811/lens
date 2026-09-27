@@ -22,6 +22,10 @@ tiers:
   # Ask localization (Phase 6): verified English answers rendered in Hindi; checked by G-OUT-06.
   translation:         { provider: groq, account: 3, model: openai/gpt-oss-120b, family: gpt-oss, max_tokens: 4096, temperature: 0, reasoning_effort: low }
   tts:                 { provider: TBD, model: TBD }
+# Longest rate-limit retry-after a tier sleeps before failing over to its next candidate (default 20 s).
+# Ask is interactive and every Ask tier has fallbacks on other keys and Gemini: a 20 s sleep set the
+# p95 (v5: an 80 s Ask with no guard failures). reports/ask_adversarial_v6.md
+max_wait_s: { query_understanding: 3, ask_synthesis: 3, ask_judge: 3, translation: 3 }
 # Tried in order when a tier's primary fails after its own retries: rate limit (or a retry-after
 # too long to wait), outage, invalid output, or a missing key. Gemini free tier: 20 requests/day
 # per model, so each model is its own fallback slot. `family` keeps the judge independent: a judge
