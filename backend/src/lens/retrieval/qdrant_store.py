@@ -118,10 +118,12 @@ def upsert_article_vectors(
     )
 
 
-def fetch_article_vectors(client: QdrantClient, ids: Sequence[str]) -> dict[str, np.ndarray]:
+def fetch_article_vectors(
+    client: QdrantClient, ids: Sequence[str], collection: str = ARTICLES
+) -> dict[str, np.ndarray]:
     out: dict[str, np.ndarray] = {}
     for start in range(0, len(ids), 256):
-        for rec in client.retrieve(ARTICLES, ids=list(ids[start : start + 256]), with_vectors=["dense"]):
+        for rec in client.retrieve(collection, ids=list(ids[start : start + 256]), with_vectors=["dense"]):
             vec = rec.vector["dense"] if isinstance(rec.vector, dict) else rec.vector
             out[str(rec.id)] = np.asarray(vec, dtype=np.float32)
     return out

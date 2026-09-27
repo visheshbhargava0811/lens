@@ -20,6 +20,7 @@ type Props = {
 /** Lead story beside the rail, then a full-width ruled grid. On mobile the rail follows the lead. */
 export function FeedLayout({ heading, page, emptyMessage, blindspots, topicSlugs, topic }: Props) {
   const t = useTranslations("home");
+  const tt = useTranslations("topics");
   // Lead with the newest story that has enough sources for a coverage bar; the newest story may be a
   // two-source item that leaves the lead slot bare. Falls back to the newest when none qualifies.
   const hero = page.items.find((s) => s.coverage.available) ?? page.items[0];
@@ -60,7 +61,7 @@ export function FeedLayout({ heading, page, emptyMessage, blindspots, topicSlugs
               href={`/topic/${tp.slug}`}
               className="inline-flex h-8 items-center rounded-chip bg-surface px-3 text-sm font-bold hover:bg-line"
             >
-              {tp.name}
+              {tt.has(tp.slug) ? tt(tp.slug) : tp.name}
             </Link>
           </li>
         ))}

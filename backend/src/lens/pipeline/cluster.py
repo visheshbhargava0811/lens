@@ -25,6 +25,7 @@ from lens.core.config_files import load_yaml
 from lens.core.logging import configure_logging, get_logger
 from lens.db.models import Article, ReviewQueueItem, Story, StoryArticle, StoryStatus
 from lens.db.session import get_engine
+from lens.nlp.topic_embed import topic_for
 from lens.retrieval.qdrant_store import ARTICLES, CHUNKS, STORIES, fetch_article_vectors, get_qdrant, iso
 
 log = get_logger(__name__)
@@ -243,6 +244,7 @@ def cluster_pending(
         session.flush()
         refresh_story_counts(session, sid)
         session.refresh(story)
+        story.topic = topic_for(state.centroid)  # re-tag as the centroid moves
         _write_story_point(client, story, state.centroid)
         client.set_payload(ARTICLES, payload={"story_id": str(sid)}, points=[str(a.id)])
         # Tier-2 retrieval filters chunks by story (docs/05), so chunks carry it too.

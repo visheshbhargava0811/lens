@@ -268,3 +268,10 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
   - `adv-v1-055`: PASS (premise extracted: "twenty police officers died in Ramban")
 - **Status**: Full suite evaluation interrupted by widespread provider quota exhaustion. Individual testing confirms the fix resolves the false-premise extraction issue.
 - **Cost**: None. Prompt-only change.
+
+## ADR-0036: Story topics from centered centroid prototypes (2026-09-27)
+
+- **Context**: every story had `topic = NULL`, so the header's topic tabs (`/topic/<slug>`) were empty. Keyword rules alone tag ~50% of feed stories at 0.61 precision: over half the feed is local crime, accidents, courts and weather, which fit none of the 8 topics, and keywords misfile them.
+- **Decision**: `lens.nlp.topic_embed`. Keyword rules (`lens.nlp.topic_classifier`) only pick seed stories (≥ 2 member articles, all voting one topic). Each topic's prototype is the mean of its seeds' story centroids after subtracting the mean story centroid (BGE-M3 vectors are anisotropic; uncentered prototypes lose to keywords). A story is tagged with the nearest prototype when cosine ≥ `topics.min_sim`, else left untagged. Re-tagged on every centroid update in `cluster_pending`; prototypes live in `data/topics/prototypes.npz` (`make topic-prototypes`), full re-tag `make classify-topics`.
+- **Eval** (`make eval-topics`, `reports/topics_v1.md`, 160 feed stories in `data/evals/topics/gold_v1.jsonl`, labels Claude-drafted, reviewed and accepted by the owner 2026-09-27 with minor deviations; tuned on half A, held-out half B): centered prototypes accuracy 0.887, precision 0.864, recall 0.781, F1 0.820, coverage 0.275 vs keywords 0.750 / 0.610 / 0.812 / 0.697 / 0.512.
+- **Known gap**: science has only 2 gold stories; in live data its top stories are school "environment awareness" events (seed keywords "environment"/"पर्यावरण"). No crime/courts/local topic exists, so those stay untagged by design.

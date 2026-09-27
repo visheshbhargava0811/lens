@@ -21,3 +21,9 @@ batch:                           # nightly HDBSCAN pass: proposes merges only, n
   min_cluster_size: 2
   min_samples: 1
   max_auto_story_size: 0         # docs/04: merges and splits need verifier approval
+topics:                          # story topic tagging from centroids (lens.nlp.topic_embed); tuned in reports/topics_v1.md
+  seed_min_votes: 2              # seed stories: >= this many member articles, all voting one keyword topic
+  seed_max_per_topic: 2000
+  mean_sample: 5000              # story centroids averaged to center vectors (BGE-M3 is anisotropic)
+  min_sim: 0.28                  # tuned on gold_v1 half A (topical F1); held-out B: precision 0.86, F1 0.82
+  min_margin: 0.0                # (keyword rules: 0.61 / 0.70). reports/topics_v1.md
