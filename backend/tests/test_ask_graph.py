@@ -166,7 +166,11 @@ def test_unsupported_sentences_retry_then_prune_keeps_only_verified() -> None:
 
 def test_zero_judge_retries_prunes_after_one_draft() -> None:
     bad = "Phase 2 followed."
-    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [_fail(bad)]}
+    script: dict[type, list[Any]] = {
+        QueryUnderstanding: [_qu()],
+        AskDraft: [_draft()],
+        FaithfulnessVerdict: [_fail(bad)],
+    }
     out, llm, _ = _run(script, judge_retries=0)
     assert len(llm.prompts[AskDraft]) == 1 and len(llm.prompts[FaithfulnessVerdict]) == 1
     assert out["outcome"] == "answer" and bad in [x.text for x in out["pruned"]]
@@ -219,7 +223,7 @@ def test_premise_recorded_guard() -> None:
 
 
 def test_missing_premise_retries_understanding_once() -> None:
-    script = {
+    script: dict[type, list[Any]] = {
         QueryUnderstanding: [_qu(), _qu(premises=[PREMISE])],
         AskDraft: [_draft([PremiseNote(premise=PREMISE, evidence_says=None)])],
         FaithfulnessVerdict: [PASS],
@@ -229,11 +233,12 @@ def test_missing_premise_retries_understanding_once() -> None:
         len(llm.prompts[QueryUnderstanding]) == 2
         and "takes something for granted" in llm.prompts[QueryUnderstanding][1]
     )
-    assert out["qu"].removed_premises == [PREMISE]
+    qu = out["qu"]
+    assert qu is not None and qu.removed_premises == [PREMISE]
 
 
 def test_plain_question_does_not_retry_understanding() -> None:
-    script = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
     _, llm, _ = _run(script, query="What happened with the voter list revision?")
     assert len(llm.prompts[QueryUnderstanding]) == 1
 
