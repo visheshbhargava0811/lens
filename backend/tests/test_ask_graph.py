@@ -389,6 +389,10 @@ def test_pii_is_masked_in_answers_logs_and_traces() -> None:
     assert mask("Budget of Rs 1,20,000 crore; 2026 polls; 400 seats")[1] == {}
     assert mask("Delhi car DL 3C AB 1234")[0] == "Delhi car [vehicle_plate]"  # ordinary figures survive
     assert mask_any({"q": ["PAN ABCDE1234F"]}) == {"q": ["PAN [pan]"]}
+    # ids are not PII: an all-digit last group once read as Aadhaar and corrupted stored citations
+    uid = "ee988960-6607-442b-b174-234567890123"
+    assert mask(f"cited {uid}, Aadhaar 2345 6789 0123")[0] == f"cited {uid}, Aadhaar [aadhaar]"
+    assert mask_any({"article_id": uid}) == {"article_id": uid}
 
     pii = _draft(tldr="Police said the caller used 9876543210.")
     out, _, _ = _run({QueryUnderstanding: [_qu()], AskDraft: [pii], FaithfulnessVerdict: [PASS]})

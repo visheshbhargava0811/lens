@@ -19,3 +19,11 @@ gates:
 # docs/08 review loop (lens.ops.annotation): failed guard runs go to the LangSmith annotation queue.
 annotation:
   sweep_hours: 48                  # look-back per sweep; runs already queued are skipped
+
+# docs/08 online evaluators (lens.ops.online_eval), run by the pipeline worker every pass.
+online_eval:
+  sample_pct: 20                   # deterministic share of Ask turns scored
+  judge_per_pass: 2                # LLM faithfulness re-checks per pass; Ask keeps the free-tier quota
+  lookback_hours: 24               # turns older than this are never evaluated
+  min_samples_for_alert: 5
+  floors: { citation_presence: 1.0, premise_handled: 0.95, faithfulness: 0.95 }   # 24 h mean; below logs an alert

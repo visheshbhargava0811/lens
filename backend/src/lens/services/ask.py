@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from lens.agents.offline.evidence import ArticleIn, EvidenceArticle, article_text
 from lens.agents.online.ask_graph import AskState, Evidence, build
 from lens.core.config_files import load_yaml
+from lens.core.settings import get_settings
 from lens.db.checkpoint import ask_checkpointer
 from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story
 from lens.guardrails.pii import mask, mask_any
@@ -322,8 +323,9 @@ def record_turn(
         sid = uuid.uuid4()
     qu, ev, v = state.get("qu"), state.get("evidence"), state.get("verdict")
     outcome = state.get("outcome") or "error"
+    tid = turn_id or uuid.uuid4()
     turn = AskTurn(
-        id=turn_id or uuid.uuid4(),
+        id=tid,
         session_id=sid,
         raw_query=mask(query)[0],
         neutral_query=mask(qu.neutral_query)[0] if qu else None,
@@ -339,6 +341,7 @@ def record_turn(
         errors=mask_any(state.get("errors") or []),
         model_versions={**(state.get("models") or {}), "tokens": state.get("tokens") or {}},
         prompt_versions=state.get("prompt_versions"),
+        langsmith_run_id=str(tid) if turn_id and get_settings().langsmith_tracing else None,
         latency_ms=latency_ms,
     )
     session.add(turn)
@@ -384,7 +387,8 @@ def ask_events(
 
     t0 = time.monotonic()
     turn_id = uuid.uuid4()  # also the checkpoint thread id, so an audit row leads to its checkpoints
-    config = {"configurable": {"thread_id": str(turn_id)}}
+    # The turn id is also the LangSmith root run id, so audit rows link to traces (online evals, docs/08).
+    config = {"configurable": {"thread_id": str(turn_id)}, "run_id": turn_id}
     yield "status", api.AskStatus(step="understanding", message="Understanding the question")
     state: dict[str, Any] = dict(initial_state(query, ui_lang))
     sent_status: set[str] = set()

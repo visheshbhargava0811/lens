@@ -50,7 +50,10 @@ def queue_id(c: Client) -> str:
 
 
 async def _failed_guard_runs(c: Client, project_id: str, since: datetime) -> list[RunKey]:
-    runs = c.runs.query(project_ids=[project_id], min_start_time=since, filter=FAILED_GUARDS)
+    # The query API returns only `id` unless fields are selected; RunKey needs the start time.
+    runs = c.runs.query(
+        project_ids=[project_id], min_start_time=since, filter=FAILED_GUARDS, selects=["ID", "START_TIME"]
+    )
     return [
         RunKey(run_id=str(r.id), session_id=project_id, start_time=r.start_time) async for r in runs if r.start_time
     ]

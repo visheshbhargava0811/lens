@@ -24,14 +24,23 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 
+# UUIDs (article, story, run ids) are never PII, but a hyphen counts as a word boundary, so an all-digit
+# 12-character group looked like an Aadhaar number and ids in audit rows and traces were corrupted.
+_UUID = re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b")
+
+
 def mask(text: str) -> tuple[str, dict[str, int]]:
-    """Replaces each identifier with [kind]; returns the masked text and counts per kind."""
+    """Replaces each identifier with [kind]; returns the masked text and counts per kind. UUIDs pass through."""
     counts: dict[str, int] = {}
+    parts = _UUID.split(text)
+    ids = _UUID.findall(text)
     for kind, pattern in _RULES:
-        text, n = pattern.subn(f"[{kind}]", text)
-        if n:
-            counts[kind] = counts.get(kind, 0) + n
-    return text, counts
+        for i, part in enumerate(parts):
+            parts[i], n = pattern.subn(f"[{kind}]", part)
+            if n:
+                counts[kind] = counts.get(kind, 0) + n
+    out = parts[0] + "".join(u + p for u, p in zip(ids, parts[1:], strict=True))
+    return out, counts
 
 
 def mask_any(data: Any) -> Any:
