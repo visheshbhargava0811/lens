@@ -151,3 +151,19 @@ Order of candidates:
 4. Hinglish query understanding, only if the baseline fails
 
 Never fine-tune the synthesis model. Never use fine-tuning to fix hallucination. That is a retrieval and verification problem.
+
+## Implementation status (Phase 7, ADR-0039)
+
+| Piece | Where | Command |
+|---|---|---|
+| Suite runner, dated report | `lens.evals.run_all`, `reports/eval/*.json`, `reports/eval_<date>.md` | `make eval [SUITES=a,b] [FORCE=1]` |
+| Gate (CI step) | `lens.ops.gate`, `config/eval_gates.yaml` | `make eval-gate` |
+| Baseline for delta gates | `reports/eval/baseline.json` | `make eval-baseline` |
+| What a report measured | `lens.ops.fingerprint.DEPS` | |
+| LangSmith datasets | `lens.ops.datasets` (`lens-<suite>-<file>`) | `make eval-sync` |
+| Annotation queue | `lens.ops.annotation` (`lens-guard-failures`), swept by the pipeline worker | `make eval-promote` |
+| Online evaluators | `lens.ops.online_eval`, `eval_gates.yaml: online_eval` | pipeline worker, every pass |
+| Release and rollback | `lens.ops.release`, `releases/`, tags `release/<name>` | `make release NAME=`, `make rollback TO=`, `make releases` |
+
+Pending: `faithfulness_judge` (needs the owner-labeled `golden_answers` set), `stance_masked_consistency` (no stance model, ADR-0020), staging and canary traffic (Phase 10).
+
