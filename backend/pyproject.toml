@@ -88,3 +88,13 @@ markers = [
   "db: needs the local Postgres from infra/docker-compose.yml.",
 ]
 asyncio_mode = "auto"
+
+# Linux (the Docker pipeline worker) is CPU-only: take torch from PyTorch's CPU index so the image
+# doesn't pull ~40 CUDA packages. macOS keeps the PyPI wheels (MPS).
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

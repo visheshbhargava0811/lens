@@ -7,7 +7,7 @@ UV := cd backend && env -u VIRTUAL_ENV uv run
 UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
-.PHONY: index cluster stats eval-summary-ab review pipeline-worker analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval eval-adversarial topic-prototypes classify-topics eval-topics up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
+.PHONY: index cluster stats eval-summary-ab review pipeline-worker pipeline-up pipeline-logs analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval eval-adversarial topic-prototypes classify-topics eval-topics up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
         test-e2e lint eval gen-client trace-smoke install
 
 install:
@@ -65,8 +65,16 @@ classify-topics:
 eval-topics:
 	$(UV) python -m lens.evals.topics --name $(or $(NAME),v1)
 
+# Foreground, for development. The always-on worker is the Docker service: `make pipeline-up`.
 pipeline-worker:
 	$(UVML) arq lens.pipeline.worker.PipelineSettings
+
+pipeline-up:
+	$(UVML) python -c "from huggingface_hub import snapshot_download; snapshot_download('BAAI/bge-m3')"
+	$(COMPOSE) --profile ingest up -d --build pipeline
+
+pipeline-logs:
+	$(COMPOSE) --profile ingest logs -f --tail=100 pipeline
 
 analyze:
 	$(UV) python -m lens.pipeline.analyze $(N)

@@ -51,6 +51,35 @@ services:
       redis: { condition: service_healthy }
     restart: unless-stopped
 
+  # Pipeline worker: every pipeline.interval_min it embeds new articles into Qdrant, clusters them
+  # into stories and tags topics, so Ask always searches fresh news. Start with `make pipeline-up`.
+  pipeline:
+    profiles: ["ingest"]
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      args: { EXTRAS: ml }
+    image: lens-pipeline
+    command: arq lens.pipeline.worker.PipelineSettings
+    environment:
+      DATABASE_URL: postgresql+psycopg://lens:lens@postgres:5432/lens
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      APP_ENV: dev
+      LOG_LEVEL: INFO
+      LANGSMITH_TRACING: "false"
+      HF_HUB_OFFLINE: "1"   # BGE-M3 comes from the mounted cache; never download at run time
+    volumes:
+      # BGE-M3 weights (~2 GB) from the host cache: `make pipeline-up` fetches them once if missing.
+      - ${HOME}/.cache/huggingface:/home/lens/.cache/huggingface
+      # API keys for scheduled LLM analysis (off by default, ADR-0030); read by pydantic-settings.
+      - ../.env:/app/.env:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      qdrant: { condition: service_started }
+    restart: unless-stopped
+
   # api and web services are added when they are deployed (Phase 10).
 
 volumes:

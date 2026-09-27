@@ -289,3 +289,10 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
   7. LLM client strips NUL from model output (Postgres rejected `\u0000` in the audit row; the Ask crashed).
 - **Result, v6** (130 cases, 0 infra exclusions): adversarial 0.990 (the one miss is fixed by change 6: injection_article 15/15 in `v6_injection`), benign false-block 0.000, p95 7.1 s (p50 3.8 s), mean 4.7k tokens per Ask, fallbacks 9 (v5: 16).
 - **Caveat**: free-tier latency depends on shared quota; p95 is from one run.
+
+## ADR-0038: Pipeline worker runs in Docker (2026-09-27)
+
+- **Context**: the pipeline worker (embed, cluster, topics) ran as a host process. It stopped with the session or a reboot and nothing restarted it, so ingest kept storing articles that Ask could not find; the Ask freshness step covers only 20 articles per question.
+- **Decision**: a `pipeline` service in `infra/docker-compose.yml` (profile `ingest`, `restart: unless-stopped`), built from `backend/Dockerfile` with `EXTRAS=ml`. BGE-M3 weights come from the host Hugging Face cache (bind mount, `HF_HUB_OFFLINE=1`); `make pipeline-up` fetches them once if missing. On Linux torch comes from PyTorch's CPU index (`[tool.uv.sources]`), which drops ~40 CUDA packages from the image; macOS keeps PyPI wheels.
+- **Cost**: CPU embedding makes a pass ~4 min instead of ~1.5 min on the Mac GPU (MPS), well inside the 15-minute interval; ~2.5 GB of Docker's memory.
+- **Verified**: first pass embedded 135 articles and tagged topics; a crash inside the container restarted it (`RestartCount` 1).
