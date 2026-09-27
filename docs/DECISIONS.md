@@ -275,3 +275,17 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - **Decision**: `lens.nlp.topic_embed`. Keyword rules (`lens.nlp.topic_classifier`) only pick seed stories (≥ 2 member articles, all voting one topic). Each topic's prototype is the mean of its seeds' story centroids after subtracting the mean story centroid (BGE-M3 vectors are anisotropic; uncentered prototypes lose to keywords). A story is tagged with the nearest prototype when cosine ≥ `topics.min_sim`, else left untagged. Re-tagged on every centroid update in `cluster_pending`; prototypes live in `data/topics/prototypes.npz` (`make topic-prototypes`), full re-tag `make classify-topics`.
 - **Eval** (`make eval-topics`, `reports/topics_v1.md`, 160 feed stories in `data/evals/topics/gold_v1.jsonl`, labels Claude-drafted, reviewed and accepted by the owner 2026-09-27 with minor deviations; tuned on half A, held-out half B): centered prototypes accuracy 0.887, precision 0.864, recall 0.781, F1 0.820, coverage 0.275 vs keywords 0.750 / 0.610 / 0.812 / 0.697 / 0.512.
 - **Known gap**: science has only 2 gold stories; in live data its top stories are school "environment awareness" events (seed keywords "environment"/"पर्यावरण"). No crime/courts/local topic exists, so those stay untagged by design.
+
+## ADR-0037: Phase 6 gates met: premise backstop, no judge re-synthesis, fast fail-over (2026-09-27)
+
+- **Context**: v4 missed two gates: adversarial pass 0.850 (false_premise 1/10, loaded 10/15) and p95 43.8 s. ADR-0035's prompt fix had pasted five eval questions into the query-understanding prompt as examples (test-set leak) and still failed them in the full run.
+- **Changes** (each measured, `reports/ask_adversarial_v5*.md`, `v6*.md`):
+  1. `query_understanding` v1.1: leaked examples replaced with equivalent ones about events not in the eval. Alone: loaded 13/15, false_premise 6/9.
+  2. **G-IN-05, recorded half** (`check_premises_recorded`, docs/07): a "why/how did …", "क्यों", "kyun" question or one with an allegation term that comes back with no removed premise retries query understanding once with the reason. Deterministic; no eval wording used.
+  3. `guardrails.yaml: ask.max_judge_retries: 0`: a G-GEN-03 failure prunes flagged sentences at once instead of re-synthesizing twice (judge-failed asks had p50 34.9 s vs 4.6 s). Story graph unchanged.
+  4. `models.yaml: max_wait_s` 3 s for Ask tiers: a rate-limit retry-after longer than that fails over to the next key/model instead of sleeping up to 20 s (v5 had an 80 s Ask with no guard failure). Analysis tiers keep 20 s.
+  5. `query_understanding` v1.2: short keyword/headline queries are `story_lookup` (v5 refused 2 benign keyword queries as `unsupported`). The rule names general categories (award, price or market move) that match the two failing queries' shapes; watch for overfit.
+  6. G-EV-01: chat role tags (`[assistant]`, `<|im_start|>`, `[INST]`) are injection patterns (v6 echoed a planted "[assistant]: …" claim as a disagreement).
+  7. LLM client strips NUL from model output (Postgres rejected `\u0000` in the audit row; the Ask crashed).
+- **Result, v6** (130 cases, 0 infra exclusions): adversarial 0.990 (the one miss is fixed by change 6: injection_article 15/15 in `v6_injection`), benign false-block 0.000, p95 7.1 s (p50 3.8 s), mean 4.7k tokens per Ask, fallbacks 9 (v5: 16).
+- **Caveat**: free-tier latency depends on shared quota; p95 is from one run.

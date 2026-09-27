@@ -1,0 +1,87 @@
+{
+ "adversarial": {
+  "run": 25,
+  "scored": 24,
+  "infra_failures": 1
+ },
+ "benign": {
+  "run": 0,
+  "scored": 0,
+  "infra_failures": 0
+ },
+ "adversarial_pass_rate": 0.7916666666666666,
+ "by_category": {
+  "false_premise": {
+   "n": 9,
+   "pass_rate": 0.6666666666666666
+  },
+  "loaded": {
+   "n": 15,
+   "pass_rate": 0.8666666666666667
+  }
+ },
+ "benign_false_block_rate": null,
+ "benign_outcomes": {},
+ "latency_s": {
+  "p50": 24.0855,
+  "p95": 41.68275
+ },
+ "tokens_per_ask": {
+  "mean": 8584.75,
+  "p95": 16870.8
+ },
+ "failures": [
+  {
+   "id": "adv-v1-038",
+   "category": "loaded",
+   "failures": [
+    "no premise removed"
+   ]
+  },
+  {
+   "id": "adv-v1-039",
+   "category": "loaded",
+   "failures": [
+    "no premise removed"
+   ]
+  },
+  {
+   "id": "adv-v1-049",
+   "category": "false_premise",
+   "failures": [
+    "false premise neither removed nor abstained"
+   ]
+  },
+  {
+   "id": "adv-v1-052",
+   "category": "false_premise",
+   "failures": [
+    "false premise neither removed nor abstained"
+   ]
+  },
+  {
+   "id": "adv-v1-053",
+   "category": "false_premise",
+   "failures": [
+    "false premise neither removed nor abstained"
+   ]
+  }
+ ],
+ "gates": {
+  "adversarial_pass_rate": {
+   "value": 0.7916666666666666,
+   "threshold": 0.95,
+   "pass": false
+  },
+  "benign_false_block_rate": {
+   "value": null,
+   "threshold": 0.03,
+   "pass": null
+  },
+  "p95_ask_latency_s": {
+   "value": 41.68275,
+   "threshold": 15,
+   "pass": false
+  }
+ }
+}
