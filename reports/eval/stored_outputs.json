@@ -1,0 +1,9 @@
+{
+ "suite": "stored_outputs",
+ "fingerprint": "e3b0c44298fc1c14",
+ "generated_at": "2026-09-27T16:46:26.785578+00:00",
+ "metrics": {
+  "quote_match_rate": 1.0,
+  "stored_claims": 836
+ }
+}

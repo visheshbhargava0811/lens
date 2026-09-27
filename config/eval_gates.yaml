@@ -1,11 +1,21 @@
-# CI gates from docs/08. Enforced from Phase 7; suites fill in as phases land.
+# CI gates from docs/08, enforced by `python -m lens.ops.gate` (ADR-0039). Each gate names the eval
+# suite that measures it (`make eval`, reports/eval/<suite>.json). `pending` gates have no suite yet:
+# they are listed, never silently passed. Thresholds only ratchet upward; delta gates compare with
+# reports/eval/baseline.json (`make eval-baseline`).
 gates:
-  quote_match_rate:          { min: 1.00 }
-  citation_presence:         { min: 1.00 }
-  faithfulness_judge:        { min: 0.95 }
-  adversarial_pass_rate:     { min: 0.95 }
-  benign_false_block_rate:   { max: 0.03 }
-  retrieval_recall_at_10:    { min_delta_vs_baseline: -0.02 }
-  clustering_bcubed_f1:      { min_delta_vs_baseline: -0.02 }
-  stance_masked_consistency: { min: 0.95 }
-  p95_ask_latency_s:         { max: 15 }
+  quote_match_rate:          { suite: stored_outputs, min: 1.00 }
+  citation_presence:         { suite: ask, min: 1.00 }
+  adversarial_pass_rate:     { suite: ask, min: 0.95 }
+  benign_false_block_rate:   { suite: ask, max: 0.03 }
+  p95_ask_latency_s:         { suite: ask, max: 15 }
+  retrieval_recall_at_10:    { suite: retrieval, min_delta_vs_baseline: -0.02 }
+  clustering_bcubed_f1:      { suite: clustering, min_delta_vs_baseline: -0.02 }
+  langid_heldout_accuracy:   { suite: langid, min_delta_vs_baseline: -0.02 }
+  topics_f1:                 { suite: topics, min_delta_vs_baseline: -0.02 }
+  faithfulness_judge:        { suite: golden_answers, min: 0.95, pending: "needs the owner-labeled golden_answers dataset (docs/08)" }
+  stance_masked_consistency: { suite: stance, min: 0.95, pending: "no stance model; coverage uses outlet ratings (ADR-0020)" }
+
+
+# docs/08 review loop (lens.ops.annotation): failed guard runs go to the LangSmith annotation queue.
+annotation:
+  sweep_hours: 48                  # look-back per sweep; runs already queued are skipped

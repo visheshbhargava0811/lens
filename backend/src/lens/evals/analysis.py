@@ -207,6 +207,12 @@ def _judge_one(item: dict[str, Any]) -> bool | None:
     return v.verdict == "pass" and not v.unsupported_sentences
 
 
+def quote_match(session: Session) -> tuple[int, int]:
+    """Deterministic re-check (docs/08): (claims whose quote is verbatim in the stored article text, claims)."""
+    claims = session.execute(select(Claim, Article).join(Article, Article.id == Claim.article_id)).all()
+    return sum(quote_span(c.source_quote, article_text(a.title, a.snippet)) is not None for c, a in claims), len(claims)
+
+
 def run(name: str, gold: Path | None) -> dict[str, Any]:
     with Session(get_engine()) as session:
         rows = list(session.execute(select(StorySummary)).scalars())
@@ -218,8 +224,7 @@ def run(name: str, gold: Path | None) -> dict[str, Any]:
             select(GuardEvent.guard_id, GuardEvent.passed).where(GuardEvent.stage == "story_analysis")
         ):
             guards[gid][passed] += 1
-        claims = session.execute(select(Claim, Article).join(Article, Article.id == Claim.article_id)).all()
-        quote_ok = sum(1 for c, a in claims if quote_span(c.source_quote, article_text(a.title, a.snippet)) is not None)
+        quote_ok, n_claims = quote_match(session)
 
     report: dict[str, Any] = {
         "name": name,
@@ -233,8 +238,8 @@ def run(name: str, gold: Path | None) -> dict[str, Any]:
             round(guards["G-GEN-03"][True] / sum(guards["G-GEN-03"].values()), 3) if guards["G-GEN-03"] else None
         ),
         "guard_pass_rates": {g: round(c[True] / sum(c.values()), 3) for g, c in sorted(guards.items())},
-        "stored_claims": len(claims),
-        "quote_match_rate": round(quote_ok / len(claims), 4) if claims else None,
+        "stored_claims": n_claims,
+        "quote_match_rate": round(quote_ok / n_claims, 4) if n_claims else None,
         "framing_present": sum(1 for r in rows if r.framing),
     }
 

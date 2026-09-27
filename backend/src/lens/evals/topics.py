@@ -52,8 +52,8 @@ def _assign(s: np.ndarray, topics: list[str], min_sim: float, margin: float) -> 
 
 def run(name: str) -> dict[str, Any]:
     gold = [json.loads(line) for line in GOLD.read_text(encoding="utf-8").splitlines() if line.strip()]
-    ids = [g["story_id"] for g in gold]
-    labels = [g["labels"] for g in gold]
+    ids = [g["inputs"]["story_id"] for g in gold]
+    labels = [g["reference_outputs"]["labels"] for g in gold]
     halves = {"A": list(range(0, len(gold), 2)), "B": list(range(1, len(gold), 2)), "all": list(range(len(gold)))}
     client = get_qdrant()
     vecs = fetch_article_vectors(client, ids, STORIES)

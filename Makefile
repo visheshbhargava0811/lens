@@ -8,7 +8,7 @@ UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
 .PHONY: index cluster stats eval-summary-ab review pipeline-worker pipeline-up pipeline-logs analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval eval-adversarial topic-prototypes classify-topics eval-topics up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
-        test-e2e lint eval gen-client trace-smoke install
+        test-e2e lint eval eval-gate eval-baseline gen-client trace-smoke install
 
 install:
 	cd backend && env -u VIRTUAL_ENV uv sync
@@ -145,9 +145,16 @@ lint:
 	$(NPM) run lint
 	$(NPM) run typecheck
 
+# Phase 7 (docs/08, ADR-0039): run every stale suite, write reports/eval/*.json + reports/eval_<date>.md,
+# check the gates. SUITES=topics,langid to pick; FORCE=1 to re-run fresh ones. The ask suite is live.
 eval:
-	$(UV) python -m lens.evals.langid --write
-	$(UV) python -m lens.evals.langid --heldout --write
+	$(UVML) python -m lens.evals.run_all $(if $(SUITES),--suites $(SUITES),) $(if $(FORCE),--force,)
+
+eval-gate:
+	$(UV) python -m lens.ops.gate
+
+eval-baseline:
+	$(UV) python -m lens.evals.run_all --baseline
 
 gen-client:
 	$(NPM) run gen-client

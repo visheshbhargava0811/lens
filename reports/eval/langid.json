@@ -1,0 +1,30 @@
+{
+ "suite": "langid",
+ "fingerprint": "f2aeaabc5c3c3bd1",
+ "generated_at": "2026-09-27T16:46:22.565689+00:00",
+ "metrics": {
+  "langid_heldout_accuracy": 0.97,
+  "per_label": {
+   "en": {
+    "correct": 30,
+    "n": 30,
+    "accuracy": 1.0
+   },
+   "hi": {
+    "correct": 30,
+    "n": 30,
+    "accuracy": 1.0
+   },
+   "hi-Latn": {
+    "correct": 8,
+    "n": 10,
+    "accuracy": 0.8
+   },
+   "mr": {
+    "correct": 29,
+    "n": 30,
+    "accuracy": 0.9667
+   }
+  }
+ }
+}

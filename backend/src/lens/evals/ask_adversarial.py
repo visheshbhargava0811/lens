@@ -171,6 +171,7 @@ def summarize(cases: list[dict[str, Any]], recs: list[dict[str, Any]]) -> dict[s
     tok = [r["tokens"] for r in live if r.get("tokens")]
     gates = load_yaml("eval_gates.yaml")["gates"]
     blocked = [r for r in ben_ok if r.get("outcome") == "abstain" and r.get("abstain_reason") in BLOCK_REASONS]
+    answered = [r for r in adv_ok + ben_ok if r.get("outcome") in ("answer", "fallback")]
     out: dict[str, Any] = {
         "adversarial": {"run": len(adv), "scored": len(adv_ok), "infra_failures": len(adv) - len(adv_ok)},
         "benign": {"run": len(ben), "scored": len(ben_ok), "infra_failures": len(ben) - len(ben_ok)},
@@ -178,6 +179,10 @@ def summarize(cases: list[dict[str, Any]], recs: list[dict[str, Any]]) -> dict[s
         "by_category": {k: {"n": len(v), "pass_rate": sum(v) / len(v)} for k, v in sorted(cats.items())},
         "benign_false_block_rate": len(blocked) / len(ben_ok) if ben_ok else None,
         "benign_outcomes": dict(Counter(f"{r.get('outcome')}:{r.get('abstain_reason') or ''}" for r in ben_ok)),
+        # docs/08 citation_presence: every sentence of every shown answer carries a citation.
+        "citation_presence": (
+            sum("uncited sentence" not in r["failures"] for r in answered) / len(answered) if answered else None
+        ),
         "latency_s": {"p50": float(np.percentile(lat, 50)), "p95": float(np.percentile(lat, 95))} if lat else None,
         "tokens_per_ask": {"mean": float(np.mean(tok)), "p95": float(np.percentile(tok, 95))} if tok else None,
         "failures": [
@@ -233,24 +238,21 @@ def render(s: dict[str, Any], name: str) -> str:
     return "\n".join(L) + "\n"
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default="v1")
-    ap.add_argument("--limit", type=int, default=None)
-    ap.add_argument("--category", action="append", help="run only these categories (repeatable)")
-    ap.add_argument("--sleep", type=float, default=8.0, help="seconds between cases (free-tier tokens per minute)")
-    args = ap.parse_args()
+def run_suite(
+    name: str, categories: list[str] | None = None, limit: int | None = None, sleep: float = 8.0
+) -> dict[str, Any]:
+    """Runs (or resumes) the suite under `name`; writes reports/ask_adversarial_<name>.* and returns the summary."""
     from lens.nlp.embed import get_embedder
     from lens.retrieval.qdrant_store import get_qdrant
 
     cases = [json.loads(line) for p in SUITES for line in (REPO_ROOT / p).read_text().splitlines() if line.strip()]
-    if args.category:
-        cases = [c for c in cases if c["tags"]["category"] in args.category]
-    out = REPO_ROOT / "reports" / f"ask_adversarial_{args.name}"
+    if categories:
+        cases = [c for c in cases if c["tags"]["category"] in categories]
+    out = REPO_ROOT / "reports" / f"ask_adversarial_{name}"
     done = {}
     if Path(f"{out}.jsonl").exists():
         done = {r["id"]: r for r in map(json.loads, Path(f"{out}.jsonl").read_text().splitlines())}
-    todo = [c for c in cases if c["id"] not in done or infra_failure(done[c["id"]])][: args.limit]
+    todo = [c for c in cases if c["id"] not in done or infra_failure(done[c["id"]])][:limit]
     client, embedder = get_qdrant(), get_embedder()
     for i, case in enumerate(todo):
         rec = run_case(case, client, embedder)
@@ -259,11 +261,22 @@ def main() -> None:
         status = "infra" if infra_failure(rec) else ("PASS" if rec["passed"] else "FAIL")
         print(f"{i + 1}/{len(todo)} {case['id']} {status} {rec.get('outcome')} {rec['failures'][:2]}", flush=True)
         if rec.get("tokens"):
-            time.sleep(args.sleep)
+            time.sleep(sleep)
     summary = summarize(cases, list(done.values()))
     Path(f"{out}.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False))
-    Path(f"{out}.md").write_text(render(summary, args.name))
-    print(render(summary, args.name))
+    Path(f"{out}.md").write_text(render(summary, name))
+    print(render(summary, name))
+    return summary
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--name", default="v1")
+    ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--category", action="append", help="run only these categories (repeatable)")
+    ap.add_argument("--sleep", type=float, default=8.0, help="seconds between cases (free-tier tokens per minute)")
+    args = ap.parse_args()
+    run_suite(args.name, args.category, args.limit, args.sleep)
 
 
 if __name__ == "__main__":

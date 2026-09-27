@@ -32,6 +32,8 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest
+      # docs/08 eval gate: committed reports must match the current prompts/config and pass the thresholds.
+      - run: uv run python -m lens.ops.gate
 
   frontend:
     runs-on: ubuntu-latest

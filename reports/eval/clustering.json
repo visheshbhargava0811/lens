@@ -1,0 +1,25 @@
+{
+ "suite": "clustering",
+ "fingerprint": "a4b5ef43d4001ecb",
+ "generated_at": "2026-09-27T16:46:29.625939+00:00",
+ "metrics": {
+  "clustering_bcubed_f1": 0.9673,
+  "articles": 436,
+  "gold_stories": 211,
+  "pred_clusters": 203,
+  "bcubed_precision": 0.9428,
+  "bcubed_recall": 0.9931,
+  "ari": 0.8942,
+  "v_measure": 0.9909,
+  "homogeneity": 0.9838,
+  "completeness": 0.9981,
+  "cross_lingual": {
+   "pairs_gold": 171,
+   "recall": 0.9825,
+   "precision": 0.7636
+  },
+  "merge_error_rate": 0.0719,
+  "hard_negative_merges": 8,
+  "verifier_call_rate": 0.0298
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "suite": "topics",
+ "fingerprint": "57a00ecce74ed543",
+ "generated_at": "2026-09-27T16:49:46.352543+00:00",
+ "metrics": {
+  "topics_f1": 0.8445297504798464,
+  "topics_accuracy": 0.8875,
+  "topics_precision": 0.8979591836734694,
+  "topics_recall": 0.7971014492753623,
+  "topics_coverage": 0.30625
+ }
+}
