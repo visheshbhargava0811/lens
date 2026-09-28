@@ -22,8 +22,30 @@ _SALT = secrets.token_bytes(16)  # per process: counters reset on restart, which
 
 def client_key(ip: str) -> str:
     """Rate-limit key. The raw IP is never stored (G-OUT-05); the salt keeps the hash from being reversed
-    by enumerating the IPv4 space."""
-    return hashlib.sha256(_SALT + ip.encode()).hexdigest()[:16]
+    by enumerating the IPv4 space. Deployments share `RATE_LIMIT_SALT` across workers, or each worker would
+    hash the same IP differently and multiply every limit by the worker count."""
+    from lens.core.settings import get_settings
+
+    shared = get_settings().rate_limit_salt
+    salt = shared.get_secret_value().encode() if shared is not None else _SALT
+    return hashlib.sha256(salt + ip.encode()).hexdigest()[:16]
+
+
+def rate_exceeded(
+    counter: Counter, bucket: str, client: str, cfg: Mapping[str, Any], now_s: int
+) -> tuple[str, int] | None:
+    """Fixed-window limits per client and bucket (per minute, per day). Returns (reason, retry_after_s) or None.
+    Untraced: it runs on every request of the general limiter (lens.api.limits)."""
+    for window, limit in ((60, cfg["rate_per_minute"]), (86_400, cfg["rate_per_day"])):
+        key = f"{bucket}:rate:{client}:{window}:{now_s // window}"
+        n = int(counter.incr(key))
+        if n == 1:
+            counter.expire(key, window)
+        if n > limit:
+            return f"more than {limit} requests per {'minute' if window == 60 else 'day'}", max(
+                int(counter.ttl(key)), 1
+            )
+    return None
 
 
 @traced_guard("G-IN-03", "input")

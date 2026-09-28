@@ -10,3 +10,5 @@ graphify-out
 .git
 .env
 *.zip
+*.db
+*.sqlite*

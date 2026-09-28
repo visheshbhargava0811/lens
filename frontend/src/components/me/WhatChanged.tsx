@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { FactCheckList } from "@/components/story/FactCheckList";
 import { recordView } from "@/lib/api/client";
 import type { StoryChanges } from "@/lib/api/types";
+import { safeUrl } from "@/lib/safe-url";
 
 /**
  * docs/11 episodic memory: "What changed since you last looked". Records the view for consented readers and
@@ -57,7 +58,7 @@ export function WhatChanged({ storyId }: { storyId: string }) {
               <li key={a.id} className="text-sm">
                 <b>{a.source_name}</b>:{" "}
                 <a
-                  href={a.url}
+                  href={safeUrl(a.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   lang={a.headline_lang}

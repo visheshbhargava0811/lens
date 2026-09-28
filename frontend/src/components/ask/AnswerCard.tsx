@@ -12,6 +12,7 @@ import { FactCheckList } from "@/components/story/FactCheckList";
 import { CitedText } from "@/components/story/SummaryBlock";
 import type { AskAnswer, AskEvidence, CitedSentence } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { safeUrl } from "@/lib/safe-url";
 
 export function askArticleDomId(id: string) {
   return `ask-article-${id}`;
@@ -215,7 +216,7 @@ export function AnswerCard({
                     </span>
                   </span>
                   <a
-                    href={a.url}
+                    href={safeUrl(a.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     lang={a.headline_lang}

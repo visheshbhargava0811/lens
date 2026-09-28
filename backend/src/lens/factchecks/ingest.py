@@ -71,6 +71,8 @@ def reviews(payload: dict[str, Any], sites: list[str], url_contains: str | None)
             site = (cr.get("publisher") or {}).get("site") or ""
             if site not in sites or (url_contains and url_contains not in url) or not c.get("text"):
                 continue
+            if not url.startswith("https://"):  # only https links reach the page (XSS)
+                continue
             yield Review(
                 url=url,
                 claim=clean(c["text"]),

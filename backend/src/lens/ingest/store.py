@@ -8,6 +8,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlsplit
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -48,6 +49,7 @@ class StoreStats:
     time_fixed: int = 0
     not_news: int = 0
     syndicated: int = 0
+    bad_url: int = 0
     inserted_ids: list[uuid.UUID] = field(default_factory=list)
 
 
@@ -87,11 +89,21 @@ def article_values(source: Source, item: RawItem, now: datetime, cfg: dict[str, 
     }
 
 
+def web_url(url: str | None) -> bool:
+    """Only http(s) links are stored; everything the UI links to comes from here (pre-deploy checklist, XSS)."""
+    if not url:
+        return False
+    return urlsplit(url.strip()).scheme in ("http", "https") and len(url) < 2000
+
+
 def store_items(session: Session, source: Source, items: list[RawItem], now: datetime) -> StoreStats:
     cfg = load_yaml("ingest.yaml")
     stats = StoreStats(seen=len(items))
     oldest = now - timedelta(hours=cfg["fetch"]["max_item_age_hours"])
     for item in items[: cfg["fetch"]["max_items_per_fetch"]]:
+        if not web_url(item.url):  # a javascript: or data: link must never reach a page (XSS)
+            stats.bad_url += 1
+            continue
         published, note = sanitize_published_at(item.published_at, now, cfg["fetch"])
         if note in ("ist_labelled_as_utc", "future_clamped"):
             stats.time_fixed += 1

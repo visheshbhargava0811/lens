@@ -5,6 +5,7 @@ import { MethodologyLink } from "@/components/coverage/MethodologyLink";
 import { FeedGrid } from "@/components/story/FeedLayout";
 import { getSource } from "@/lib/api/client";
 import { languageName } from "@/lib/format";
+import { safeUrl } from "@/lib/safe-url";
 
 /** Source page (docs/10 §5): ownership and every rating with its provenance, then recent stories. */
 export default async function SourcePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -37,7 +38,7 @@ export default async function SourcePage({ params }: { params: Promise<{ slug: s
           {source.is_wire && <dd className="font-bold">{t("wire")}</dd>}
         </dl>
         <p className="mt-3 max-w-[68ch] text-sm text-ink-muted">{t(`license.${source.license_mode}`)}</p>
-        <a href={source.homepage_url} target="_blank" rel="noopener noreferrer" className={`mt-3 inline-block text-sm ${extLink}`}>
+        <a href={safeUrl(source.homepage_url)} target="_blank" rel="noopener noreferrer" className={`mt-3 inline-block text-sm ${extLink}`}>
           {t("homepage", { name: source.name })}
         </a>
       </header>
@@ -61,11 +62,11 @@ export default async function SourcePage({ params }: { params: Promise<{ slug: s
                   <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted">
                     <span>{t("confidence", { level: tc(r.confidence) })}</span>
                     <span>{t("retrieved", { date: date(r.retrieved_at) })}</span>
-                    <a href={r.method_url} target={r.method_url.startsWith("/") ? undefined : "_blank"} rel="noopener noreferrer" className={extLink}>
+                    <a href={safeUrl(r.method_url)} target={r.method_url.startsWith("/") ? undefined : "_blank"} rel="noopener noreferrer" className={extLink}>
                       {t("method")}
                     </a>
                     {r.evidence_url && (
-                      <a href={r.evidence_url} target="_blank" rel="noopener noreferrer" className={extLink}>
+                      <a href={safeUrl(r.evidence_url)} target="_blank" rel="noopener noreferrer" className={extLink}>
                         {t("evidence")}
                       </a>
                     )}
@@ -99,7 +100,7 @@ export default async function SourcePage({ params }: { params: Promise<{ slug: s
                   <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted">
                     <span>{t("confidence", { level: tc(o.confidence) })}</span>
                     <span>{t("retrieved", { date: date(o.retrieved_at) })}</span>
-                    <a href={o.evidence_url} target="_blank" rel="noopener noreferrer" className={extLink}>
+                    <a href={safeUrl(o.evidence_url)} target="_blank" rel="noopener noreferrer" className={extLink}>
                       {t("evidence")}
                     </a>
                   </p>

@@ -5,6 +5,7 @@ import { biasFill } from "@/components/coverage/bias-style";
 import type { ArticleRow as ArticleRowData } from "@/lib/api/types";
 import { languageName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { safeUrl } from "@/lib/safe-url";
 
 export const articleDomId = (id: string) => `article-${id}`;
 
@@ -51,7 +52,7 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
           <span aria-hidden className={cn("size-3 rounded-[1px] ring-1 ring-ink/20", biasFill[article.bias])} />
           {bias ? (
             <a
-              href={bias.method_url}
+              href={safeUrl(bias.method_url)}
               target="_blank"
               rel="noopener noreferrer"
               title={t("factuality.ratedBy", { rater: bias.rater, confidence: t(`confidence.${bias.confidence}`) })}
@@ -128,7 +129,7 @@ export function ArticleRow({ article, highlighted = false }: { article: ArticleR
           </span>
         )}
         <a
-          href={article.url}
+          href={safeUrl(article.url)}
           target="_blank"
           rel="noopener noreferrer"
           className="font-bold underline decoration-ink/40 hover:decoration-ink"

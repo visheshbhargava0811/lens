@@ -17,7 +17,9 @@ from datetime import datetime
 from itertools import zip_longest
 
 _TAG = re.compile(r"<[^>]+>")
-_INVISIBLE = re.compile(r"[​-‏‪-‮⁠-⁤﻿­]")  # zero-width, bidi, soft hyphen
+_INVISIBLE = re.compile(
+    "[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff\xad]"
+)  # zero-width, bidi, soft hyphen (escaped: no hidden characters in source)
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _SPACE = re.compile(r"\s+")
 

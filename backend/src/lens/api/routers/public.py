@@ -6,12 +6,13 @@ from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from lens.api.limits import limit
 from lens.db.session import get_session
 from lens.schemas import api
 from lens.schemas.common import ErrorBody, ErrorResponse
 from lens.services import stories as svc
 
-router = APIRouter(tags=["public"])
+router = APIRouter(tags=["public"], dependencies=[Depends(limit("public"))])
 DB = Annotated[Session, Depends(get_session)]
 NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"model": ErrorResponse}}
 
@@ -25,10 +26,10 @@ def feed(
     db: DB,
     response: Response,
     tab: Literal["home", "blindspot", "local"] = "home",
-    topic: str | None = None,
-    state: str | None = None,
-    lang: str | None = None,  # display language; story headlines stay in their original language
-    cursor: str | None = None,
+    topic: Annotated[str | None, Query(max_length=200)] = None,
+    state: Annotated[str | None, Query(max_length=200)] = None,
+    lang: Annotated[str | None, Query(max_length=8)] = None,  # display language; headlines stay original
+    cursor: Annotated[str | None, Query(max_length=200)] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> api.StoryCardPage | JSONResponse:
     try:

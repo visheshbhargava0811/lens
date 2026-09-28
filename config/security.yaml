@@ -1,0 +1,8 @@
+# API security settings (pre-deploy checklist, ADR-0042). Not model behaviour, so kept out of guardrails.yaml.
+
+# General rate limits per client IP (hashed) and route group (lens.api.limits). Ask has its own, stricter,
+# traced limit in guardrails.yaml (G-IN-03).
+rate_limits:
+  public: { rate_per_minute: 120, rate_per_day: 20000 }   # feed, stories, sources, search, methodology
+  me: { rate_per_minute: 60, rate_per_day: 3000 }          # /me reads and writes
+  admin: { rate_per_minute: 10, rate_per_day: 300 }        # also slows token guessing; checked before auth

@@ -58,7 +58,9 @@ def split(gold: list[GoldArticle]) -> tuple[list[GoldArticle], list[GoldArticle]
     """Deterministic 50/50 split by story, so no story is in both halves."""
 
     def half(story: str) -> int:
-        return int(hashlib.sha1(story.encode()).hexdigest(), 16) % 2
+        # A stable eval split, not a security use of SHA-1.
+        digest = hashlib.sha1(story.encode(), usedforsecurity=False)  # nosemgrep
+        return int(digest.hexdigest(), 16) % 2
 
     return [g for g in gold if half(g.story) == 0], [g for g in gold if half(g.story) == 1]
 

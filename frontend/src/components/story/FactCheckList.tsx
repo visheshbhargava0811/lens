@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import type { FactCheck } from "@/lib/api/types";
+import { safeUrl } from "@/lib/safe-url";
 
 /**
  * Fact-checks published by independent fact-checkers (docs/13): their claim, their rating wording, their
@@ -37,7 +38,7 @@ export function FactCheckList({
                 {t("factCheckBy", { checker: fc.fact_checker })}
               </span>
               <a
-                href={fc.url}
+                href={safeUrl(fc.url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold underline decoration-ink/40 hover:decoration-ink"

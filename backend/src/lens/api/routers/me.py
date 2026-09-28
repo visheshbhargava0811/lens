@@ -10,6 +10,7 @@ from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from lens.api.limits import limit
 from lens.core.settings import get_settings
 from lens.db.models import AskTurn, Story, StoryView, User
 from lens.db.session import get_session
@@ -18,7 +19,7 @@ from lens.memory.changes import changes_since_last_view
 from lens.schemas import api
 from lens.services import stories as stories_svc
 
-router = APIRouter(prefix="/me", tags=["me"])
+router = APIRouter(prefix="/me", tags=["me"], dependencies=[Depends(limit("me"))])
 DB = Annotated[Session, Depends(get_session)]
 COOKIE = store.cfg()["cookie"]["name"]
 Token = Annotated[str | None, Cookie(alias=COOKIE)]

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type { StoryCard as StoryCardData } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { safeUrl } from "@/lib/safe-url";
 
 type Variant = "hero" | "standard" | "compact";
 
@@ -61,7 +62,7 @@ export function StoryImage({
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- hotlinked on purpose: the Next image optimizer would fetch and cache it on our server */}
       <img
-        src={image.url}
+        src={safeUrl(image.url)}
         alt=""
         loading={variant === "hero" ? "eager" : "lazy"}
         decoding="async"

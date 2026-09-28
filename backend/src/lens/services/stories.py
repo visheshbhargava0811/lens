@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from sqlalchemy import Select, and_, func, or_, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session
 
 from lens.core.config_files import load_yaml
@@ -143,7 +144,7 @@ def story_images(session: Session, story_ids: list[uuid.UUID]) -> dict[str, api.
             Source.image_policy == ImagePolicy.hotlink,
         )
         .order_by(StoryArticle.story_id, Article.published_at.desc())
-        .distinct(StoryArticle.story_id)
+        .ext(distinct_on(StoryArticle.story_id))
     ).all()
     return {str(sid): api.StoryImage(url=url, source_name=name) for sid, url, name in rows}
 
@@ -156,7 +157,7 @@ def latest_published(session: Session, story_ids: list[uuid.UUID]) -> dict[uuid.
         select(StorySummary)
         .where(StorySummary.story_id.in_(story_ids), StorySummary.state == "published")
         .order_by(StorySummary.story_id, StorySummary.version.desc())
-        .distinct(StorySummary.story_id)
+        .ext(distinct_on(StorySummary.story_id))
     ).scalars()
     return {r.story_id: r for r in rows}
 

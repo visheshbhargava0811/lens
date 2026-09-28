@@ -7,10 +7,11 @@ from a named third-party rater (ADR-0020). G-BIAS-01: every bias and factuality 
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Confidence = Literal["low", "medium", "high"]
 BiasKey = Literal["left", "center", "right"]
@@ -290,8 +291,17 @@ class SourceImportResult(BaseModel):
 
 class AskRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
-    session_id: str | None = None
-    lang: str | None = None  # UI language; output language only
+    session_id: str | None = Field(default=None, max_length=64)
+    lang: str | None = Field(default=None, max_length=8)  # UI language; output language only
+
+    @field_validator("query")
+    @classmethod
+    def _plain_text(cls, v: str) -> str:
+        """Control characters (NUL included) are removed; the text stays data (G-IN-02 screens it next)."""
+        v = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", v).strip()
+        if not v:
+            raise ValueError("empty question")
+        return v
 
 
 class AskStatus(BaseModel):

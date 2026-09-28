@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -41,6 +41,8 @@ class Settings(BaseSettings):
 
     web_origin: str = "http://localhost:3000"
     admin_token: SecretStr | None = None  # /api/v1/admin/*; unset disables admin endpoints
+    rate_limit_salt: SecretStr | None = None  # shared across API workers (lens.guardrails.input.client_key)
+    max_body_bytes: int = 1_000_000  # request bodies above this are refused (admin CSV import: 5x)
 
     # Ingestion. The user agent names the crawler honestly; robots.txt rules are matched against "LensBot".
     ingest_user_agent: str = "LensBot/0.1 (news comparison research prototype)"
@@ -49,6 +51,43 @@ class Settings(BaseSettings):
     # Per-fetch LangSmith traces cost quota (about 2k traces/day at 20 sources); off by default.
     ingest_trace: bool = False
     config_dir: Path = Field(default=REPO_ROOT / "config")
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _empty_is_unset(cls, v: object) -> object:
+        """`KEY=` in a .env file means unset, never an empty secret: an empty ADMIN_TOKEN once meant an empty
+        bearer header matched it (pre-deploy checklist, ADR-0042)."""
+        return None if isinstance(v, str) and v.strip() == "" else v
+
+    @property
+    def deployed(self) -> bool:
+        return self.app_env in ("staging", "prod")
+
+    @model_validator(mode="after")
+    def _safe_for_deployment(self) -> "Settings":
+        """Staging and prod refuse to start on dev defaults or weak secrets (pre-deploy security checklist)."""
+        if not self.deployed:
+            return self
+        problems = []
+        if "lens:lens@" in self.database_url or "localhost" in self.database_url:
+            problems.append("DATABASE_URL still uses the local dev database or password")
+        if "sslmode=require" not in self.database_url and "sslmode=verify" not in self.database_url:
+            problems.append("DATABASE_URL must use TLS (sslmode=require or verify-full)")
+        if self.redis_url.startswith("redis://localhost") or "@" not in self.redis_url:
+            problems.append("REDIS_URL needs a password (redis://:<password>@host or rediss://)")
+        if self.qdrant_api_key is None:
+            problems.append("QDRANT_API_KEY is not set")
+        if not self.web_origin.startswith("https://"):
+            problems.append("WEB_ORIGIN must be an https:// origin")
+        if self.admin_token is not None and len(self.admin_token.get_secret_value()) < 32:
+            problems.append("ADMIN_TOKEN must be at least 32 characters (or unset to disable admin)")
+        if self.rate_limit_salt is None:
+            problems.append("RATE_LIMIT_SALT is not set (rate limits would differ per worker)")
+        if self.log_level.upper() == "DEBUG":
+            problems.append("LOG_LEVEL=DEBUG is not allowed outside dev")
+        if problems:
+            raise ValueError("unsafe settings for " + self.app_env + ": " + "; ".join(problems))
+        return self
 
 
 @lru_cache

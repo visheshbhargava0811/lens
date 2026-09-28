@@ -1,0 +1,8 @@
+# Secret scanning (pre-deploy checklist, ADR-0042). Default rules, plus an allowlist for files that only ever
+# hold empty placeholders: the generic rule reads `KEY=` and the next line as a key and value.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholder-only files (reviewed 2026-09-28)"
+paths = ['''infra/\.env\.example''', '''docs/.*\.md''']

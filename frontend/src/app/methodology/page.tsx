@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { getMethodology } from "@/lib/api/client";
+import { safeUrl } from "@/lib/safe-url";
 
 const SECTIONS = [
   "coverage",
@@ -64,7 +65,7 @@ export default async function MethodologyPage() {
                   {m.raters.map((r) => (
                     <li key={`${r.rater}-${r.dimension}`}>
                       {t("current.rater", { rater: r.rater, count: r.sources_rated, dimension: r.dimension })}{" "}
-                      <a href={r.method_url} className="font-bold underline" rel="noopener noreferrer" target="_blank">
+                      <a href={safeUrl(r.method_url)} className="font-bold underline" rel="noopener noreferrer" target="_blank">
                         {t("current.method")}
                       </a>
                     </li>

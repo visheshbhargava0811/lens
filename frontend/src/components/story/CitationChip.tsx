@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { ArticleRow, Citation } from "@/lib/api/types";
 
 import { showArticle } from "./events";
+import { safeUrl } from "@/lib/safe-url";
 
 export type CitedArticle = Pick<ArticleRow, "id" | "headline" | "headline_lang" | "url"> & {
   sourceName: string;
@@ -46,7 +47,7 @@ export function CitationChip({ citation, article }: { citation: Citation; articl
           </button>
           {article && (
             <a
-              href={article.url}
+              href={safeUrl(article.url)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-bold underline decoration-ink/40 hover:decoration-ink"

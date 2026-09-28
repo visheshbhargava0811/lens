@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from lens.api.limits import limit
 from lens.core.settings import get_settings
 from lens.db.session import get_session
 from lens.ingest.source_import import ImportRejected, import_csv
@@ -20,14 +21,17 @@ from lens.services import review
 
 def require_admin(authorization: Annotated[str | None, Header()] = None) -> None:
     token = get_settings().admin_token
-    if token is None:
+    if token is None or not token.get_secret_value():  # an empty token never matches (ADR-0042)
         raise HTTPException(503, "Admin endpoints are disabled: ADMIN_TOKEN is not set.")
     given = (authorization or "").removeprefix("Bearer ").encode()
-    if not hmac.compare_digest(given, token.get_secret_value().encode()):
+    if not given or not hmac.compare_digest(given, token.get_secret_value().encode()):
         raise HTTPException(401, "Admin credentials are missing or wrong.")
 
 
-router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
+# The limit runs before the token check, so it also slows token guessing; it fails closed.
+router = APIRouter(
+    prefix="/admin", tags=["admin"], dependencies=[Depends(limit("admin", fail_closed=True)), Depends(require_admin)]
+)
 
 
 @router.post(
@@ -44,6 +48,9 @@ async def import_sources(
         text = (await request.body()).decode("utf-8")
     except UnicodeDecodeError:
         body = ErrorResponse(error=ErrorBody(code="import_rejected", message="The file must be UTF-8 CSV."))
+        return JSONResponse(body.model_dump(), status_code=422)
+    if "\x00" in text:
+        body = ErrorResponse(error=ErrorBody(code="import_rejected", message="The file contains invalid characters."))
         return JSONResponse(body.model_dump(), status_code=422)
     try:
         r = import_csv(db, text)

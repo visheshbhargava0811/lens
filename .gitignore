@@ -39,3 +39,7 @@ frontend/playwright-report/
 .playwright-mcp/
 .impeccable/review/
 .run/
+
+# local databases and stray files
+*.db
+*.sqlite*

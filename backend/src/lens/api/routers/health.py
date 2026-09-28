@@ -9,5 +9,6 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health", response_model=Health)
 def health() -> Health:
-    """Liveness only. Does not check downstream services."""
-    return Health(version=__version__, env=get_settings().app_env)
+    """Liveness only. Does not check downstream services. Deployed: no version or environment (ADR-0042)."""
+    s = get_settings()
+    return Health() if s.deployed else Health(version=__version__, env=s.app_env)

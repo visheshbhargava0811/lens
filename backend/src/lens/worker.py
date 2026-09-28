@@ -26,7 +26,9 @@ log = get_logger(__name__)
 
 
 def _job_id(source_id: uuid.UUID, feed_url: str) -> str:
-    return "fetch:" + hashlib.sha1(f"{source_id}|{feed_url}".encode()).hexdigest()[:16]
+    # A stable job id, not a security use of SHA-1.
+    digest = hashlib.sha1(f"{source_id}|{feed_url}".encode(), usedforsecurity=False)  # nosemgrep
+    return "fetch:" + digest.hexdigest()[:16]
 
 
 async def schedule_due(ctx: dict[str, Any]) -> int:

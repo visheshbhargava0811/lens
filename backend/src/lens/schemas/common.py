@@ -19,5 +19,5 @@ class ErrorResponse(BaseModel):
 
 class Health(BaseModel):
     status: Literal["ok"] = "ok"
-    version: str
-    env: str
+    version: str | None = None  # dev and test only: deployments reveal nothing beyond liveness (ADR-0042)
+    env: str | None = None
