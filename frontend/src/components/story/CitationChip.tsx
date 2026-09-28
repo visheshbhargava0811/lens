@@ -27,7 +27,12 @@ export function CitationChip({ citation, article }: { citation: Citation; articl
       >
         {citation.n}
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80" data-testid="citation-popover">
+      <PopoverContent
+        align="start"
+        className="w-80"
+        data-testid="citation-popover"
+        aria-label={t("label", { n: citation.n, source: citation.source_name })}
+      >
         <p className="text-xs font-medium text-ink-muted" lang={article?.sourceLanguage}>
           {citation.source_name}
         </p>
