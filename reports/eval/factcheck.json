@@ -1,0 +1,252 @@
+{
+ "suite": "factcheck",
+ "fingerprint": "fddcfb51a89da425",
+ "generated_at": "2026-09-27T21:38:58.107789+00:00",
+ "metrics": {
+  "factcheck_same_claim_precision": 0.9024390243902439,
+  "factcheck_same_claim_recall": 0.8809523809523809,
+  "verifier_same_claim_precision": 0.9024390243902439,
+  "verifier_same_claim_recall": 0.8809523809523809,
+  "stored_match_precision": 0.9387755102040817,
+  "accuracy": 0.64,
+  "n": 125,
+  "min_similarity": 0.6,
+  "confusion": {
+   "related->same_claim": 4,
+   "different->different": 39,
+   "different->related": 7,
+   "related->different": 29,
+   "related->related": 4,
+   "same_claim->same_claim": 37,
+   "same_claim->related": 2,
+   "same_claim->different": 3
+  },
+  "errors": [
+   {
+    "id": "fcm-v1-001",
+    "gold": "related",
+    "pred": "same_claim"
+   },
+   {
+    "id": "fcm-v1-005",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-006",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-007",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-009",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-011",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-014",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-016",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-018",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-024",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-025",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-027",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-028",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-030",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-031",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-033",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-037",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-038",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-041",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-045",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-048",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-050",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-051",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-052",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-053",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-054",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-057",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-058",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-059",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-060",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-062",
+    "gold": "different",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-065",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-094",
+    "gold": "same_claim",
+    "pred": "related"
+   },
+   {
+    "id": "fcm-v1-098",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-100",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-102",
+    "gold": "related",
+    "pred": "same_claim"
+   },
+   {
+    "id": "fcm-v1-104",
+    "gold": "related",
+    "pred": "same_claim"
+   },
+   {
+    "id": "fcm-v1-106",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-109",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-112",
+    "gold": "related",
+    "pred": "same_claim"
+   },
+   {
+    "id": "fcm-v1-114",
+    "gold": "related",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-118",
+    "gold": "same_claim",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-119",
+    "gold": "same_claim",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-122",
+    "gold": "same_claim",
+    "pred": "different"
+   },
+   {
+    "id": "fcm-v1-125",
+    "gold": "same_claim",
+    "pred": "related"
+   }
+  ]
+ }
+}

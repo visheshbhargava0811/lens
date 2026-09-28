@@ -38,7 +38,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 | G-GEN-03 | **Citation faithfulness:** each cited chunk supports its sentence | NLI model or LLM judge | `retry` with unsupported sentences (max 2), then fallback |
 | G-GEN-04 | Attribution discipline: contested statements attributed, single-outlet assertions not stated as fact | Rules + classifier | `retry` |
 | G-GEN-05 | No editorializing, predictions, or value-laden adjectives | Tone classifier + banned-pattern list | `retry` |
-| G-GEN-06 | No false balance: fact-checker rated false means show the rating, do not present as "one side's view" | Rules using fact-check matches | `retry` |
+| G-GEN-06 | No false balance: fact-checker rated false means show the rating, do not present as "one side's view" | Rules using fact-check matches: an answer sentence with cosine ≥ `false_balance.min_similarity` to a `same_claim` fact-check rated false or misleading, and no fact-check marker, is dropped (`check_false_balance`); the fact-check itself is shown as structured data, attributed and linked | `redact`, then `retry` if the TL;DR empties (as G-GEN-08) |
 | G-GEN-07 | Abstain over guess: weak retrieval returns "not enough reliable coverage" | Deterministic thresholds | `abstain` |
 | G-GEN-08 | Scope claims: a sentence saying "all/each/every article (source, report…)" must cite every article in the evidence; "most" must cite more than half; "multiple/several" at least two; an agreement must cite at least two articles | Deterministic | `redact` (drop the sentence before the judge) |
 
@@ -51,7 +51,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 | G-OUT-03 | Defamation caution: allegations against named individuals attributed to source, not stated as fact | Rules + classifier | `retry` |
 | G-OUT-04 | Graphic violence descriptions filtered or softened in summaries and audio | Classifier | `redact` |
 | G-OUT-05 | PII: Aadhaar, PAN, phone numbers, vehicle plates, emails. Applied to outputs, logs, **and traces** | Presidio + custom regex | `redact` |
-| G-OUT-06 | Post-translation check: named entities, numbers, and attribution phrases survive translation | Deterministic + light check | Re-translate or fall back to source language |
+| G-OUT-06 | Post-translation check: named entities, numbers, and attribution phrases survive translation | Deterministic (`check_translation`: one line per input, numbers, attribution markers per language, names compared across scripts by consonant skeleton with `translation_check` config) + light check (`check_translation_judged`: an independent judge, different family from the translator, `translation_check` prompt) | Fall back to the verified English answer, with a limitation naming the language |
 | G-OUT-07 | Sensitive-topic routing: communal violence, elections in model-code period, active court matters, health scares go to precomputed and reviewed summaries, not live generation | Topic classifier + config list | `route_to_review` |
 
 ### Bias scoring
@@ -77,7 +77,7 @@ Built, traced with `traced_guard`, logged to `guard_events`, with passing and fa
 
 Enforced in code without a separate guard result: G-EV-05 (syndicated copies collapsed in balancing), G-EV-06 (`link_only` sources contribute headlines only).
 
-Not built yet: G-OUT-01 (hate and incitement), G-OUT-02 (victim and minor identity), G-OUT-04 (graphic violence) need an Indic-capable classifier. Until then the highest-risk topics (communal violence, sexual-offence cases, minors, terror incidents) never reach live generation: G-OUT-07 serves only reviewed summaries for them. G-OUT-06 lands with the localization node. G-GEN-04/05/06 rely on the synthesis prompt and the judge; G-OPS-02/03 exist for Graph 1 (fallback chain, circuit breaker, kill switch) and apply to Ask through the same client and visibility filter.
+Not built yet: G-OUT-01 (hate and incitement), G-OUT-02 (victim and minor identity), G-OUT-04 (graphic violence) need an Indic-capable classifier. Until then the highest-risk topics (communal violence, sexual-offence cases, minors, terror incidents) never reach live generation: G-OUT-07 serves only reviewed summaries for them. G-OUT-06 (both halves) and G-GEN-06 are built (Phase 8, ADR-0040). G-GEN-04/05 rely on the synthesis prompt and the judge; G-OPS-02/03 exist for Graph 1 (fallback chain, circuit breaker, kill switch) and apply to Ask through the same client and visibility filter.
 
 ## `GuardResult` and tracing
 

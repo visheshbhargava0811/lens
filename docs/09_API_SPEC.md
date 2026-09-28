@@ -91,13 +91,17 @@ Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue
   },
   "framing_differences": [ "...same sentence shape..." ],
   "fact_checks": [
-    { "claim": "Claim text", "fact_checker": "Example Fact-checker", "rating": "false",
+    { "claim": "The fact-checker's wording of the claim", "fact_checker": "Example Fact-checker",
+      "rating": "Misleading", "rating_normalized": "misleading", "match": "same_claim",
       "url": "https://...", "published_at": "2026-09-20T00:00:00Z" }
   ],
   "ownership": { "groups": [ { "name": "Example Group", "sources": 3 } ], "unknown": 12, "methodology_url": "/methodology#ownership" },
   "limitations": [ "Based on headlines and summaries for 14 of 42 sources." ]
 }
 ```
+
+`fact_checks` (Phase 8, ADR-0040): `rating` is the fact-checker's own wording and is what the UI shows; `rating_normalized` (`true | false | misleading | unproven | other`) is for styling only. `match` is `same_claim` (the fact-check examines this claim, LLM-verified) or `related` (same event, a different claim), and the UI labels `related` ones. Same items appear in `AskAnswer.fact_checks` (the reader's own claim first, then those matched to the stories used). Lens never presents a match as its own verdict.
+
 
 ### ArticleRow (in `/stories/{id}/articles`)
 

@@ -1,14 +1,14 @@
 {
  "suite": "ask",
- "fingerprint": "f2fadec7d4b95911",
- "generated_at": "2026-09-27T16:48:16.791426+00:00",
+ "fingerprint": "ad6174f6e6a2a658",
+ "generated_at": "2026-09-28T01:13:20.719772+00:00",
  "metrics": {
   "adversarial_pass_rate": 1.0,
   "benign_false_block_rate": 0.0,
   "citation_presence": 1.0,
-  "p95_ask_latency_s": 7.635849999999999,
-  "p50_ask_latency_s": 4.0329999999999995,
-  "tokens_per_ask_mean": 4755.8376068376065,
+  "p95_ask_latency_s": 10.4125,
+  "p50_ask_latency_s": 4.2965,
+  "tokens_per_ask_mean": 4802.470085470086,
   "infra_failures": 0,
   "by_category": {
    "false_premise": {

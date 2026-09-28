@@ -1,0 +1,289 @@
+{
+ "n": 40,
+ "results": {
+  "groq/openai/gpt-oss-120b hi": {
+   "g06_pass_rate": 0.7,
+   "judge_faithful_rate": 0.925,
+   "both_rate": 0.625,
+   "seconds_per_sentence": 0.21,
+   "g06_failures": {
+    "0": [
+     "entity:Xi"
+    ],
+    "6": [
+     "entity:Xi"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Asian,Games"
+    ],
+    "12": [
+     "entity:United"
+    ],
+    "19": [
+     "entity:United"
+    ],
+    "20": [
+     "entity:CEC"
+    ],
+    "23": [
+     "entity:United,States"
+    ],
+    "27": [
+     "entity:US"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "35": [
+     "entity:US"
+    ],
+    "36": [
+     "entity:First,Amendment"
+    ]
+   }
+  },
+  "groq/openai/gpt-oss-120b mr": {
+   "g06_pass_rate": 0.7,
+   "judge_faithful_rate": 1.0,
+   "both_rate": 0.7,
+   "seconds_per_sentence": 0.18,
+   "g06_failures": {
+    "6": [
+     "entity:Chinese"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Games"
+    ],
+    "12": [
+     "entity:United,States,Summit"
+    ],
+    "19": [
+     "entity:United,States,Summit"
+    ],
+    "21": [
+     "entity:Delhi"
+    ],
+    "23": [
+     "entity:United,States"
+    ],
+    "27": [
+     "entity:New"
+    ],
+    "30": [
+     "entity:Women"
+    ],
+    "31": [
+     "entity:Act"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "36": [
+     "entity:Amendment"
+    ]
+   }
+  },
+  "groq/openai/gpt-oss-20b hi": {
+   "g06_pass_rate": 0.7,
+   "judge_faithful_rate": 0.925,
+   "both_rate": 0.625,
+   "seconds_per_sentence": 0.11,
+   "g06_failures": {
+    "6": [
+     "entity:Xi"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Asian,Games"
+    ],
+    "12": [
+     "entity:United"
+    ],
+    "19": [
+     "entity:United"
+    ],
+    "20": [
+     "entity:CEC"
+    ],
+    "23": [
+     "entity:United,States"
+    ],
+    "27": [
+     "entity:US"
+    ],
+    "30": [
+     "entity:Women"
+    ],
+    "32": [
+     "entity:NOW"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "36": [
+     "entity:First,Amendment"
+    ]
+   }
+  },
+  "groq/openai/gpt-oss-20b mr": {
+   "g06_pass_rate": 0.6,
+   "judge_faithful_rate": 0.975,
+   "both_rate": 0.6,
+   "seconds_per_sentence": 0.07,
+   "g06_failures": {
+    "0": [
+     "entity:Xi"
+    ],
+    "5": [
+     "entity:Christchurch"
+    ],
+    "6": [
+     "entity:Xi"
+    ],
+    "7": [
+     "entity:Ratings"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Games"
+    ],
+    "12": [
+     "entity:United,States,Summit"
+    ],
+    "13": [
+     "entity:Class"
+    ],
+    "19": [
+     "entity:United,States,Summit"
+    ],
+    "21": [
+     "entity:Delhi"
+    ],
+    "23": [
+     "entity:United,States"
+    ],
+    "27": [
+     "entity:US,New"
+    ],
+    "30": [
+     "entity:Women,Dharamshala"
+    ],
+    "31": [
+     "entity:Act"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "36": [
+     "entity:First,Amendment"
+    ]
+   }
+  },
+  "gemini/gemini-3.6-flash hi": {
+   "g06_pass_rate": 0.675,
+   "judge_faithful_rate": 1.0,
+   "both_rate": 0.675,
+   "seconds_per_sentence": 0.61,
+   "g06_failures": {
+    "0": [
+     "entity:Xi"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Asian,Games"
+    ],
+    "12": [
+     "entity:United"
+    ],
+    "19": [
+     "entity:United"
+    ],
+    "20": [
+     "entity:NCP,CEC"
+    ],
+    "23": [
+     "entity:United,States"
+    ],
+    "27": [
+     "entity:US"
+    ],
+    "30": [
+     "entity:Women"
+    ],
+    "32": [
+     "entity:NOW"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "35": [
+     "entity:US"
+    ],
+    "36": [
+     "entity:First,Amendment"
+    ]
+   }
+  },
+  "gemini/gemini-3.6-flash mr": {
+   "g06_pass_rate": 0.7,
+   "judge_faithful_rate": 1.0,
+   "both_rate": 0.7,
+   "seconds_per_sentence": 1.06,
+   "g06_failures": {
+    "5": [
+     "entity:Christchurch"
+    ],
+    "8": [
+     "entity:Asian,Games"
+    ],
+    "9": [
+     "entity:Games"
+    ],
+    "12": [
+     "entity:United,States,Summit"
+    ],
+    "19": [
+     "entity:United,States"
+    ],
+    "20": [
+     "entity:NCP"
+    ],
+    "21": [
+     "entity:Delhi"
+    ],
+    "27": [
+     "entity:US,New"
+    ],
+    "30": [
+     "entity:Women"
+    ],
+    "31": [
+     "entity:Act"
+    ],
+    "34": [
+     "entity:Standards"
+    ],
+    "36": [
+     "entity:Amendment"
+    ]
+   }
+  }
+ },
+ "blocked": {
+  "sarvam-translate": "Sarvam returns 402 'No credits available' (checked 2026-09-27)",
+  "bhashini": "BHASHINI_KEYS is empty",
+  "indictrans2-en-indic-dist-200M": "gated on Hugging Face: accept the licence and log in (huggingface-cli login)"
+ }
+}
