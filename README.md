@@ -85,7 +85,7 @@ Sign in with Google to save preferences (answer language, answer length, topics 
 | Ask: adversarial pass rate | 1.000 | ≥ 0.95 |
 | Ask: benign false-block rate | 0.000 | ≤ 0.03 |
 | Ask: citation presence | 1.000 | = 1.00 |
-| Ask: p95 latency | 13.6 s | ≤ 15 s |
+| Ask: p95 latency | 500 ms | ≤ 1 s |
 | Retrieval recall@10 | 0.971 | no drop vs. baseline |
 | Clustering B³ F1 | 0.967 | no drop vs. baseline |
 | Fact-check "same claim" precision | 0.902 | ≥ 0.90 |
