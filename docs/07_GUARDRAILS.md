@@ -68,7 +68,7 @@ Legal items are a checklist to review with a lawyer, not legal advice.
 |---|---|---|---|
 | G-OPS-01 | Loop caps (2 verifier retries, 2 retrieval retries) and per-node timeouts | Graph config | Fallback |
 | G-OPS-02 | Circuit breaker: LLM API failure falls back to precomputed summary or lower tier | Deterministic | Fallback |
-| G-OPS-03 | Kill switch per story, per topic, and global for generation | Flag in DB | Serve precomputed only |
+| G-OPS-03 | Kill switch per story, per topic, and global for generation (built, ADR-0045: `lens.ops.kill`, `/admin/stories/{id}/kill`, `/admin/kill-switch`) | Flag in DB | Serve precomputed only |
 | G-OPS-04 | Audit trail: query, evidence ids, prompt and model versions, verifier result, guard events | Logging | Block release if missing |
 
 ## Implementation status (Phase 6, 2026-09-23)

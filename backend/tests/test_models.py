@@ -4,6 +4,7 @@ from lens.db.models import Base, LicenseMode, Source
 
 DOC_TABLES = {
     "user_sessions",
+    "ops_flags",
     "sources",
     "source_ownership",
     "source_ratings",

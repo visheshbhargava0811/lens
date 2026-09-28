@@ -413,6 +413,16 @@ class User(Base):
     identity_hash: Mapped[str | None] = mapped_column(Text)
 
 
+class OpsFlag(Base):
+    """Operator switches (G-OPS-03 kill switch, ADR-0045). One row per key, set through /admin."""
+
+    __tablename__ = "ops_flags"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    value: Mapped[Any] = mapped_column(JSONB)
+    updated_at: Mapped[datetime] = _now()
+
+
 class UserSession(Base):
     """One per signed-in browser (ADR-0044). The cookie holds the token; only its SHA-256 is stored."""
 

@@ -135,7 +135,9 @@ def build(
     false_balance_threshold: float = 0.8,
     languages: tuple[str, ...] = ("hi",),
     translation_check: dict[str, Any] | None = None,
+    generation_allowed: Callable[[list[str]], bool] | None = None,
 ) -> Any:
+    """`generation_allowed(story_ids)`: the G-OPS-03 kill switch; False serves the stored summary only."""
     loaded_terms = loaded_terms or []
 
     def call(
@@ -280,6 +282,8 @@ def build(
         if (weak or state.get("stale")) and freshness is not None and not state.get("freshness_done"):
             return "freshness"  # once per question (docs/05)
         if not weak:
+            if ev is not None and generation_allowed is not None and not generation_allowed(ev.story_ids):
+                return "fallback"  # G-OPS-03: live generation is off for these stories; precomputed only
             return "synthesize"
         return "retrieve" if state["retrieval_attempts"] < len(state["windows"]) else "abstain"
 

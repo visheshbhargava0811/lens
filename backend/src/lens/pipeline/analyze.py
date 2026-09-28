@@ -27,6 +27,7 @@ from lens.core.logging import configure_logging, get_logger
 from lens.db.models import Article, Claim, GuardEvent, ReviewQueueItem, Source, Story, StoryArticle, StorySummary
 from lens.db.session import get_engine
 from lens.llm.client import structured, tier
+from lens.ops import kill
 from lens.pipeline.stats import best_ratings
 from lens.schemas.analysis import CitedSentence, ClaimList, SummaryDraft
 from lens.stats.coverage import BIAS_BUCKETS, bucket
@@ -48,11 +49,13 @@ def eligible(session: Session, limit: int) -> list[Story]:
         .group_by(StorySummary.story_id)
         .subquery()
     )
+    off_topics = sorted(kill.generation(session).off_topics)  # G-OPS-03
     q = (
         select(Story)
         .outerjoin(last, last.c.story_id == Story.id)
         .where(
             Story.kill_switch.is_(False),
+            or_(Story.topic.is_(None), Story.topic.not_in(off_topics)),
             Story.source_count >= c["analysis"]["min_sources"],
             or_(last.c.n.is_(None), Story.source_count - last.c.n >= c["reanalysis_trigger"]["new_sources"]),
         )
@@ -196,6 +199,8 @@ def analyze_pending(llm: LLM = structured, limit: int | None = None) -> dict[str
     graph = build(llm)
     counts = {"published": 0, "review": 0, "failed": 0, "deferred": 0}
     with Session(get_engine()) as session:
+        if kill.generation(session).off:  # G-OPS-03 global kill switch
+            return counts
         stories = eligible(session, limit or cfg["max_stories_per_run"])
     deadline = time.monotonic() + cfg["max_seconds_per_run"]
     for story in stories:

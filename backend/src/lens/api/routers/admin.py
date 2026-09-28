@@ -5,18 +5,25 @@ import hmac
 import uuid
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from lens.api.limits import limit
+from lens.core.config_files import load_yaml
+from lens.core.logging import get_logger
 from lens.core.settings import get_settings
+from lens.db.models import GuardEvent
 from lens.db.session import get_session
 from lens.ingest.source_import import ImportRejected, import_csv
+from lens.ops import kill
 from lens.schemas.api import SourceImportResult
 from lens.schemas.common import ErrorBody, ErrorResponse
 from lens.services import review
+
+log = get_logger(__name__)
 
 
 def require_admin(authorization: Annotated[str | None, Header()] = None) -> None:
@@ -82,3 +89,83 @@ def resolve_review(
         return JSONResponse(body.model_dump(), status_code=404)
     db.commit()
     return Resolved(status="approved" if decision == "approve" else "rejected")
+
+
+# ---------------------------------------------------------------- kill switch (G-OPS-03, ADR-0045)
+
+
+class StoryKill(BaseModel):
+    story_id: str
+    killed: bool
+
+
+def _story_kill(db: Session, story_id: uuid.UUID, killed: bool) -> StoryKill | JSONResponse:
+    if not kill.set_story_killed(db, story_id, killed):
+        body = ErrorResponse(error=ErrorBody(code="not_found", message="No story with that id."))
+        return JSONResponse(body.model_dump(), status_code=404)
+    db.commit()
+    log.warning("ops.story_kill", story_id=str(story_id), killed=killed)
+    return StoryKill(story_id=str(story_id), killed=killed)
+
+
+@router.post("/stories/{story_id}/kill", response_model=StoryKill, responses={404: {"model": ErrorResponse}})
+def kill_story(story_id: uuid.UUID, db: Annotated[Session, Depends(get_session)]) -> StoryKill | JSONResponse:
+    """Takes a story down: hidden everywhere, never analysed, never Ask evidence."""
+    return _story_kill(db, story_id, True)
+
+
+@router.post("/stories/{story_id}/restore", response_model=StoryKill, responses={404: {"model": ErrorResponse}})
+def restore_story(story_id: uuid.UUID, db: Annotated[Session, Depends(get_session)]) -> StoryKill | JSONResponse:
+    return _story_kill(db, story_id, False)
+
+
+class GenerationSwitch(BaseModel):
+    off: bool = False  # no live generation anywhere
+    off_topics: list[str] = []  # no live generation for stories in these topics
+
+
+@router.get("/kill-switch", response_model=GenerationSwitch)
+def get_kill_switch(db: Annotated[Session, Depends(get_session)]) -> GenerationSwitch:
+    g = kill.generation(db)
+    return GenerationSwitch(off=g.off, off_topics=sorted(g.off_topics))
+
+
+@router.post("/kill-switch", response_model=GenerationSwitch, responses={422: {"model": ErrorResponse}})
+def set_kill_switch(
+    body: GenerationSwitch, db: Annotated[Session, Depends(get_session)]
+) -> GenerationSwitch | JSONResponse:
+    """Global and per-topic switch for live generation; story pages keep their stored verified summaries."""
+    known = set(load_yaml("memory.yaml")["values"]["followed_topics"])
+    unknown = sorted(set(body.off_topics) - known)
+    if unknown:
+        msg = f"Unknown topics: {', '.join(unknown)}. Known: {', '.join(sorted(known))}."
+        return JSONResponse(
+            ErrorResponse(error=ErrorBody(code="unknown_topic", message=msg)).model_dump(), status_code=422
+        )
+    g = kill.set_generation(db, body.off, body.off_topics)
+    db.commit()
+    log.warning("ops.kill_switch", off=g.off, off_topics=sorted(g.off_topics))
+    return GenerationSwitch(off=g.off, off_topics=sorted(g.off_topics))
+
+
+@router.get("/guard-events")
+def guard_events(
+    db: Annotated[Session, Depends(get_session)], limit_: Annotated[int, Query(alias="limit", ge=1, le=500)] = 100
+) -> dict[str, list[dict[str, Any]]]:
+    """Most recent guard events, newest first (docs/09)."""
+    rows = db.execute(select(GuardEvent).order_by(GuardEvent.created_at.desc()).limit(limit_)).scalars()
+    return {
+        "items": [
+            {
+                "id": str(e.id),
+                "run_id": e.run_id,
+                "guard_id": e.guard_id,
+                "stage": e.stage,
+                "passed": e.passed,
+                "action": e.action,
+                "reason": e.reason,
+                "created_at": e.created_at.isoformat(),
+            }
+            for e in rows
+        ]
+    }

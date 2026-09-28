@@ -26,6 +26,7 @@ from lens.guardrails.pii import mask, mask_any
 from lens.llm.client import structured
 from lens.memory import store as memory
 from lens.nlp.embed import Embedder
+from lens.ops import kill
 from lens.pipeline.stats import best_ratings
 from lens.retrieval.pipeline import retrieve
 from lens.schemas import api
@@ -73,7 +74,11 @@ def make_retriever(
         ids = [uuid.UUID(h.article_id) for h in r.hits]
         rows = {
             str(a.id): (a, s)
-            for a, s in session.execute(select(Article, Source).join(Source).where(Article.id.in_(ids)))
+            for a, s in session.execute(
+                select(Article, Source)
+                .join(Source)
+                .where(Article.id.in_(ids), Article.id.not_in(kill.taken_down_articles(ids)))  # G-OPS-03
+            )
         }
         arts = []
         for h in r.hits:
@@ -451,7 +456,9 @@ def ask_events(
     state: dict[str, Any] = dict(initial_state(query, lang, previous_questions(session, session_id, turns)))
     state["summary_length"] = prefs.get("summary_length", "standard")
     sent_status: set[str] = set()
-    for update in graph.stream(state, config, stream_mode="updates"):
+    if kill.generation(session).off:  # G-OPS-03 global: no live generation; story pages keep their summaries
+        state.update({"outcome": "abstain", "abstain_reason": "service_unavailable"})
+    for update in [] if state.get("outcome") else graph.stream(state, config, stream_mode="updates"):
         for node, delta in update.items():
             state.update(delta or {})
             if node == "understand" and state.get("qu") is not None:
@@ -536,4 +543,5 @@ def ask_graph(
         false_balance_threshold=g["false_balance"]["min_similarity"],
         languages=tuple(g["localization"]["languages"]),
         translation_check=g["translation_check"],  # skip_words, phrase_words, aliases
+        generation_allowed=lambda story_ids: kill.generation_allowed(session, story_ids),
     )

@@ -238,6 +238,12 @@ CREATE TABLE users (
   identity_hash     text UNIQUE        -- SHA-256 of provider:subject; no email, no name
 );
 
+CREATE TABLE ops_flags (               -- operator switches, e.g. the G-OPS-03 kill switch (ADR-0045)
+  key         text PRIMARY KEY,        -- 'generation': {"off": bool, "off_topics": [topic, ...]}
+  value       jsonb NOT NULL,
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE user_sessions (           -- one per signed-in browser (ADR-0041, ADR-0044)
   token_hash  text PRIMARY KEY,        -- SHA-256 of the cookie token; the token is never stored
   user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
