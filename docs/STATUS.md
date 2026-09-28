@@ -61,6 +61,7 @@ Before deploying: set `APP_ENV=prod` and the settings validator lists anything u
 
 ## Gotchas learned the hard way
 
+- **Workers after a migration (2026-09-28):** both worker images run `alembic upgrade` at start, so an image older than the database's newest migration crash-loops ("Can't locate revision"). Ingestion stopped for ~8 h this way. After any migration or backend change run `make ingest-up pipeline-up`.
 - **Backend venv (2026-09-27):** native arm64 on uv-managed CPython 3.12 (`uv python install 3.12`); torch 2.14 and numpy 2.5 as locked, no hand pins or site-packages patches. A universal-binary Python runs as x86_64 when its parent runs under Rosetta and then `uv sync` installs x86 wheels, so keep the venv on the arm64-only interpreter. No `arch -x86_64` needed.
 - **Root folder:** it has a leftover `uv init` project (root `pyproject.toml`, `src/news`, `.venv` on Python 3.13). It is git-ignored. Run backend commands through the Makefile or with `env -u VIRTUAL_ENV uv run` inside `backend/`. Never let uv add `backend` as a workspace member.
 - **Indic text:** Python's `\w` and `str.isalpha` exclude Indic vowel signs and viramas. Tokenizers and script counters must include combining marks (ADR-0014, ADR-0015).
