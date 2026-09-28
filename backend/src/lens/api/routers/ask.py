@@ -8,7 +8,7 @@ from typing import Annotated, Any
 
 import redis
 import structlog
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Request, Response
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,7 @@ from lens.core.config_files import load_yaml
 from lens.core.settings import get_settings
 from lens.db.session import get_engine
 from lens.guardrails.input import check_rate, client_key
+from lens.memory import store as memory
 from lens.nlp.embed import EmbeddingUnavailableError, get_embedder
 from lens.retrieval.qdrant_store import get_qdrant
 from lens.schemas import api
@@ -60,11 +61,16 @@ def before_stream(request: Request, response: Response) -> None:
         429: {"model": ErrorResponse},
     },
 )
-def ask(body: api.AskRequest, _: Annotated[None, Depends(before_stream)]) -> Iterator[ServerSentEvent]:
+def ask(
+    body: api.AskRequest,
+    _: Annotated[None, Depends(before_stream)],
+    session_token: Annotated[str | None, Cookie(alias=memory.cfg()["cookie"]["name"])] = None,
+) -> Iterator[ServerSentEvent]:
     with open_session() as db:
         try:
+            user = memory.user_for_token(db, session_token)  # None: no consent, no memory (docs/11)
             graph = svc.ask_graph(db, get_qdrant(), get_embedder())
-            for event, payload in svc.ask_events(db, body.query, graph, body.session_id, body.lang):
+            for event, payload in svc.ask_events(db, body.query, graph, body.session_id, body.lang, user):
                 if event in ("answer_final", "abstain"):
                     db.commit()  # the audit row (G-OPS-04) is stored before the answer is sent
                 yield ServerSentEvent(event=event, data=payload)

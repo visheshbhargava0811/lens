@@ -177,6 +177,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v1_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Give Consent */
+        post: operations["give_consent_api_v1_me_consent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Preference */
+        put: operations["put_preference_api_v1_me_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Memory */
+        get: operations["memory_api_v1_me_memory_get"];
+        put?: never;
+        post?: never;
+        /** Delete Everything */
+        delete: operations["delete_everything_api_v1_me_memory_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/memory/preferences/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Preference */
+        delete: operations["delete_preference_api_v1_me_memory_preferences__key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/memory/views/{view_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete View */
+        delete: operations["delete_view_api_v1_me_memory_views__view_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/memory/asks/{turn_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Ask */
+        delete: operations["delete_ask_api_v1_me_memory_asks__turn_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/views/{story_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * View Story
+         * @description Records a view and returns what changed since the previous one (null on a first visit).
+         */
+        post: operations["view_story_api_v1_me_views__story_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * For You
+         * @description For you: stories in the reader's followed topics. Ordering and selection only; outlets never change.
+         */
+        get: operations["for_you_api_v1_me_feed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/sources/import": {
         parameters: {
             query?: never;
@@ -662,6 +822,61 @@ export interface components {
             /** Score */
             score: number;
         };
+        /** MeState */
+        MeState: {
+            /** Consented */
+            consented: boolean;
+            /** Preferences */
+            preferences: {
+                [key: string]: string | string[];
+            };
+            /** Allowed */
+            allowed: {
+                [key: string]: string[];
+            };
+        };
+        /** MemoryAsk */
+        MemoryAsk: {
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** MemoryStoryView */
+        MemoryStoryView: {
+            /** Id */
+            id: string;
+            /** Story Id */
+            story_id: string;
+            /** Headline */
+            headline: string;
+            /**
+             * Viewed At
+             * Format: date-time
+             */
+            viewed_at: string;
+        };
+        /**
+         * MemoryView
+         * @description /me/memory: every stored item, each deletable (docs/11 hard rule 6).
+         */
+        MemoryView: {
+            /** Preferences */
+            preferences: {
+                [key: string]: string | string[];
+            };
+            /** Story Views */
+            story_views: components["schemas"]["MemoryStoryView"][];
+            /** Ask History */
+            ask_history: components["schemas"]["MemoryAsk"][];
+            /** Retention Days */
+            retention_days: number;
+        };
         /** Methodology */
         Methodology: {
             /** Min Sources For Bar */
@@ -713,6 +928,13 @@ export interface components {
              * @enum {string}
              */
             confidence: "low" | "medium" | "high";
+        };
+        /** PreferenceUpdate */
+        PreferenceUpdate: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string | string[];
         };
         /** Rater */
         Rater: {
@@ -880,6 +1102,24 @@ export interface components {
             items: components["schemas"]["StoryCard"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /**
+         * StoryChanges
+         * @description "What changed since you last looked": built by code, never generated. Every item is an article or a
+         *     fact-check published after the reader's previous view, so each one cites itself.
+         */
+        StoryChanges: {
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+            /** New Articles */
+            new_articles: components["schemas"]["AskArticle"][];
+            /** New Fact Checks */
+            new_fact_checks: components["schemas"]["FactCheckRef"][];
+            /** Summary Updated */
+            summary_updated: boolean;
         };
         /** StoryDetail */
         StoryDetail: {
@@ -1253,7 +1493,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
         };
         requestBody: {
             content: {
@@ -1286,6 +1528,336 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    me_api_v1_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    give_consent_api_v1_me_consent_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_preference_api_v1_me_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    memory_api_v1_me_memory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_everything_api_v1_me_memory_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_preference_api_v1_me_memory_preferences__key__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path: {
+                key: string;
+            };
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_view_api_v1_me_memory_views__view_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path: {
+                view_id: string;
+            };
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_ask_api_v1_me_memory_asks__turn_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path: {
+                turn_id: string;
+            };
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    view_story_api_v1_me_views__story_id__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-lens-client"?: string | null;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryChanges"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    for_you_api_v1_me_feed_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                lens_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryCardPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -8,6 +8,7 @@ import {
 
 import { CoverageBar } from "@/components/coverage/CoverageBar";
 import { FactualityMeter } from "@/components/coverage/FactualityMeter";
+import { WhatChanged } from "@/components/me/WhatChanged";
 import { FactCheckList } from "@/components/story/FactCheckList";
 import { OwnershipTags } from "@/components/coverage/OwnershipTags";
 import { BiasLegend } from "@/components/coverage/BiasLegend";
@@ -184,6 +185,8 @@ export default async function StoryPage({
               articles={cited}
             />
           )}
+
+          <WhatChanged storyId={detail.story.id} />
 
           <section aria-labelledby="factchecks-heading">
             <h2

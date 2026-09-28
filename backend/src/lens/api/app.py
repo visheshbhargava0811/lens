@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException  # also covers unknown routes (404)
 
 from lens import __version__
-from lens.api.routers import admin, ask, health, public
+from lens.api.routers import admin, ask, health, me, public
 from lens.core.logging import configure_logging
 from lens.core.settings import get_settings
 from lens.core.tracing import configure_tracing
@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=[settings.web_origin],
         allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_credentials=True,  # the /me session cookie (ADR-0041)
         allow_headers=["*"],
     )
 
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
     app.include_router(ask.router, prefix=API_PREFIX)
+    app.include_router(me.router, prefix=API_PREFIX)
     app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(health.router)  # bare /health for container probes
     return app

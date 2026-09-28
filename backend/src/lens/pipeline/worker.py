@@ -64,6 +64,21 @@ def factchecks_pass() -> dict[str, Any]:
     return out
 
 
+def memory_pass(now: datetime) -> dict[str, Any]:
+    """docs/11: retention purge of story views, then consolidation for consented users who are due."""
+    from lens.llm.client import structured
+    from lens.memory import consolidate, store
+
+    out: dict[str, Any] = {}
+    try:
+        with Session(get_engine()) as session, session.begin():
+            out["views_purged"] = store.purge(session, now)
+            out["consolidation"] = consolidate.run(session, structured, now)
+    except Exception as e:
+        log.warning("memory.pass_failed", error=f"{type(e).__name__}: {e}"[:300])
+    return out
+
+
 def llmops_pass(now: datetime) -> dict[str, Any]:
     """Online evaluators on sampled Ask turns, then failed guard runs into the annotation queue."""
     from langsmith import Client
@@ -103,6 +118,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         stats = compute_all(session, now)
         purged = purge_ask_turns(session, now, ask_checkpointer())  # docs/03 retention for Ask turns
     fc = factchecks_pass()
+    mem = memory_pass(now)
     ops = llmops_pass(now)  # docs/08 review loop and online evals; best effort, never blocks the pipeline
     # LLM analysis for 4+ source stories, time-boxed (ADR-0022); can be paused to leave quota for Ask (ADR-0030).
     analysed = analyze_pending() if load_yaml("clustering.yaml")["analysis"]["scheduled"] else "paused"
@@ -116,6 +132,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         "ask_turns_purged": purged,
         "analysed": analysed,
         "factchecks": fc,
+        "memory": mem,
         "llmops": ops,
         "seconds": round(time.monotonic() - t0, 1),
     }

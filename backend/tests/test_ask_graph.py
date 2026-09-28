@@ -760,3 +760,21 @@ def test_fact_check_lookup_failure_never_blocks_the_answer() -> None:
     script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
     out, _, _ = _run(script, factcheck_lookup=boom)
     assert out["outcome"] == "answer" and out["fact_checks"] == [] and any("factcheck" in e for e in out["errors"])
+
+
+def test_follow_ups_see_earlier_questions_and_standalone_questions_the_base_prompt() -> None:
+    """docs/11 working memory: earlier neutral questions (never answers) resolve a follow-up; a standalone
+    question gets exactly the base query-understanding prompt (ADR-0041)."""
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    llm = FakeLLM(script)
+    state: AskState = {
+        "raw_query": "what did the opposition say?",
+        "windows": [30, 90],
+        "previous_questions": ["voter list revision in Bihar"],
+    }
+    out = build(llm, FakeRetriever(_ev()), lambda ids: None).invoke(state)
+    assert "<previous_questions>\n- voter list revision in Bihar" in llm.prompts[QueryUnderstanding][0]
+    assert out["prompt_versions"]["query_understanding"].endswith("+query_followups@1.0")
+    alone, llm2, _ = _run(script)
+    assert "<previous_questions>" not in llm2.prompts[QueryUnderstanding][0]
+    assert "query_followups" not in alone["prompt_versions"]["query_understanding"]

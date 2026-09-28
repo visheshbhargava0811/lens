@@ -19,11 +19,12 @@ from lens.agents.online.ask_graph import AskState, Evidence, build
 from lens.core.config_files import load_yaml
 from lens.core.settings import get_settings
 from lens.db.checkpoint import ask_checkpointer
-from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story
+from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story, User
 from lens.factchecks.match import lookup as factcheck_lookup
 from lens.factchecks.match import max_similarity
 from lens.guardrails.pii import mask, mask_any
 from lens.llm.client import structured
+from lens.memory import store as memory
 from lens.nlp.embed import Embedder
 from lens.pipeline.stats import best_ratings
 from lens.retrieval.pipeline import retrieve
@@ -113,9 +114,33 @@ def make_stored_summary(session: Session) -> Callable[[list[str]], dict[str, Any
     return run
 
 
-def initial_state(query: str, ui_lang: str | None = None) -> AskState:
+def initial_state(query: str, ui_lang: str | None = None, previous: list[str] | None = None) -> AskState:
     windows = load_yaml("retrieval.yaml")["retry"]["widen_window_days"]
-    return {"raw_query": query, "ui_lang": ui_lang, "windows": list(windows), "guards": [], "errors": [], "pruned": []}
+    return {
+        "raw_query": query,
+        "ui_lang": ui_lang,
+        "windows": list(windows),
+        "guards": [],
+        "errors": [],
+        "pruned": [],
+        "previous_questions": previous or [],
+    }
+
+
+def previous_questions(session: Session, session_id: str | None, n: int) -> list[str]:
+    """docs/11 working memory: the session's last `n` neutral questions (topics, never answers or news claims),
+    oldest first. Follow-ups are re-neutralized and re-retrieved; nothing is answered from a past answer."""
+    try:
+        sid = uuid.UUID(session_id or "")
+    except ValueError:
+        return []
+    rows = session.execute(
+        select(AskTurn.neutral_query)
+        .where(AskTurn.session_id == sid, AskTurn.neutral_query.is_not(None))
+        .order_by(AskTurn.created_at.desc())
+        .limit(n)
+    ).scalars()
+    return [q for q in rows if q][::-1]
 
 
 # Limitations are written by code, so they are templates per language, not model output.
@@ -276,7 +301,7 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
         basis="live",
         lang=lang,
         tldr=tldr,
-        what_happened=what,
+        what_happened=what[:2] if state.get("summary_length") == "short" else what,  # format only (docs/11)
         agreements=agree,
         disagreements=disagree,
         premises_addressed=premises,
@@ -403,7 +428,12 @@ def purge_ask_turns(session: Session, now: datetime, checkpointer: Any = None) -
 
 
 def ask_events(
-    session: Session, query: str, graph: Any, session_id: str | None = None, ui_lang: str | None = None
+    session: Session,
+    query: str,
+    graph: Any,
+    session_id: str | None = None,
+    ui_lang: str | None = None,
+    user: User | None = None,
 ) -> Iterator[tuple[str, BaseModel]]:
     """Runs the graph and yields (event, payload) for SSE. Only verified answers are ever sent.
     Records the turn (audit trail) before the final event; the caller commits."""
@@ -414,7 +444,12 @@ def ask_events(
     # The turn id is also the LangSmith root run id, so audit rows link to traces (online evals, docs/08).
     config = {"configurable": {"thread_id": str(turn_id)}, "run_id": turn_id}
     yield "status", api.AskStatus(step="understanding", message="Understanding the question")
-    state: dict[str, Any] = dict(initial_state(query, ui_lang))
+    # docs/11: memory changes output language and format only, never retrieval, outlets or stances.
+    prefs = memory.preferences(session, user) if user is not None and user.consent_at is not None else {}
+    lang = prefs.get("output_language") or ui_lang
+    turns = memory.cfg()["working_memory_turns"]
+    state: dict[str, Any] = dict(initial_state(query, lang, previous_questions(session, session_id, turns)))
+    state["summary_length"] = prefs.get("summary_length", "standard")
     sent_status: set[str] = set()
     for update in graph.stream(state, config, stream_mode="updates"):
         for node, delta in update.items():
@@ -449,7 +484,9 @@ def ask_events(
         final.articles = cited_articles(session, final)
     else:
         final = abstain_event(session, state)  # type: ignore[arg-type]
-    record_turn(session, state, query, session_id, final, int((time.monotonic() - t0) * 1000), turn_id)
+    turn = record_turn(session, state, query, session_id, final, int((time.monotonic() - t0) * 1000), turn_id)
+    if user is not None and user.consent_at is not None:
+        turn.user_id = user.id  # Ask history in /me (consent only)
     yield ("answer_final" if isinstance(final, api.AskAnswer) else "abstain"), final
 
 

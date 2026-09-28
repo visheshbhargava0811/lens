@@ -227,11 +227,15 @@ def feed(
     state: str | None = None,
     cursor: str | None = None,
     limit: int = 20,
+    topics: list[str] | None = None,
 ) -> api.StoryCardPage:
+    """`topics` (For you, docs/11): which stories are listed, never which outlets a story shows."""
     g = _cfg()
     q = select(Story).where(visible_story(), Story.source_count >= g["feed_min_sources"])
     if topic and topic != "top":
         q = q.where(Story.topic == topic)
+    if topics is not None:
+        q = q.where(Story.topic.in_(topics))
     if tab == "blindspot":
         q = q.where(Story.id.in_(select(StoryStats.story_id).where(StoryStats.blindspot_type.is_not(None))))
     elif tab == "local":

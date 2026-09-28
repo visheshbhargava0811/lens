@@ -7,7 +7,13 @@ import { useEffect, useRef, useState } from "react";
 import { ErrorState } from "@/components/states/ErrorState";
 import { StoryCard } from "@/components/story/StoryCard";
 import { ApiRequestError, askStream, type AskEvent } from "@/lib/api/client";
-import type { AskAbstain, AskAnswer, AskEvidence, AskStatus, AskUnderstanding } from "@/lib/api/types";
+import type {
+  AskAbstain,
+  AskAnswer,
+  AskEvidence,
+  AskStatus,
+  AskUnderstanding,
+} from "@/lib/api/types";
 
 import { AnswerCard } from "./AnswerCard";
 
@@ -19,7 +25,14 @@ type Run = {
   abstain: AskAbstain | null;
   error: string | null;
 };
-const EMPTY: Run = { status: null, understanding: null, evidence: null, answer: null, abstain: null, error: null };
+const EMPTY: Run = {
+  status: null,
+  understanding: null,
+  evidence: null,
+  answer: null,
+  abstain: null,
+  error: null,
+};
 
 function reduce(r: Run, e: AskEvent, errorMessage: string): Run {
   switch (e.event) {
@@ -47,6 +60,8 @@ export function AskPanel({ initialQuery = "" }: { initialQuery?: string }) {
   const [run, setRun] = useState<Run>(EMPTY);
   const [running, setRunning] = useState(false);
   const abort = useRef<AbortController | null>(null);
+  // One conversation per page visit: follow-ups see the earlier questions, never earlier answers (docs/11).
+  const sessionId = useRef<string>(crypto.randomUUID());
   const started = useRef(false);
 
   async function ask(q: string) {
@@ -61,12 +76,19 @@ export function AskPanel({ initialQuery = "" }: { initialQuery?: string }) {
       setRun((r) => reduce(r, e, t("ask.error")));
     };
     try {
-      await askStream({ query: text, lang: locale }, apply, abort.current.signal);
+      await askStream(
+        { query: text, lang: locale, session_id: sessionId.current },
+        apply,
+        abort.current.signal,
+      );
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
         setRun((r) => ({ ...r, status: null }));
       } else if (e instanceof ApiRequestError && e.status === 429) {
-        setRun({ ...EMPTY, error: t("ask.rateLimited", { seconds: e.retryAfterS ?? 10 }) });
+        setRun({
+          ...EMPTY,
+          error: t("ask.rateLimited", { seconds: e.retryAfterS ?? 10 }),
+        });
       } else {
         setRun({ ...EMPTY, error: t("ask.error") });
       }
@@ -85,7 +107,8 @@ export function AskPanel({ initialQuery = "" }: { initialQuery?: string }) {
   }, []);
 
   const u = run.understanding;
-  const showNeutral = u && u.removed_premises.length > 0 && (run.answer || run.abstain);
+  const showNeutral =
+    u && u.removed_premises.length > 0 && (run.answer || run.abstain);
 
   return (
     <div className="flex flex-col gap-6">
@@ -132,10 +155,17 @@ export function AskPanel({ initialQuery = "" }: { initialQuery?: string }) {
         )}
       </form>
 
-      <p aria-live="polite" data-testid="ask-status" className="min-h-6 text-ink-muted">
+      <p
+        aria-live="polite"
+        data-testid="ask-status"
+        className="min-h-6 text-ink-muted"
+      >
         {run.status && (
           <span className="inline-flex items-center gap-2">
-            <LoaderCircle aria-hidden className="size-4 animate-spin motion-reduce:animate-none" />
+            <LoaderCircle
+              aria-hidden
+              className="size-4 animate-spin motion-reduce:animate-none"
+            />
             {t(`ask.status.${run.status}`)}
           </span>
         )}
@@ -160,20 +190,38 @@ export function AskPanel({ initialQuery = "" }: { initialQuery?: string }) {
               onChange={(e) => setNeutral(e.target.value)}
               className="h-10 min-w-0 flex-1 rounded-control border border-ink/30 bg-paper px-3"
             />
-            <button type="submit" className="h-10 rounded-control bg-ink px-4 font-bold text-paper hover:bg-ink/85">
+            <button
+              type="submit"
+              className="h-10 rounded-control bg-ink px-4 font-bold text-paper hover:bg-ink/85"
+            >
               {t("ask.editQuery")}
             </button>
           </div>
         </form>
       )}
 
-      {run.error && <ErrorState message={run.error} onRetry={() => void ask(query)} />}
+      {run.error && (
+        <ErrorState message={run.error} onRetry={() => void ask(query)} />
+      )}
 
-      {run.answer && <AnswerCard answer={run.answer} evidence={run.evidence} onFollowUp={(q) => void ask(q)} />}
+      {run.answer && (
+        <AnswerCard
+          answer={run.answer}
+          evidence={run.evidence}
+          onFollowUp={(q) => void ask(q)}
+        />
+      )}
 
       {run.abstain && (
-        <section data-testid="abstain-state" aria-labelledby="abstain-heading" className="flex flex-col gap-4">
-          <p id="abstain-heading" className="rounded-card bg-surface px-5 py-4 text-lg">
+        <section
+          data-testid="abstain-state"
+          aria-labelledby="abstain-heading"
+          className="flex flex-col gap-4"
+        >
+          <p
+            id="abstain-heading"
+            className="rounded-card bg-surface px-5 py-4 text-lg"
+          >
             {t(`ask.abstain.${run.abstain.reason}`)}
           </p>
           {run.abstain.closest_stories.length > 0 && (

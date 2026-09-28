@@ -402,10 +402,13 @@ class StorySummary(Base):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (Index("ux_users_session_token_hash", "session_token_hash", unique=True),)
 
     id: Mapped[uuid.UUID] = _pk()
     created_at: Mapped[datetime] = _now()
     consent_at: Mapped[datetime | None] = mapped_column(TSTZ)
+    session_token_hash: Mapped[str | None] = mapped_column(Text)  # ADR-0041: anonymous profile (hash only)
+    consolidated_at: Mapped[datetime | None] = mapped_column(TSTZ)  # last memory consolidation (docs/11)
 
 
 class UserPreference(Base):
@@ -424,6 +427,10 @@ class StoryView(Base):
     because the ORM requires one (docs/DECISIONS.md, ADR-0004)."""
 
     __tablename__ = "story_views"
+    __table_args__ = (
+        Index("ix_story_views_user_story", "user_id", "story_id", text("viewed_at DESC")),
+        Index("ix_story_views_viewed_at", "viewed_at"),  # retention purge
+    )
 
     id: Mapped[uuid.UUID] = _pk()
     user_id: Mapped[uuid.UUID] = _fk("users.id", ondelete="CASCADE")

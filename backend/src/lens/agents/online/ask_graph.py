@@ -88,6 +88,8 @@ class AskState(TypedDict, total=False):
     stale: bool
     freshness_done: bool
     fact_checks: list[dict[str, Any]]  # FactCheckRef dumps (plain dicts: the checkpointer allowlist)
+    previous_questions: list[str]  # docs/11 working memory: the session's earlier neutral questions, no answers
+    summary_length: str
     freshness: dict[str, Any] | None
 
 
@@ -176,14 +178,22 @@ def build(
         if not inj.passed:
             return {"qu": None, "abstain_reason": "guard_block", "guards": guards}
         s = skill("query_understanding")
-        user = f"<question>\n{text}\n</question>"
+        prev = [mask(clean(q))[0] for q in state.get("previous_questions") or []]
+        system, version = s.text, f"query_understanding@{s.version}"
+        if prev:  # appended only for follow-ups: standalone questions see exactly the base prompt (ADR-0041)
+            f = skill("query_followups")
+            system, version = f"{system}\n\n{f.text}", f"{version}+query_followups@{f.version}"
+        context = (
+            "<previous_questions>\n" + "\n".join(f"- {q}" for q in prev) + "\n</previous_questions>\n" if prev else ""
+        )
+        user = f"{context}<question>\n{text}\n</question>"
         try:
             qu, rec = call(
                 state,
                 "query_understanding",
                 "query_understanding",
                 QueryUnderstanding,
-                (s.text, f"query_understanding@{s.version}"),
+                (system, version),
                 user,
             )
         except LLMError as e:
@@ -203,7 +213,7 @@ def build(
                     "query_understanding",
                     "query_understanding",
                     QueryUnderstanding,
-                    (s.text, f"query_understanding@{s.version}"),
+                    (system, version),
                     f"{user}\n\nA check of your first reading found a problem: {rec_q.meta['feedback']}",
                 )
             except LLMError as e:

@@ -377,3 +377,49 @@ class AskEvents(BaseModel):
     answer_final: AskAnswer
     abstain: AskAbstain
     error: AskError
+
+
+# ---------------------------------------------------------------- memory (Phase 9, docs/11, ADR-0041)
+
+
+class StoryChanges(BaseModel):
+    """ "What changed since you last looked": built by code, never generated. Every item is an article or a
+    fact-check published after the reader's previous view, so each one cites itself."""
+
+    since: datetime
+    new_articles: list[AskArticle]
+    new_fact_checks: list[FactCheckRef]
+    summary_updated: bool
+
+
+class MeState(BaseModel):
+    consented: bool
+    preferences: dict[str, str | list[str]]
+    allowed: dict[str, list[str]]  # the closed value set of every key: the whole storable surface
+
+
+class MemoryStoryView(BaseModel):
+    id: str
+    story_id: str
+    headline: str
+    viewed_at: datetime
+
+
+class MemoryAsk(BaseModel):
+    id: str
+    question: str  # PII-masked at storage (G-OUT-05)
+    created_at: datetime
+
+
+class MemoryView(BaseModel):
+    """/me/memory: every stored item, each deletable (docs/11 hard rule 6)."""
+
+    preferences: dict[str, str | list[str]]
+    story_views: list[MemoryStoryView]
+    ask_history: list[MemoryAsk]
+    retention_days: int
+
+
+class PreferenceUpdate(BaseModel):
+    key: str
+    value: str | list[str]

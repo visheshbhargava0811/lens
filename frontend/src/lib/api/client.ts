@@ -2,11 +2,14 @@ import type {
   AskEventName,
   AskEvents,
   Blindspots,
+  MemoryView,
+  MeState,
   Methodology,
   Page,
   SourceDetail,
   StoryArticles,
   StoryCard,
+  StoryChanges,
   StoryDetail,
   Topic,
 } from "./types";
@@ -157,8 +160,52 @@ export function parseSseBlock(block: string): AskEvent | null {
  * POST /ask and stream its events (docs/09). EventSource cannot POST, so the body is read and split
  * on blank lines. A 429 or other non-stream error throws ApiRequestError before any event.
  */
+/**
+ * /me (docs/11, ADR-0041): the anonymous profile lives in an httpOnly cookie, so these run in the browser with
+ * credentials. Writes send `X-Lens-Client`, which a cross-site page cannot add (CSRF).
+ */
+async function me<T>(method: string, path: string, body?: unknown): Promise<T> {
+  await (globalThis as { __lensMocksReady?: Promise<unknown> }).__lensMocksReady; // fixtures only (MockProvider)
+  const res = await fetch(`${API_BASE}/me${path}`, {
+    method,
+    credentials: "include",
+    cache: "no-store",
+    headers: {
+      ...(method === "GET" ? {} : { "X-Lens-Client": "web" }),
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new ApiRequestError(
+      res.status,
+      "http_error",
+      err?.detail ?? res.statusText,
+    );
+  }
+  return (res.status === 204 ? null : res.json()) as Promise<T>;
+}
+
+export const getMe = () => me<MeState>("GET", "");
+export const giveConsent = () => me<MeState>("POST", "/consent");
+export const putPreference = (key: string, value: string | string[]) =>
+  me<MeState>("PUT", "/preferences", { key, value });
+export const getMemory = () => me<MemoryView>("GET", "/memory");
+export const deleteEverything = () => me<null>("DELETE", "/memory");
+export const deletePreference = (key: string) =>
+  me<null>("DELETE", `/memory/preferences/${key}`);
+export const deleteView = (id: string) =>
+  me<null>("DELETE", `/memory/views/${id}`);
+export const deleteAsk = (id: string) =>
+  me<null>("DELETE", `/memory/asks/${id}`);
+/** Records a story view; returns what changed since the previous one (null on a first visit). */
+export const recordView = (storyId: string) =>
+  me<StoryChanges | null>("POST", `/views/${storyId}`);
+export const getForYou = () => me<Page<StoryCard>>("GET", "/feed");
+
 export async function askStream(
-  body: { query: string; lang?: string },
+  body: { query: string; lang?: string; session_id?: string },
   onEvent: (e: AskEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
@@ -166,6 +213,7 @@ export async function askStream(
     .__lensMocksReady; // fixtures only (MockProvider)
   const res = await fetch(`${API_BASE}/ask`, {
     method: "POST",
+    credentials: "include", // the /me cookie: consented readers get their preferences and history (docs/11)
     headers: {
       "content-type": "application/json",
       accept: "text/event-stream",

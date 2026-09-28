@@ -1,0 +1,22 @@
+# User memory (docs/11, Phase 9, ADR-0041). Explicit preferences only, from a fixed key enum with closed value
+# sets: nothing here can express a political leaning, a stance, or which outlets someone reads (hard rule 3).
+retention_days: 30                # story views and Ask history (ask_turns has its own purge, guardrails.yaml)
+consolidation:
+  after_sessions: 5               # or nightly, whichever comes first (docs/11)
+  max_turns: 20                   # recent questions read per run (explicit statements only)
+working_memory_turns: 3           # previous neutral questions of the session given to query understanding
+cookie:
+  name: lens_session
+  max_age_days: 365
+values:
+  output_language: [en, hi, mr]   # answer languages (guardrails.yaml localization.languages + English)
+  ui_language: [en, hi]           # UI locales
+  summary_length: [short, standard]
+  audio_preference: ["off", "on"]
+  followed_topics: [politics, business, world, sports, tech, health, science, entertainment]
+  followed_regions: [andhra-pradesh, arunachal-pradesh, assam, bihar, chhattisgarh, goa, gujarat, haryana,
+    himachal-pradesh, jharkhand, karnataka, kerala, madhya-pradesh, maharashtra, manipur, meghalaya, mizoram,
+    nagaland, odisha, punjab, rajasthan, sikkim, tamil-nadu, telangana, tripura, uttar-pradesh, uttarakhand,
+    west-bengal, andaman-and-nicobar-islands, chandigarh, dadra-and-nagar-haveli-and-daman-and-diu, delhi,
+    jammu-and-kashmir, ladakh, lakshadweep, puducherry]
+max_list_items: 10

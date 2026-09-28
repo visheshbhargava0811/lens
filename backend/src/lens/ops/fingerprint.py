@@ -55,6 +55,7 @@ DEPS: dict[str, list[str]] = {
             f"{SKILLS}/{s}.md"
             for s in (
                 "query_understanding",
+                "query_followups",
                 "ask_synthesis",
                 "evidence_rules",
                 "judge_faithfulness",

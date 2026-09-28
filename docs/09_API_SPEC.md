@@ -27,8 +27,13 @@ REST plus SSE, JSON, prefixed `/api/v1`. FastAPI generates OpenAPI. The frontend
 | POST | `/ask` | **SSE stream.** Cited answer |
 | GET | `/methodology` | Structured methodology content |
 | POST | `/feedback` | Report wrong cluster, rating, summary |
-| GET, PUT | `/me/preferences` | Preferences (Phase 9) |
-| GET, DELETE | `/me/memory` | View and delete stored facts and history (Phase 9) |
+| GET | `/me` | `MeState`: `consented`, `preferences`, `allowed` (every key's closed value set) |
+| POST | `/me/consent` | Creates the anonymous profile and sets the `lens_session` httpOnly cookie (ADR-0041) |
+| PUT | `/me/preferences` | `{ key, value }`; 401 without consent, 422 for a key or value outside the closed sets |
+| GET, DELETE | `/me/memory` | `MemoryView` (preferences, story views, Ask history, retention days); DELETE removes everything and the cookie |
+| DELETE | `/me/memory/preferences/{key}`, `/me/memory/views/{id}`, `/me/memory/asks/{id}` | Delete one item (an Ask turn is unlinked; its audit row stays anonymous until its own purge) |
+| POST | `/me/views/{story_id}` | Records a view, returns `StoryChanges` since the previous one (null on a first visit) |
+| GET | `/me/feed` | For you: stories in followed topics (`private, no-store`); outlets per story never change |
 | GET | `/health` | Liveness |
 
 Admin (separate auth, `/api/v1/admin`): `GET /review-queue`, `POST /review-queue/{id}/resolve`, `POST /stories/{id}/kill`, `POST /stories/{id}/restore`, `POST /kill-switch` (global), `GET /guard-events`, `POST /sources/import` (CSV of ratings and ownership with required evidence URLs).
@@ -159,7 +164,7 @@ Rate-limited requests return HTTP 429 with the standard error shape.
 ## Auth
 
 - Public read endpoints need no auth
-- `/me/*` requires a user session (Phase 9)
+- `/me/*` requires a user session (Phase 9, ADR-0041): an anonymous, consented profile. The session is a random token in an httpOnly, `SameSite=Lax` cookie (`Secure` outside dev); the database keeps only its SHA-256. Writes require the `X-Lens-Client` header (CSRF). `/ask` reads the cookie too: a consented reader's turns are linked to them and their answer language and length preferences apply
 - `/admin/*` requires separate admin credentials and is not exposed through the public web origin
 
 ## Contract tests
