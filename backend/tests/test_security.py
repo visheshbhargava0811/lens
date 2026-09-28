@@ -191,11 +191,11 @@ def test_session_tokens_are_stored_only_as_hashes(db: Any) -> None:
 
     from sqlalchemy import select
 
-    from lens.db.models import User
+    from lens.db.models import UserSession
     from lens.memory import store
 
     user, raw = store.consent(db)
-    stored = db.execute(select(User.session_token_hash).where(User.id == user.id)).scalar_one()
+    stored = db.execute(select(UserSession.token_hash).where(UserSession.user_id == user.id)).scalar_one()
     assert stored != raw and raw not in stored and stored == hashlib.sha256(raw.encode()).hexdigest()
     assert len(raw) >= 40  # 32 random bytes, url-safe
     assert store.user_for_token(db, raw) is not None and store.user_for_token(db, stored) is None

@@ -1,0 +1,12 @@
+# Sign-in (ADR-0044). OpenID Connect authorization code flow with PKCE, run by the API; the browser never
+# sees a Google token. Scope `openid` only: Lens receives Google's opaque account id (`sub`), never an email
+# or a name, and stores only SHA-256("google:" + sub). Endpoints from
+# https://accounts.google.com/.well-known/openid-configuration (checked 2026-09-28).
+providers:
+  google:
+    authorization_endpoint: https://accounts.google.com/o/oauth2/v2/auth
+    token_endpoint: https://oauth2.googleapis.com/token
+    issuers: [https://accounts.google.com, accounts.google.com]   # Google documents both spellings
+    scope: openid
+flow_cookie: lens_oauth        # state, nonce and PKCE verifier between start and callback
+flow_max_age_s: 600

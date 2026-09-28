@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { getLocale, getNow, getTranslations } from "next-intl/server";
 
+import { AccountMenu } from "./account-menu";
 import { LanguageSwitcher } from "./language-switcher";
 import { NavLinks } from "./nav-links";
 import { primaryNav, topics } from "./nav-items";
@@ -47,12 +48,7 @@ export async function SiteHeader() {
               <Search aria-hidden className="size-4 text-ink" />
               <span className="sr-only lg:not-sr-only">{t("search")}</span>
             </Link>
-            <Link
-              href="/sign-in"
-              className="hidden h-10 items-center rounded-control bg-ink px-5 text-sm font-bold whitespace-nowrap text-paper hover:bg-ink/85 md:inline-flex"
-            >
-              {t("signIn")}
-            </Link>
+            <AccountMenu signInLabel={t("signIn")} />
           </div>
         </div>
         <TopicChips label={t("topics")} items={topicItems} />

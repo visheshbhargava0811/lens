@@ -11,7 +11,8 @@ import { stateAt, type StateShapes } from "@/lib/geo";
 
 const KEY = "lens.local.state";
 
-type Status = "idle" | "locating" | "denied" | "unsupported" | "outside" | "failed";
+type Status =
+  "idle" | "locating" | "denied" | "unsupported" | "outside" | "failed";
 
 function saved(): string | null {
   try {
@@ -26,7 +27,9 @@ const subscribe = (onChange: () => void) => {
   return () => window.removeEventListener("storage", onChange);
 };
 
-type Loaded = { state: string; items: StoryCard[]; cursor: string | null } | { state: string; failed: true };
+type Loaded =
+  | { state: string; items: StoryCard[]; cursor: string | null }
+  | { state: string; failed: true };
 
 /** Local tab (F-15): the reader's state from browser location, resolved on the device (only the state
  * slug reaches the API), or picked by hand. The choice is kept in this browser only. */
@@ -34,7 +37,9 @@ export function LocalFeed() {
   const t = useTranslations("local");
   const tr = useTranslations("me");
   const locale = useLocale();
-  const names = (useMessages() as { me: { regionNames: Record<string, string> } }).me.regionNames;
+  const names = (
+    useMessages() as { me: { regionNames: Record<string, string> } }
+  ).me.regionNames;
   const stored = useSyncExternalStore(subscribe, saved, () => null);
   const [picked, setPicked] = useState<string | null>(null);
   const state = picked ?? (stored && stored in names ? stored : null);
@@ -56,7 +61,9 @@ export function LocalFeed() {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          const shapes = (await (await fetch("/geo/india-states.json")).json()) as StateShapes;
+          const shapes = (await (
+            await fetch("/geo/india-states.json")
+          ).json()) as StateShapes;
           const slug = stateAt(coords.longitude, coords.latitude, shapes);
           if (slug) choose(slug);
           else setStatus("outside");
@@ -83,7 +90,10 @@ export function LocalFeed() {
     if (!state) return;
     let live = true;
     getFeed({ tab: "local", state, lang: locale })
-      .then((p) => live && setLoaded({ state, items: p.items, cursor: p.next_cursor }))
+      .then(
+        (p) =>
+          live && setLoaded({ state, items: p.items, cursor: p.next_cursor }),
+      )
       .catch(() => live && setLoaded({ state, failed: true }));
     return () => {
       live = false;
@@ -98,11 +108,19 @@ export function LocalFeed() {
   const more = () => {
     if (!cursor || !state || !items) return;
     getFeed({ tab: "local", state, lang: locale, cursor })
-      .then((p) => setLoaded({ state, items: [...items, ...p.items], cursor: p.next_cursor }))
+      .then((p) =>
+        setLoaded({
+          state,
+          items: [...items, ...p.items],
+          cursor: p.next_cursor,
+        }),
+      )
       .catch(() => setLoaded({ state, failed: true }));
   };
 
-  const sorted = Object.entries(names).sort((a, b) => a[1].localeCompare(b[1], locale));
+  const sorted = Object.entries(names).sort((a, b) =>
+    a[1].localeCompare(b[1], locale),
+  );
 
   return (
     <div>
@@ -141,7 +159,11 @@ export function LocalFeed() {
       )}
 
       <div className="mt-6">
-        {state && <h2 className="mb-2 text-2xl">{tr(`regionNames.${state}` as "regionNames.goa")}</h2>}
+        {state && (
+          <h2 className="mb-2 text-2xl">
+            {tr(`regionNames.${state}` as "regionNames.goa")}
+          </h2>
+        )}
         {error && <p role="alert">{t("error")}</p>}
         {state && !error && items === null && (
           <p aria-busy="true" className="text-ink-muted">
@@ -152,7 +174,11 @@ export function LocalFeed() {
         {items && items.length > 0 && <FeedGrid stories={items} />}
         {cursor && (
           <div className="mt-8 flex justify-center">
-            <button type="button" onClick={more} className="h-11 rounded-control border border-ink/25 px-5 font-bold">
+            <button
+              type="button"
+              onClick={more}
+              className="h-11 rounded-control border border-ink/25 px-5 font-bold"
+            >
               {t("more")}
             </button>
           </div>
@@ -160,7 +186,12 @@ export function LocalFeed() {
       </div>
       <p className="mt-10 text-xs text-ink-muted">
         {t("attribution")}{" "}
-        <a className="underline" href="https://github.com/datameet/maps" rel="noopener noreferrer" target="_blank">
+        <a
+          className="underline"
+          href="https://github.com/datameet/maps"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
           DataMeet India
         </a>{" "}
         (

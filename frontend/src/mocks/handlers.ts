@@ -198,8 +198,14 @@ const memoryState: {
   consented: false,
   preferences: {},
 };
+/** Google sign-in is a full-page redirect the mocks cannot follow; tests start signed in with
+ * `window.__lensMockSignedIn = true` (an init script), and sign-out clears it. */
+const signedIn = () =>
+  !!(globalThis as { __lensMockSignedIn?: boolean }).__lensMockSignedIn;
 const meState = () => ({
-  consented: memoryState.consented,
+  consented: memoryState.consented || signedIn(),
+  signed_in_with: signedIn() ? "google" : null,
+  sign_in_providers: ["google"],
   preferences: memoryState.preferences,
   allowed: ALLOWED,
 });
@@ -211,8 +217,13 @@ export const handlers = [
     memoryState.consented = true;
     return HttpResponse.json(meState());
   }),
+  http.post(`${API_BASE}/auth/sign-out`, () => {
+    (globalThis as { __lensMockSignedIn?: boolean }).__lensMockSignedIn = false;
+    memoryState.consented = false;
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.put(`${API_BASE}/me/preferences`, async ({ request }) => {
-    if (!memoryState.consented)
+    if (!memoryState.consented && !signedIn())
       return HttpResponse.json({ detail: "memory is off" }, { status: 401 });
     const { key, value } = (await request.json()) as {
       key: string;

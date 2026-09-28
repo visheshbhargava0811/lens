@@ -50,6 +50,8 @@ const button =
  */
 export function MemoryPanel() {
   const t = useTranslations("me");
+  const ts = useTranslations("signIn");
+  const ta = useTranslations("account");
   const tt = useTranslations("topics");
   const fmt = useFormatter();
   const router = useRouter();
@@ -132,6 +134,14 @@ export function MemoryPanel() {
           {t("consentButton")}
         </button>
         <p className="mt-2 text-sm text-ink-muted">{t("consentNote")}</p>
+        {me.sign_in_providers.length > 0 && (
+          <p className="mt-4 border-t border-ink/10 pt-4 text-sm">
+            <Link href="/sign-in" className="font-bold underline decoration-ink/40 hover:decoration-ink">
+              {ts("google")}
+            </Link>{" "}
+            <span className="text-ink-muted">{ts("intro")}</span>
+          </p>
+        )}
       </section>
     );
   }
@@ -200,6 +210,9 @@ export function MemoryPanel() {
 
   return (
     <div className="flex flex-col gap-8">
+      {me.signed_in_with && (
+        <p className="text-sm text-ink-muted">{ta("signedInWith")}</p>
+      )}
       <p role="status" aria-live="polite" className="text-sm font-bold">
         {status === "saved"
           ? t("saved")

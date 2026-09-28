@@ -40,7 +40,7 @@ def _user(db: Session, token: str | None) -> User:
     return user
 
 
-def _set_cookie(response: Response, token: str) -> None:
+def set_session_cookie(response: Response, token: str) -> None:
     c = store.cfg()["cookie"]
     response.set_cookie(
         c["name"],
@@ -53,15 +53,20 @@ def _set_cookie(response: Response, token: str) -> None:
     )
 
 
-def _allowed() -> dict[str, list[str]]:
-    return {k: [str(v) for v in vals] for k, vals in store.cfg()["values"].items()}
+def _state(db: Session, user: User | None) -> api.MeState:
+    return api.MeState(
+        consented=user is not None,
+        signed_in_with=user.identity_provider if user else None,
+        sign_in_providers=["google"] if get_settings().google_client_id else [],
+        preferences=store.preferences(db, user),
+        allowed={k: [str(v) for v in vals] for k, vals in store.cfg()["values"].items()},
+    )
 
 
 @router.get("", response_model=api.MeState)
 def me(db: DB, response: Response, token: Token = None) -> api.MeState:
     response.headers["Cache-Control"] = "no-store"
-    user = store.user_for_token(db, token)
-    return api.MeState(consented=user is not None, preferences=store.preferences(db, user), allowed=_allowed())
+    return _state(db, store.user_for_token(db, token))
 
 
 @router.post("/consent", response_model=api.MeState, dependencies=[CSRF])
@@ -70,8 +75,8 @@ def give_consent(db: DB, response: Response, token: Token = None) -> api.MeState
     if user is None:
         user, raw = store.consent(db)
         db.commit()
-        _set_cookie(response, raw)
-    return api.MeState(consented=True, preferences=store.preferences(db, user), allowed=_allowed())
+        set_session_cookie(response, raw)
+    return _state(db, user)
 
 
 @router.put("/preferences", response_model=api.MeState, dependencies=[CSRF])
@@ -82,7 +87,7 @@ def put_preference(body: api.PreferenceUpdate, db: DB, token: Token = None) -> a
     except store.MemoryRejected as e:
         raise HTTPException(401 if user is None else 422, str(e)) from None
     db.commit()
-    return api.MeState(consented=True, preferences=store.preferences(db, user), allowed=_allowed())
+    return _state(db, user)
 
 
 @router.get("/memory", response_model=api.MemoryView)

@@ -40,7 +40,9 @@ test("me: consent gate, edit preferences, delete everything", async ({
   ).toBeVisible();
 });
 
-test("sign-in leads to the consent page", async ({ page }) => {
+test("sign-in still offers Lens without an account", async ({ page }) => {
   await page.goto("/sign-in");
+  await page.getByRole("link", { name: "Use Lens without an account" }).click();
   await expect(page).toHaveURL(/\/me$/);
+  await expect(page.getByRole("heading", { name: "Turn on personalization?" })).toBeVisible();
 });

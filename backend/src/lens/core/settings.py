@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     llm_timeout_s: float = 120.0
 
     web_origin: str = "http://localhost:3000"
+    api_public_url: str = "http://localhost:8000"  # this API as browsers reach it (OAuth redirect URI, ADR-0044)
+    google_client_id: str | None = None  # Google sign-in (ADR-0044); unset hides the sign-in button
+    google_client_secret: SecretStr | None = None
     admin_token: SecretStr | None = None  # /api/v1/admin/*; unset disables admin endpoints
     rate_limit_salt: SecretStr | None = None  # shared across API workers (lens.guardrails.input.client_key)
     max_body_bytes: int = 1_000_000  # request bodies above this are refused (admin CSV import: 5x)
@@ -85,6 +88,10 @@ class Settings(BaseSettings):
             problems.append("RATE_LIMIT_SALT is not set (rate limits would differ per worker)")
         if self.log_level.upper() == "DEBUG":
             problems.append("LOG_LEVEL=DEBUG is not allowed outside dev")
+        if self.google_client_id and not self.api_public_url.startswith("https://"):
+            problems.append("API_PUBLIC_URL must be https:// when Google sign-in is on")
+        if bool(self.google_client_id) != bool(self.google_client_secret):
+            problems.append("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together")
         if problems:
             raise ValueError("unsafe settings for " + self.app_env + ": " + "; ".join(problems))
         return self

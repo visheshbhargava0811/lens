@@ -27,7 +27,10 @@ REST plus SSE, JSON, prefixed `/api/v1`. FastAPI generates OpenAPI. The frontend
 | POST | `/ask` | **SSE stream.** Cited answer |
 | GET | `/methodology` | Structured methodology content |
 | POST | `/feedback` | Report wrong cluster, rating, summary |
-| GET | `/me` | `MeState`: `consented`, `preferences`, `allowed` (every key's closed value set) |
+| GET | `/me` | `MeState`: `consented`, `signed_in_with` (`google` or null), `sign_in_providers`, `preferences`, `allowed` (every key's closed value set) |
+| GET | `/auth/google/start?next=` | Redirect to Google (OIDC code flow with PKCE, scope `openid`); `next` must be a path on the web app (ADR-0044) |
+| GET | `/auth/google/callback` | Code exchange, then the `lens_session` cookie and a redirect to `next`; errors go to `/sign-in?error=cancelled\|state\|expired\|provider` |
+| POST | `/auth/sign-out` | Ends this browser's session (`X-Lens-Client` required) |
 | POST | `/me/consent` | Creates the anonymous profile and sets the `lens_session` httpOnly cookie (ADR-0041) |
 | PUT | `/me/preferences` | `{ key, value }`; 401 without consent, 422 for a key or value outside the closed sets |
 | GET, DELETE | `/me/memory` | `MemoryView` (preferences, story views, Ask history, retention days); DELETE removes everything and the cookie |

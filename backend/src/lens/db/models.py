@@ -402,13 +402,26 @@ class StorySummary(Base):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (Index("ux_users_session_token_hash", "session_token_hash", unique=True),)
+    __table_args__ = (Index("ux_users_identity_hash", "identity_hash", unique=True),)
 
     id: Mapped[uuid.UUID] = _pk()
     created_at: Mapped[datetime] = _now()
     consent_at: Mapped[datetime | None] = mapped_column(TSTZ)
-    session_token_hash: Mapped[str | None] = mapped_column(Text)  # ADR-0041: anonymous profile (hash only)
     consolidated_at: Mapped[datetime | None] = mapped_column(TSTZ)  # last memory consolidation (docs/11)
+    # ADR-0044: signed in with this provider; only SHA-256 of "provider:subject" is kept (no email, no name).
+    identity_provider: Mapped[str | None] = mapped_column(Text)
+    identity_hash: Mapped[str | None] = mapped_column(Text)
+
+
+class UserSession(Base):
+    """One per signed-in browser (ADR-0044). The cookie holds the token; only its SHA-256 is stored."""
+
+    __tablename__ = "user_sessions"
+    __table_args__ = (Index("ix_user_sessions_user_id", "user_id"),)
+
+    token_hash: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = _now()
 
 
 class UserPreference(Base):

@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from lens.core.config_files import load_yaml
 from lens.core.logging import get_logger
-from lens.db.models import AskTurn, StorySummary, StoryView, User, UserPreference
+from lens.db.models import AskTurn, StorySummary, StoryView, User, UserPreference, UserSession
 from lens.schemas.memory import UserFact, UserFactKey
 
 log = get_logger(__name__)
@@ -38,19 +38,51 @@ def _hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def consent(session: Session, now: datetime | None = None) -> tuple[User, str]:
-    """Creates a consented profile; returns it and the raw token for the cookie (never stored)."""
+def new_session(session: Session, user: User) -> str:
+    """A sign-in on one browser; returns the raw cookie token (only its hash is stored)."""
     token = secrets.token_urlsafe(32)
-    user = User(consent_at=now or datetime.now(UTC), session_token_hash=_hash(token))
+    session.add(UserSession(token_hash=_hash(token), user_id=user.id))
+    session.flush()
+    return token
+
+
+def consent(session: Session, now: datetime | None = None) -> tuple[User, str]:
+    """Creates a consented anonymous profile; returns it and the raw token for the cookie."""
+    user = User(consent_at=now or datetime.now(UTC))
     session.add(user)
     session.flush()
-    return user, token
+    return user, new_session(session, user)
 
 
 def user_for_token(session: Session, token: str | None) -> User | None:
     if not token:
         return None
-    return session.execute(select(User).where(User.session_token_hash == _hash(token))).scalar_one_or_none()
+    return session.execute(
+        select(User).join(UserSession, UserSession.user_id == User.id).where(UserSession.token_hash == _hash(token))
+    ).scalar_one_or_none()
+
+
+def end_session(session: Session, token: str | None) -> None:
+    if token:
+        session.execute(delete(UserSession).where(UserSession.token_hash == _hash(token)))
+
+
+def sign_in(session: Session, provider: str, subject: str, current: User | None, now: datetime | None = None) -> User:
+    """ADR-0044. The account for this identity, creating or linking it. Signing in is consent to saving
+    preferences. An anonymous profile on this browser becomes the account when the identity is new; when
+    the identity already has an account, the anonymous profile is deleted (nothing could reach it again)."""
+    now = now or datetime.now(UTC)
+    ident = _hash(f"{provider}:{subject}")
+    account = session.execute(select(User).where(User.identity_hash == ident)).scalar_one_or_none()
+    if account is None:
+        account = current if current is not None and current.identity_hash is None else User()
+        account.identity_provider, account.identity_hash = provider, ident
+        session.add(account)
+    elif current is not None and current.id != account.id and current.identity_hash is None:
+        delete_everything(session, current)
+    account.consent_at = account.consent_at or now
+    session.flush()
+    return account
 
 
 def validate(key: str, value: Any) -> UserFact:
@@ -135,6 +167,9 @@ def record_view(
 
 def purge(session: Session, now: datetime | None = None) -> int:
     """docs/11 hard rule 7: story views older than `retention_days` are deleted (Ask turns: G-OPS-04 purge)."""
-    cutoff = (now or datetime.now(UTC)) - timedelta(days=cfg()["retention_days"])
+    now = now or datetime.now(UTC)
+    cutoff = now - timedelta(days=cfg()["retention_days"])
     result: Any = session.execute(delete(StoryView).where(StoryView.viewed_at < cutoff))
+    expired = now - timedelta(days=cfg()["cookie"]["max_age_days"])  # the cookie is gone by now anyway
+    session.execute(delete(UserSession).where(UserSession.created_at < expired))
     return int(result.rowcount)  # DELETE returns a CursorResult

@@ -314,9 +314,40 @@
   "languageNames": {
     "en": "English"
   },
+  "signIn": {
+    "title": "Sign in to Lens",
+    "intro": "Keep your preferences on every device you use.",
+    "google": "Continue with Google",
+    "whatTitle": "What signing in does",
+    "what1": "Saves your answer language, answer length, and the topics and states you follow.",
+    "what2": "Builds your For you page from the topics you follow.",
+    "what3": "Never changes which outlets appear in a story or an answer.",
+    "getsTitle": "What Lens gets from Google",
+    "gets": "Only an account number that Google makes for Lens. Not your email, name, photo or contacts. Lens stores it scrambled (hashed), so it can't be traced back to you.",
+    "consent": "Signing in turns on personalization. You can delete everything, including your sign-in, at any time on the Preferences page.",
+    "anonymous": "Use Lens without an account",
+    "unavailable": "Sign-in isn't available on this server yet. You can still turn on personalization in this browser.",
+    "signedIn": "You're signed in with Google.",
+    "toPrefs": "Go to your preferences",
+    "errors": {
+      "cancelled": "Sign-in was cancelled. You can try again.",
+      "state": "That sign-in link didn't match this browser. Please try again.",
+      "expired": "The sign-in took too long. Please try again.",
+      "provider": "Google couldn't confirm the sign-in. Please try again."
+    }
+  },
+  "account": {
+    "menu": "Account",
+    "signedInWith": "Signed in with Google",
+    "quick": "Quick preferences",
+    "forYou": "For you",
+    "all": "All preferences and your data",
+    "signOut": "Sign out",
+    "signOutError": "Couldn't sign out. Try again."
+  },
   "me": {
     "title": "Your preferences",
-    "intro": "Lens works without an account. If you turn on personalization, Lens remembers only what you choose here, in this browser.",
+    "intro": "Lens works without an account. Sign in to keep your preferences on every device, or turn on personalization in this browser only. Lens remembers only what you choose here.",
     "consentTitle": "Turn on personalization?",
     "consentWhat": "What Lens stores: the answer language, site language, topics and regions you follow, answer length and audio choice; the stories you open (to show what changed since your last visit) and the questions you ask Lens, both for {days} days.",
     "consentNot": "What Lens never stores: your name, email or phone; any political preference; which outlets or sides you read. What you follow never changes which outlets appear in a story or an answer.",

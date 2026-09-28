@@ -166,9 +166,9 @@ export function parseSseBlock(block: string): AskEvent | null {
  * /me (docs/11, ADR-0041): the anonymous profile lives in an httpOnly cookie, so these run in the browser with
  * credentials. Writes send `X-Lens-Client`, which a cross-site page cannot add (CSRF).
  */
-async function me<T>(method: string, path: string, body?: unknown): Promise<T> {
+async function withSession<T>(method: string, path: string, body?: unknown): Promise<T> {
   await (globalThis as { __lensMocksReady?: Promise<unknown> }).__lensMocksReady; // fixtures only (MockProvider)
-  const res = await fetch(`${API_BASE}/me${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
     credentials: "include",
     cache: "no-store",
@@ -189,7 +189,12 @@ async function me<T>(method: string, path: string, body?: unknown): Promise<T> {
   return (res.status === 204 ? null : res.json()) as Promise<T>;
 }
 
+const me = <T,>(method: string, path: string, body?: unknown) => withSession<T>(method, `/me${path}`, body);
+
 export const getMe = () => me<MeState>("GET", "");
+/** Google sign-in (ADR-0044) is a full-page navigation through the API; `next` is a path on this site. */
+export const signInUrl = (next = "/me") => `${API_BASE}/auth/google/start?next=${encodeURIComponent(next)}`;
+export const signOut = () => withSession<null>("POST", "/auth/sign-out");
 export const giveConsent = () => me<MeState>("POST", "/consent");
 export const putPreference = (key: string, value: string | string[]) =>
   me<MeState>("PUT", "/preferences", { key, value });

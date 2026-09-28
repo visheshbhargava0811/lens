@@ -230,9 +230,18 @@ CREATE TABLE story_summaries (
 
 ```sql
 CREATE TABLE users (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at  timestamptz NOT NULL DEFAULT now(),
-  consent_at  timestamptz            -- consent to store preferences
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  consent_at        timestamptz,       -- consent to store preferences
+  consolidated_at   timestamptz,       -- last memory consolidation (docs/11)
+  identity_provider text,              -- 'google' when signed in (ADR-0044)
+  identity_hash     text UNIQUE        -- SHA-256 of provider:subject; no email, no name
+);
+
+CREATE TABLE user_sessions (           -- one per signed-in browser (ADR-0041, ADR-0044)
+  token_hash  text PRIMARY KEY,        -- SHA-256 of the cookie token; the token is never stored
+  user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE user_preferences (        -- semantic memory, strict schema (docs/11)

@@ -404,6 +404,8 @@ class StoryChanges(BaseModel):
 
 class MeState(BaseModel):
     consented: bool
+    signed_in_with: str | None = None  # "google" when signed in (ADR-0044); None for an anonymous profile
+    sign_in_providers: list[str] = []  # providers configured on this server
     preferences: dict[str, str | list[str]]
     allowed: dict[str, list[str]]  # the closed value set of every key: the whole storable surface
 

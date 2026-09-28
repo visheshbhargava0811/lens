@@ -1,6 +1,20 @@
-import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
-/** Lens has no accounts yet (ADR-0041): personalization is an anonymous, consented profile managed on /me. */
-export default function Page() {
-  redirect("/me");
+import { SignInPanel } from "@/components/me/SignInPanel";
+
+/** Google sign-in (ADR-0044). The anonymous profile on /me (ADR-0041) still works without an account. */
+export default async function SignInPage() {
+  const t = await getTranslations("signIn");
+  return (
+    <div>
+      <h1 className="text-3xl">{t("title")}</h1>
+      <p className="mt-2 text-lg text-ink-muted">{t("intro")}</p>
+      <div className="mt-6">
+        <Suspense>
+          <SignInPanel />
+        </Suspense>
+      </div>
+    </div>
+  );
 }
