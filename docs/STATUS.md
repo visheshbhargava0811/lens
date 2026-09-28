@@ -2,7 +2,7 @@
 
 The working state of the build: what is done, what is running, and what is known to be broken or open. Update it at the end of every phase or work session. For why decisions were made, see `docs/DECISIONS.md`.
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-28_
 
 ## Phases
 
@@ -18,10 +18,15 @@ _Last updated: 2026-09-27_
 | 6 Online graph and Ask | **Done** (ADR-0030..0035, ADR-0037) | Graph 2 with every node in docs/06 except fact-check lookup (no fact-check data yet) and audio; `POST /api/v1/ask` SSE, audit trail, Postgres checkpointer, Ask page with all states. **v6 full run** (`reports/ask_adversarial_v6.md`, 130 cases, 0 infra exclusions): adversarial pass 0.990 (gate 0.95), benign false-block 0.000 (gate 0.03), p95 7.1 s (gate 15 s), p50 3.8 s, 4.7k tokens per Ask ($0 free tier). The single v6 miss (planted `[assistant]:` role tag) is fixed and re-run 15/15 (`v6_injection`). Every answered sentence cited and verified; abstain paths for out-of-scope, injection and thin coverage; guards traced to LangSmith with feedback. Fixes in ADR-0037: G-IN-05 recorded-premise backstop, no judge re-synthesis, 3 s rate-limit fail-over for Ask tiers, test-set leak removed from the query-understanding prompt |
 | 7 LLM Ops | **Done** (ADR-0039) | Report-bound CI gate (`make eval` writes per-suite reports with fingerprints; CI runs `lens.ops.gate`): all 9 measured gates pass, 2 pending with reasons (golden_answers, stance). Draft PR #1 with a degraded prompt failed CI and was closed. LangSmith datasets mirrored (12). Guard failures swept into the `lens-guard-failures` annotation queue every pipeline pass (54 queued), promotion to `data/evals/promoted/`. Online evaluators on a 20% sample of Asks with a 24 h alert. Release `2026-09-27.1` cut; `make rollback` tested live. Fixed: UUIDs masked as Aadhaar by the PII masker; `ask_turns.langsmith_run_id` now set |
 | 8 Fact-checks, localization, audio | **Done** (ADR-0040), audio deferred | 1,071 ClaimReview fact-checks from 7 docs/13 fact-checkers (Google Fact Check Tools API, re-ingested every 6 h); matcher with LLM verifier, `factcheck` eval: same_claim precision 0.902 (gate 0.90), recall 0.881. Fact-checks shown on story pages and in Ask answers, attributed and linked, `related` matches labeled; G-GEN-06 drops sentences restating a debunked claim. Translation benchmark (`reports/translation_bench.md`): gpt-oss-120b chosen for Hindi and Marathi; Marathi answers enabled. G-OUT-06 now checks names across scripts and has the independent-judge light check; the corruption test catches all 10 corrupted names and numbers. Translated answers labeled in the UI. Ask suite: adversarial 1.000, benign 0.000, p95 10.4 s. Audio deferred (no TTS credits or keys) |
+| 9 Memory | **Done** (ADR-0041), Ask eval re-run pending | Anonymous consented profile (cookie token, SHA-256 stored), /me page and API, six `UserFactKey` preferences with closed value sets, story views and "What changed since you last looked", consolidation job (triage tier, explicit preferences only), 30-day retention purge, follow-ups via the `query_followups` skill. Every docs/11 test passes, including identical outlets for users with different topics. Ask eval: 62 of 130 cases scored with 0 failures; 68 were infra (Groq daily quota) and need a resume |
 
 ## Story topics (ADR-0036)
 
 Topic tabs are populated from centered centroid prototypes (`lens.nlp.topic_embed`), ~30% of feed stories tagged at held-out precision 0.86 (`reports/topics_v1.md`). Gold labels are Claude-drafted and owner-accepted (2026-09-27). Science is weak (school environment events). Rebuild prototypes with `make topic-prototypes`, re-tag with `make classify-topics`.
+
+## Security (ADR-0042)
+
+Before deploying: set `APP_ENV=prod` and the settings validator lists anything unsafe. Run uvicorn without `--reload`, with `--proxy-headers --forwarded-allow-ips=<proxy>`. CI runs gitleaks on all history. Data services listen on 127.0.0.1 only.
 
 ## What is running
 
