@@ -22,6 +22,18 @@ test("sign-in page never forwards to another site and explains errors", async ({
   );
 });
 
+test("For you asks to sign in when signed out, even with an anonymous profile", async ({ page }) => {
+  await page.goto("/me");
+  await page.getByRole("button", { name: "Turn on personalization" }).click(); // anonymous profile only
+  await page.goto("/for-you");
+  await expect(page.getByText(/Sign in for personalization/)).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "Sign in" })).toHaveAttribute(
+    "href",
+    "/sign-in?next=/for-you",
+  );
+  await expect(page.locator('[data-testid^="story-card-"]')).toHaveCount(0);
+});
+
 test.describe("signed in", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -48,6 +60,11 @@ test.describe("signed in", () => {
 
     await menu.getByRole("button", { name: "Sign out" }).click();
     await expect(trigger).toBeHidden();
+  });
+
+  test("For you shows the feed once topics are followed", async ({ page }) => {
+    await page.goto("/for-you");
+    await expect(page.getByText("Follow some topics to see them here.")).toBeVisible();
   });
 
   test("sign-in page says you're already signed in", async ({ page }) => {

@@ -425,7 +425,8 @@
       "puducherry": "Puducherry"
     },
     "forYouTitle": "For you",
-    "forYouOff": "Turn on personalization and follow some topics to see them here.",
+    "forYouOff": "Sign in for personalization: follow topics and get the stories picked for you here.",
+    "forYouSignIn": "Sign in",
     "forYouNoTopics": "Follow some topics to see them here.",
     "forYouNote": "Stories in the topics you follow. Every story still shows all the outlets that covered it.",
     "setUp": "Choose topics",

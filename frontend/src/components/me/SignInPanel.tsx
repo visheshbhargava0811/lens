@@ -70,11 +70,11 @@ export function SignInPanel() {
 
   const available = me === null || me.sign_in_providers.includes("google");
   return (
-    <div className="flex max-w-[60ch] flex-col gap-6">
+    <div className="flex flex-col items-center gap-6">
       {error && (
         <p
           role="alert"
-          className="rounded-card bg-flag-bg p-4 font-medium text-flag-ink"
+          className="w-full rounded-card bg-flag-bg p-4 font-medium text-flag-ink"
         >
           {t(`errors.${error}`)}
         </p>
@@ -94,7 +94,7 @@ export function SignInPanel() {
 
       <section
         aria-labelledby="signin-what"
-        className="rounded-card bg-surface p-5"
+        className="w-full rounded-card bg-surface p-5 text-start"
       >
         <h2 id="signin-what" className="text-xl">
           {t("whatTitle")}

@@ -22,7 +22,7 @@ export function ForYouFeed() {
   useEffect(() => {
     getMe()
       .then(async (me): Promise<View> => {
-        if (!me.consented) return { kind: "off" };
+        if (!me.signed_in_with) return { kind: "off" }; // For you needs sign-in (ADR-0044)
         const topics = me.preferences.followed_topics;
         if (!Array.isArray(topics) || topics.length === 0)
           return { kind: "noTopics" };
@@ -38,10 +38,22 @@ export function ForYouFeed() {
         …
       </p>
     );
-  if (view.kind !== "feed")
+  if (view.kind === "off")
+    return (
+      <div className="rounded-card bg-surface p-5">
+        <p>{t("forYouOff")}</p>
+        <Link
+          href="/sign-in?next=/for-you"
+          className="mt-4 inline-flex h-10 items-center rounded-control bg-ink px-5 text-sm font-bold text-paper hover:bg-ink/85"
+        >
+          {t("forYouSignIn")}
+        </Link>
+      </div>
+    );
+  if (view.kind === "noTopics")
     return (
       <p className="rounded-card bg-surface p-5">
-        {t(view.kind === "off" ? "forYouOff" : "forYouNoTopics")}{" "}
+        {t("forYouNoTopics")}{" "}
         <Link href="/me" className="font-bold underline">
           {t("setUp")}
         </Link>
