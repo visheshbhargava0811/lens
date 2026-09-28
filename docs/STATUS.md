@@ -76,7 +76,7 @@ Before deploying: set `APP_ENV=prod` and the settings validator lists anything u
 
 ## Open items needing the owner
 
-- Done 2026-09-28 (owner): Hindi and Marathi interface text reviewed; unused keys (`GNEWS_API_KEY`, `NEWSDATA_API_KEY`, `NEWS_API_KEYS`, `BHASHINI_KEYS`) removed from `.env`; Docker Desktop starts at login.
+- Done 2026-09-28 (owner): legal review (licensing, image use, rating publication, victim and minor handling, election-period handling) reviewed and accepted; Hindi and Marathi interface text reviewed; unused keys (`GNEWS_API_KEY`, `NEWSDATA_API_KEY`, `NEWS_API_KEYS`, `BHASHINI_KEYS`) removed from `.env`; Docker Desktop starts at login.
 
 - Phase 8: review the Claude-drafted `data/evals/factcheck_match/gold_v1.jsonl` labels and the translation spot-check `data/evals/translation/review_v1.csv` (column `owner_ok`); to benchmark more translators, top up Sarvam credits, add `BHASHINI_KEYS`, or accept the IndicTrans2 licence on Hugging Face; Newschecker needs a direct feed.
 
