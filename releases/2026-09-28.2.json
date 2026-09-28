@@ -1,0 +1,113 @@
+{
+ "name": "2026-09-28.2",
+ "created_at": "2026-09-28T14:15:38.320282+00:00",
+ "git_commit": "83df22a0e6775462245e6bfacd3d92a6a2aefe2c",
+ "prompt_versions": {
+  "ask_synthesis": "1.1",
+  "claims_extraction": "1.0",
+  "evidence_rules": "1.0",
+  "factcheck_match": "1.0",
+  "framing_contrast": "1.0",
+  "judge_faithfulness": "1.0",
+  "memory_consolidation": "1.0",
+  "query_followups": "1.0",
+  "query_understanding": "1.2",
+  "synthesis_system": "1.1",
+  "translation": "1.1",
+  "translation_check": "1.0"
+ },
+ "gate": [
+  {
+   "gate": "quote_match_rate",
+   "status": "pass",
+   "detail": "1 (min 1.0)"
+  },
+  {
+   "gate": "citation_presence",
+   "status": "pass",
+   "detail": "1 (min 1.0)"
+  },
+  {
+   "gate": "adversarial_pass_rate",
+   "status": "pass",
+   "detail": "1 (min 0.95)"
+  },
+  {
+   "gate": "benign_false_block_rate",
+   "status": "pass",
+   "detail": "0 (max 0.03)"
+  },
+  {
+   "gate": "p95_ask_latency_s",
+   "status": "pass",
+   "detail": "13.59 (max 15)"
+  },
+  {
+   "gate": "retrieval_recall_at_10",
+   "status": "pass",
+   "detail": "0.9713 vs baseline 0.9713 (delta +0.0000)"
+  },
+  {
+   "gate": "clustering_bcubed_f1",
+   "status": "pass",
+   "detail": "0.9673 vs baseline 0.9673 (delta +0.0000)"
+  },
+  {
+   "gate": "langid_heldout_accuracy",
+   "status": "pass",
+   "detail": "0.97 vs baseline 0.97 (delta +0.0000)"
+  },
+  {
+   "gate": "topics_f1",
+   "status": "pass",
+   "detail": "0.8445 vs baseline 0.8445 (delta +0.0000)"
+  },
+  {
+   "gate": "factcheck_same_claim_precision",
+   "status": "pass",
+   "detail": "0.9024 (min 0.9)"
+  },
+  {
+   "gate": "faithfulness_judge",
+   "status": "pending",
+   "detail": "needs the owner-labeled golden_answers dataset (docs/08)"
+  },
+  {
+   "gate": "stance_masked_consistency",
+   "status": "pending",
+   "detail": "no stance model; coverage uses outlet ratings (ADR-0020)"
+  }
+ ],
+ "files": {
+  "backend/src/lens/agents/skills/ask_synthesis.md": "6e2cc3044aeed4d598050524a7ccbfa2c9f61920d203cf39cdef8753e2529bc0",
+  "backend/src/lens/agents/skills/claims_extraction.md": "3b4fa19a2867ea35259b32f81da1a7a34f039167ef337862f34464f5ff6f27e6",
+  "backend/src/lens/agents/skills/evidence_rules.md": "5fb2bc748018c2d97747130ba04416997dc03dbbf418f5ed5d503ce71b8c9fba",
+  "backend/src/lens/agents/skills/factcheck_match.md": "2bcfb08c2cf52cb4bf8f45df6ea5991ff2ea13d7a56b9259e96a0b668fea54cd",
+  "backend/src/lens/agents/skills/framing_contrast.md": "9f355a01b3e3e4c9823f3e53d39a268976190965abcea5451982909b50ad92d1",
+  "backend/src/lens/agents/skills/judge_faithfulness.md": "b5efd72b52d31dd986a1beabd86a9d4f845377f5a0c2e735081d693433453014",
+  "backend/src/lens/agents/skills/memory_consolidation.md": "c82dd12540d9559e516be6d646570e0ad9379885cf2d10212de29b476dfdc012",
+  "backend/src/lens/agents/skills/query_followups.md": "20623fbce95dc4ec552b1654bc56be34a6407450d14235dd32a8d9c6b5658910",
+  "backend/src/lens/agents/skills/query_understanding.md": "feaa8f4aab39ae13ee00ded76b468602fa2c3a9381af66c18fd5e529dbebce1d",
+  "backend/src/lens/agents/skills/synthesis_system.md": "52f5c4a2a0663a930a2b954b7cb72bb5dd26e500597a7ee4366e4b0db9408cef",
+  "backend/src/lens/agents/skills/translation.md": "92e302a1a5581ee8d9cc45dac9032e38119e46848228e1d795b10ad448d0e1b6",
+  "backend/src/lens/agents/skills/translation_check.md": "d20817edaf7ecbc2ea5666305370f6a6cd82bc69cb3be814f09a7ccbf8b5d2e4",
+  "config/clustering.yaml": "644d94583d2d3ffeef0c28c45ab3d700622a1d77041ea9857f169c444e21d274",
+  "config/eval_gates.yaml": "f672b7d9412bbc571896fea25118a6b1d199af32d2b40f083a180f8a8f95f6c1",
+  "config/factchecks.yaml": "d389b4fe5ae0236daac17b46aca7b23270f76eb7965e07aebc918651ac3d57aa",
+  "config/guardrails.yaml": "3ceb86c663e6e5ba45e66d670485a10c85a70970d1a062989c5b8cba44b6ceec",
+  "config/ingest.yaml": "55af654c26773bfd8e3e0c6a496d0324e9a8f38e32e7be3b8b4127d0cd4ffcc3",
+  "config/memory.yaml": "034afdd74a34676c15a28ef116094fdbd956bc71a7387f54bd653f5e6c4040d0",
+  "config/models.yaml": "b27ae5cb2407ae96b211a0304efc1a55e5d6685e398fb73a7d21ca2b2037f767",
+  "config/retrieval.yaml": "717a0775416d1d145b45173a073789b59fb1d7b525427ee9a45102d8ce3df502",
+  "config/security.yaml": "838e383a3171bd44dbcd698d41334231c7f1f3c20f3dc99e3ee853c638dbc787",
+  "data/topics/prototypes.npz": "24ff24cdce26f36bf635a41a7d99c1153977f2304d697be3aaffe5b243cd17fc",
+  "reports/eval/ask.json": "d14109e97f0303fb745ea591bbf2b62819ebfb81ccb6fe9493088cf3db9f6bbe",
+  "reports/eval/baseline.json": "5aa10faee526b449a5e30b5df5572da928e9c536d773b6392c7d5a7ae9bbeef8",
+  "reports/eval/clustering.json": "35161517bef9ec96d73190ab026c1a1b52e39ac18f44cab1cbd3b6e7b4429437",
+  "reports/eval/factcheck.json": "39d69604b125b27e0afc8385d67a1989b9175b9833fbccfe9666a71e48927401",
+  "reports/eval/langid.json": "f349b700237441873a5a5b77d0625fdfacdbccd828737948283c5a7e3787f813",
+  "reports/eval/retrieval.json": "3f948948d952ac244336fc611f50caba6856e20ceff8861eace4d860e5288c9e",
+  "reports/eval/stored_outputs.json": "1fdc66602b573ebe2f16be85bdeb9d652a28c3963534cc5ba82311c0b8168216",
+  "reports/eval/topics.json": "71eaa07a4c68fc48d4dd0915f9462565df7f1f3586ea962d53578f82ca8dd1dc"
+ }
+}
