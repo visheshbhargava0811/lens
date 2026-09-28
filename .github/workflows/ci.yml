@@ -28,6 +28,12 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U lens -d lens"
           --health-interval 2s --health-timeout 3s --health-retries 30
+      redis:  # rate limits; admin fails closed without it (ADR-0042)
+        image: redis:7-alpine
+        ports: ["6380:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 3s --health-retries 30
     defaults:
       run:
         working-directory: backend
