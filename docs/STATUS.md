@@ -31,7 +31,7 @@ Before deploying: set `APP_ENV=prod` and the settings validator lists anything u
 ## What is running
 
 - `make up`: Postgres on 5433, Redis on 6380, Qdrant on 6333. Compose project name: `lens`.
-- `make pipeline-up`: the `pipeline` container (ADR-0038), `restart: unless-stopped`, like the ingest worker. Every 15 minutes (`pipeline.interval_min`) it embeds new articles into Qdrant, clusters them, tags topics, updates story lifecycle and recomputes `story_stats`, on its own Arq queue `lens:pipeline`. CPU only: a pass takes about 4 minutes (~135 articles) and ~2.5 GB RAM. BGE-M3 weights come from the host `~/.cache/huggingface` (mounted, offline). Logs: `make pipeline-logs`. `make pipeline-worker` still runs it in the foreground for development; never run both. Survives reboots only if Docker Desktop starts at login.
+- `make pipeline-up`: the `pipeline` container (ADR-0038), `restart: unless-stopped`, like the ingest worker. Every 15 minutes (`pipeline.interval_min`) it embeds new articles into Qdrant, clusters them, tags topics, updates story lifecycle and recomputes `story_stats`, on its own Arq queue `lens:pipeline`. CPU only: a pass takes about 4 minutes (~135 articles) and ~2.5 GB RAM. BGE-M3 weights come from the host `~/.cache/huggingface` (mounted, offline). Logs: `make pipeline-logs`. `make pipeline-worker` still runs it in the foreground for development; never run both. Survives reboots: Docker Desktop starts at login (owner enabled 2026-09-28).
 - `make analyze [N=...]`: run LLM story analysis once (also inside the pipeline worker, time-boxed to `analysis.max_seconds_per_run`). Needs `GROQ_API_KEY` and `SARVAM_API_KEY`; `GEMINI_API_KEY` for the fallback (ADR-0023). Free-tier throughput is about 10–15 stories/day per Groq key (200k tokens/day per model); a second key `GROQ_API_KEY_2` is the first fallback (ADR-0025); a circuit breaker stops a pass when providers are exhausted (ADR-0024). The judge is Qwen since Sarvam ran out of credits.
 - `make backend-dev` (API on 8000) and `make frontend-dev` (web on 3000) for local use.
 - **LLM Ops (ADR-0039):** `make eval` then commit `reports/eval/` with any prompt, config or dataset change (CI fails on stale reports); `make release NAME=` after a gate pass; `make rollback TO=` to re-pin. Review queue: LangSmith `lens-guard-failures`; mark `promote` = 1, then `make eval-promote`.
@@ -68,7 +68,9 @@ Before deploying: set `APP_ENV=prod` and the settings validator lists anything u
 
 ## Open items needing the owner
 
-- Phase 8: review the Claude-drafted `data/evals/factcheck_match/gold_v1.jsonl` labels and the translation spot-check `data/evals/translation/review_v1.csv` (column `owner_ok`); a native review of the Marathi limitation text; to benchmark more translators, top up Sarvam credits, add `BHASHINI_KEYS`, or accept the IndicTrans2 licence on Hugging Face; Newschecker needs a direct feed.
+- Done 2026-09-28 (owner): Hindi and Marathi interface text reviewed; unused keys (`GNEWS_API_KEY`, `NEWSDATA_API_KEY`, `NEWS_API_KEYS`, `BHASHINI_KEYS`) removed from `.env`; Docker Desktop starts at login.
+
+- Phase 8: review the Claude-drafted `data/evals/factcheck_match/gold_v1.jsonl` labels and the translation spot-check `data/evals/translation/review_v1.csv` (column `owner_ok`); to benchmark more translators, top up Sarvam credits, add `BHASHINI_KEYS`, or accept the IndicTrans2 licence on Hugging Face; Newschecker needs a direct feed.
 
 - Label a `golden_answers` set (50+ questions with acceptance criteria) so the `faithfulness_judge` gate can be enforced; review the `lens-guard-failures` queue now and then.
 
@@ -77,5 +79,4 @@ Before deploying: set `APP_ENV=prod` and the settings validator lists anything u
 - Ownership: all 17 outlets imported 2026-09-23 (`data/sources/source_meta.csv`). 16 are owner-verified (PRGI links confirmed by the owner). Sakal comes from esakal.com's privacy policy and footer ("Sakal Media Pvt. Ltd.", Sakal Media Group, medium confidence); the owner's CSV had "Sakal Papers Private Limited" with a dead link, so the owner should confirm. Factuality: Media Bias/Fact Check ratings imported for 11 outlets (`data/sources/source_ratings_mbfc.csv`, ADR-0019). The six Indian-language papers have no MBFC page. Bias for five of them comes from the owner's editorial ratings (ADR-0021: "Lens editor", low confidence). Hindustan is still unrated, and none of the six have a factuality rating.
 - Review ADR-0018 (`feed_min_sources: 2`, shapes for `/sources` and `/methodology`) and ADR-0020 (bias mapping: Left-Center counts as Left and Right-Center as Right; no outlet is Center today; the six Indian-language papers are unrated).
 - Editorial bias ratings (ADR-0021) need a published rubric, independent raters and legal review before a public launch (docs/13).
-- Hindi copy for the bias labels (वाम / मध्य / दक्षिण झुकाव) needs a native review.
 - The JS budget is over target (about 163 KB gzipped vs 150).
