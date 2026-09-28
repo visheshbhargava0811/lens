@@ -1,4 +1,5 @@
-"""/me: the reader's own memory (docs/09, docs/11, ADR-0041). Anonymous, consented profile in an httpOnly cookie.
+"""/me: the reader's own memory (docs/09, docs/11, ADR-0041, ADR-0044). Signed-in accounts only; the session is an
+httpOnly cookie set by /auth/google/callback.
 Mutating calls need the `X-Lens-Client` header: a cross-site page cannot send it with credentials (CSRF)."""
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ CSRF = Depends(_csrf)
 def _user(db: Session, token: str | None) -> User:
     user = store.user_for_token(db, token)
     if user is None or user.consent_at is None:
-        raise HTTPException(401, "memory is off: consent first (POST /me/consent)")
+        raise HTTPException(401, "sign in first (/auth/google/start)")
     return user
 
 
@@ -67,16 +68,6 @@ def _state(db: Session, user: User | None) -> api.MeState:
 def me(db: DB, response: Response, token: Token = None) -> api.MeState:
     response.headers["Cache-Control"] = "no-store"
     return _state(db, store.user_for_token(db, token))
-
-
-@router.post("/consent", response_model=api.MeState, dependencies=[CSRF])
-def give_consent(db: DB, response: Response, token: Token = None) -> api.MeState:
-    user = store.user_for_token(db, token)
-    if user is None:
-        user, raw = store.consent(db)
-        db.commit()
-        set_session_cookie(response, raw)
-    return _state(db, user)
 
 
 @router.put("/preferences", response_model=api.MeState, dependencies=[CSRF])

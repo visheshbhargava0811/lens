@@ -174,12 +174,10 @@ def callback(
     if not valid_claims(claims, f["nonce"]):
         log.warning("auth.bad_id_token", provider=PROVIDER)
         return _fail("provider")
-    current = store.user_for_token(db, token)
-    account = store.sign_in(db, PROVIDER, str(claims["sub"]), current)
+    account = store.sign_in(db, PROVIDER, str(claims["sub"]))
     r = _back(safe_next(f["next"]))
-    if current is None or current.id != account.id:
-        store.end_session(db, token)
-        set_session_cookie(r, store.new_session(db, account))
+    store.end_session(db, token)  # a fresh session per sign-in; any earlier one on this browser ends
+    set_session_cookie(r, store.new_session(db, account))
     db.commit()
     log.info("auth.signed_in", provider=PROVIDER)
     return r

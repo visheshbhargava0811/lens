@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import time
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -104,25 +105,26 @@ def test_next_never_leaves_the_site(target: str | None) -> None:
     assert auth.safe_next("/story/abc?x=1") == "/story/abc?x=1"
 
 
-def test_anonymous_profile_becomes_the_account(
+def test_personalization_needs_sign_in(client: TestClient, db: Session) -> None:
+    orphan = User(consent_at=datetime.now(UTC))  # a row without an identity (the old anonymous profile)
+    db.add(orphan)
+    db.flush()
+    token = store.new_session(db, orphan)
+    assert store.user_for_token(db, token) is None  # never a session
+    client.cookies.set("lens_session", token)
+    assert client.get("/api/v1/me").json()["consented"] is False
+    assert client.get("/api/v1/me/feed").status_code == 401
+    assert client.post("/api/v1/me/consent", headers=WRITE).status_code in (404, 405)
+
+
+def test_signing_in_again_keeps_one_account_and_its_preferences(
     client: TestClient, monkeypatch: pytest.MonkeyPatch, db: Session
 ) -> None:
-    client.post("/api/v1/me/consent", headers=WRITE)
-    client.put("/api/v1/me/preferences", json={"key": "summary_length", "value": "short"}, headers=WRITE)
     sign_in(client, monkeypatch)
-    assert db.execute(select(User)).scalar_one().identity_hash is not None  # same row, now signed in
-    assert client.get("/api/v1/me").json()["preferences"]["summary_length"] == "short"
-
-
-def test_signing_into_an_existing_account_drops_the_orphaned_anonymous_profile(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, db: Session
-) -> None:
-    sign_in(client, monkeypatch)  # the account, set up on another browser
     client.put("/api/v1/me/preferences", json={"key": "output_language", "value": "hi"}, headers=WRITE)
     client.cookies.clear()
-    client.post("/api/v1/me/consent", headers=WRITE)  # a fresh anonymous profile here
-    sign_in(client, monkeypatch)
-    assert db.execute(select(User)).scalars().all() == [db.execute(select(User)).scalar_one()]  # one row left
+    sign_in(client, monkeypatch)  # the same Google account on another browser
+    assert len(db.execute(select(User)).scalars().all()) == 1
     assert client.get("/api/v1/me").json()["preferences"]["output_language"] == "hi"
 
 

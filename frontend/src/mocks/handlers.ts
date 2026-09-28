@@ -191,11 +191,7 @@ const ALLOWED: Record<string, string[]> = {
   ],
   followed_regions: ["delhi", "maharashtra", "tamil-nadu"],
 };
-const memoryState: {
-  consented: boolean;
-  preferences: Record<string, string | string[]>;
-} = {
-  consented: false,
+const memoryState: { preferences: Record<string, string | string[]> } = {
   preferences: {},
 };
 /** Google sign-in is a full-page redirect the mocks cannot follow; tests start signed in with
@@ -203,7 +199,7 @@ const memoryState: {
 const signedIn = () =>
   !!(globalThis as { __lensMockSignedIn?: boolean }).__lensMockSignedIn;
 const meState = () => ({
-  consented: memoryState.consented || signedIn(),
+  consented: signedIn(), // preferences need sign-in (ADR-0044)
   signed_in_with: signedIn() ? "google" : null,
   sign_in_providers: ["google"],
   preferences: memoryState.preferences,
@@ -213,17 +209,12 @@ const meState = () => ({
 // Fixtures must match docs/09_API_SPEC.md exactly.
 export const handlers = [
   http.get(`${API_BASE}/me`, () => HttpResponse.json(meState())),
-  http.post(`${API_BASE}/me/consent`, () => {
-    memoryState.consented = true;
-    return HttpResponse.json(meState());
-  }),
   http.post(`${API_BASE}/auth/sign-out`, () => {
     (globalThis as { __lensMockSignedIn?: boolean }).__lensMockSignedIn = false;
-    memoryState.consented = false;
     return new HttpResponse(null, { status: 204 });
   }),
   http.put(`${API_BASE}/me/preferences`, async ({ request }) => {
-    if (!memoryState.consented && !signedIn())
+    if (!signedIn())
       return HttpResponse.json({ detail: "memory is off" }, { status: 401 });
     const { key, value } = (await request.json()) as {
       key: string;
@@ -238,7 +229,7 @@ export const handlers = [
     return HttpResponse.json(meState());
   }),
   http.get(`${API_BASE}/me/memory`, () =>
-    memoryState.consented
+    signedIn()
       ? HttpResponse.json({
           preferences: memoryState.preferences,
           story_views: [],
@@ -248,7 +239,7 @@ export const handlers = [
       : HttpResponse.json({ detail: "memory is off" }, { status: 401 }),
   ),
   http.delete(`${API_BASE}/me/memory`, () => {
-    memoryState.consented = false;
+    (globalThis as { __lensMockSignedIn?: boolean }).__lensMockSignedIn = false; // the account is gone
     memoryState.preferences = {};
     return new HttpResponse(null, { status: 204 });
   }),
@@ -257,7 +248,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   http.post(`${API_BASE}/me/views/:id`, () =>
-    memoryState.consented
+    signedIn()
       ? HttpResponse.json(null)
       : HttpResponse.json({ detail: "memory is off" }, { status: 401 }),
   ),

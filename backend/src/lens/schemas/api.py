@@ -403,7 +403,7 @@ class StoryChanges(BaseModel):
 
 
 class MeState(BaseModel):
-    consented: bool
+    consented: bool  # signed in: signing in is the consent to personalization (ADR-0044)
     signed_in_with: str | None = None  # "google" when signed in (ADR-0044); None for an anonymous profile
     sign_in_providers: list[str] = []  # providers configured on this server
     preferences: dict[str, str | list[str]]

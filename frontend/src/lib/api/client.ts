@@ -195,7 +195,6 @@ export const getMe = () => me<MeState>("GET", "");
 /** Google sign-in (ADR-0044) is a full-page navigation through the API; `next` is a path on this site. */
 export const signInUrl = (next = "/me") => `${API_BASE}/auth/google/start?next=${encodeURIComponent(next)}`;
 export const signOut = () => withSession<null>("POST", "/auth/sign-out");
-export const giveConsent = () => me<MeState>("POST", "/consent");
 export const putPreference = (key: string, value: string | string[]) =>
   me<MeState>("PUT", "/preferences", { key, value });
 export const getMemory = () => me<MemoryView>("GET", "/memory");

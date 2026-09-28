@@ -14,7 +14,6 @@ import {
   deleteView,
   getMe,
   getMemory,
-  giveConsent,
   putPreference,
 } from "@/lib/api/client";
 import type { MemoryView, MeState } from "@/lib/api/types";
@@ -50,7 +49,6 @@ const button =
  */
 export function MemoryPanel() {
   const t = useTranslations("me");
-  const ts = useTranslations("signIn");
   const ta = useTranslations("account");
   const tt = useTranslations("topics");
   const fmt = useFormatter();
@@ -110,38 +108,25 @@ export function MemoryPanel() {
   const days = memory?.retention_days ?? 30;
 
   if (!me.consented) {
+    // Preferences need sign-in (ADR-0044); signing in is the consent.
     return (
-      <section aria-labelledby="consent-heading" className={panel}>
+      <section aria-labelledby="signin-heading" className={panel}>
         {status === "deleted" && (
           <p role="status" className="mb-4 font-bold">
             {t("deleted")}
           </p>
         )}
-        <h2 id="consent-heading" className="text-2xl">
-          {t("consentTitle")}
+        <h2 id="signin-heading" className="text-2xl">
+          {t("signInTitle")}
         </h2>
         <p className="mt-3">{t("consentWhat", { days: 30 })}</p>
         <p className="mt-3">{t("consentNot")}</p>
-        <button
-          type="button"
+        <Link
+          href="/sign-in?next=/me"
           className={`${button} mt-5 bg-ink text-paper hover:bg-ink/85`}
-          onClick={async () => {
-            await giveConsent();
-            setStatus("idle");
-            await load();
-          }}
         >
-          {t("consentButton")}
-        </button>
-        <p className="mt-2 text-sm text-ink-muted">{t("consentNote")}</p>
-        {me.sign_in_providers.length > 0 && (
-          <p className="mt-4 border-t border-ink/10 pt-4 text-sm">
-            <Link href="/sign-in" className="font-bold underline decoration-ink/40 hover:decoration-ink">
-              {ts("google")}
-            </Link>{" "}
-            <span className="text-ink-muted">{ts("intro")}</span>
-          </p>
-        )}
+          {t("signInButton")}
+        </Link>
       </section>
     );
   }

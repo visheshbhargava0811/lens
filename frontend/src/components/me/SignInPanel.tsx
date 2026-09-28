@@ -109,7 +109,7 @@ export function SignInPanel() {
       </section>
 
       <Link
-        href="/me"
+        href="/"
         className="w-fit font-bold underline decoration-ink/40 hover:decoration-ink"
       >
         {t("anonymous")}

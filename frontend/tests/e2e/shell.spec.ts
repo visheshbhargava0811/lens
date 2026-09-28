@@ -46,8 +46,13 @@ for (const locale of ["en", "hi"] as const) {
 
 test("language switcher toggles UI language", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "हिं" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "hi");
-  await page.getByRole("button", { name: "EN" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  // A click that lands before hydration does nothing, so retry until the language changes.
+  await expect(async () => {
+    await page.getByRole("button", { name: "हिं" }).click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "hi", { timeout: 2_000 });
+  }).toPass();
+  await expect(async () => {
+    await page.getByRole("button", { name: "EN" }).click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 2_000 });
+  }).toPass();
 });

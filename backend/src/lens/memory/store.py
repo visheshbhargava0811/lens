@@ -46,19 +46,15 @@ def new_session(session: Session, user: User) -> str:
     return token
 
 
-def consent(session: Session, now: datetime | None = None) -> tuple[User, str]:
-    """Creates a consented anonymous profile; returns it and the raw token for the cookie."""
-    user = User(consent_at=now or datetime.now(UTC))
-    session.add(user)
-    session.flush()
-    return user, new_session(session, user)
-
-
 def user_for_token(session: Session, token: str | None) -> User | None:
+    """The signed-in account for this cookie. Personalization needs sign-in (ADR-0044): a row without an
+    identity is never returned."""
     if not token:
         return None
     return session.execute(
-        select(User).join(UserSession, UserSession.user_id == User.id).where(UserSession.token_hash == _hash(token))
+        select(User)
+        .join(UserSession, UserSession.user_id == User.id)
+        .where(UserSession.token_hash == _hash(token), User.identity_hash.is_not(None))
     ).scalar_one_or_none()
 
 
@@ -67,20 +63,15 @@ def end_session(session: Session, token: str | None) -> None:
         session.execute(delete(UserSession).where(UserSession.token_hash == _hash(token)))
 
 
-def sign_in(session: Session, provider: str, subject: str, current: User | None, now: datetime | None = None) -> User:
-    """ADR-0044. The account for this identity, creating or linking it. Signing in is consent to saving
-    preferences. An anonymous profile on this browser becomes the account when the identity is new; when
-    the identity already has an account, the anonymous profile is deleted (nothing could reach it again)."""
-    now = now or datetime.now(UTC)
+def sign_in(session: Session, provider: str, subject: str, now: datetime | None = None) -> User:
+    """ADR-0044: the account for this identity, created on first sign-in. Signing in is the consent to
+    saving preferences (docs/11 hard rule 5); there is no anonymous profile."""
     ident = _hash(f"{provider}:{subject}")
     account = session.execute(select(User).where(User.identity_hash == ident)).scalar_one_or_none()
     if account is None:
-        account = current if current is not None and current.identity_hash is None else User()
-        account.identity_provider, account.identity_hash = provider, ident
+        account = User(identity_provider=provider, identity_hash=ident)
         session.add(account)
-    elif current is not None and current.id != account.id and current.identity_hash is None:
-        delete_everything(session, current)
-    account.consent_at = account.consent_at or now
+    account.consent_at = account.consent_at or now or datetime.now(UTC)
     session.flush()
     return account
 

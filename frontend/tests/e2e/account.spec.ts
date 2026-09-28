@@ -22,9 +22,7 @@ test("sign-in page never forwards to another site and explains errors", async ({
   );
 });
 
-test("For you asks to sign in when signed out, even with an anonymous profile", async ({ page }) => {
-  await page.goto("/me");
-  await page.getByRole("button", { name: "Turn on personalization" }).click(); // anonymous profile only
+test("For you asks to sign in when signed out", async ({ page }) => {
   await page.goto("/for-you");
   await expect(page.getByText(/Sign in for personalization/)).toBeVisible();
   await expect(page.getByRole("main").getByRole("link", { name: "Sign in" })).toHaveAttribute(

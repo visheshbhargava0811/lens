@@ -194,23 +194,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/consent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Give Consent */
-        post: operations["give_consent_api_v1_me_consent_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/me/preferences": {
         parameters: {
             query?: never;
@@ -1594,39 +1577,6 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: {
-                lens_session?: string | null;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MeState"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    give_consent_api_v1_me_consent_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "x-lens-client"?: string | null;
-            };
             path?: never;
             cookie?: {
                 lens_session?: string | null;

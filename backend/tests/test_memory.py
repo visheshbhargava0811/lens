@@ -22,8 +22,7 @@ NOW = datetime(2026, 9, 28, 12, tzinfo=UTC)
 
 
 def _consented(db: Session) -> User:
-    user, _ = store.consent(db, NOW - timedelta(days=2))
-    return user
+    return store.sign_in(db, "google", str(uuid.uuid4()), NOW - timedelta(days=2))
 
 
 def test_preference_without_consent_is_rejected(db: Session) -> None:
@@ -165,16 +164,16 @@ def test_what_changed_cites_only_articles_newer_than_the_last_view(db: Session) 
 # ---------------------------------------------------------------- /me API
 
 
-def test_me_api_consent_cookie_csrf_and_delete(client: Any, db: Session) -> None:
+def test_me_api_needs_sign_in_csrf_and_delete(client: Any, db: Session) -> None:
     h = {"X-Lens-Client": "web"}
     assert client.get("/api/v1/me").json()["consented"] is False
     assert (
         client.put("/api/v1/me/preferences", json={"key": "summary_length", "value": "short"}, headers=h).status_code
         == 401
     )
-    assert client.post("/api/v1/me/consent").status_code == 403  # no CSRF header
-    r = client.post("/api/v1/me/consent", headers=h)
-    assert r.status_code == 200 and "httponly" in r.headers["set-cookie"].lower()
+    assert client.post("/api/v1/me/consent", headers=h).status_code in (404, 405)  # no anonymous profiles
+    client.cookies.set("lens_session", store.new_session(db, _consented(db)))
+    assert client.put("/api/v1/me/preferences", json={"key": "summary_length", "value": "x"}).status_code == 403
     assert client.put("/api/v1/me/preferences", json={"key": "summary_length", "value": "short"}, headers=h).json()[
         "preferences"
     ] == {"summary_length": "short"}

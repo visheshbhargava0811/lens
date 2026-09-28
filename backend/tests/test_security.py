@@ -194,7 +194,8 @@ def test_session_tokens_are_stored_only_as_hashes(db: Any) -> None:
     from lens.db.models import UserSession
     from lens.memory import store
 
-    user, raw = store.consent(db)
+    user = store.sign_in(db, "google", "subject-1")
+    raw = store.new_session(db, user)
     stored = db.execute(select(UserSession.token_hash).where(UserSession.user_id == user.id)).scalar_one()
     assert stored != raw and raw not in stored and stored == hashlib.sha256(raw.encode()).hexdigest()
     assert len(raw) >= 40  # 32 random bytes, url-safe

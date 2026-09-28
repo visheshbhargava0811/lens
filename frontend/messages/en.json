@@ -325,8 +325,8 @@
     "getsTitle": "What Lens gets from Google",
     "gets": "Only an account number that Google makes for Lens. Not your email, name, photo or contacts. Lens stores it scrambled (hashed), so it can't be traced back to you.",
     "consent": "Signing in turns on personalization. You can delete everything, including your sign-in, at any time on the Preferences page.",
-    "anonymous": "Use Lens without an account",
-    "unavailable": "Sign-in isn't available on this server yet. You can still turn on personalization in this browser.",
+    "anonymous": "Keep reading without signing in",
+    "unavailable": "Sign-in isn't available on this server yet.",
     "signedIn": "You're signed in with Google.",
     "toPrefs": "Go to your preferences",
     "errors": {
@@ -347,12 +347,9 @@
   },
   "me": {
     "title": "Your preferences",
-    "intro": "Lens works without an account. Sign in to keep your preferences on every device, or turn on personalization in this browser only. Lens remembers only what you choose here.",
-    "consentTitle": "Turn on personalization?",
+    "intro": "Sign in to keep your preferences on every device. Lens remembers only what you choose here.",
     "consentWhat": "What Lens stores: the answer language, site language, topics and regions you follow, answer length and audio choice; the stories you open (to show what changed since your last visit) and the questions you ask Lens, both for {days} days.",
     "consentNot": "What Lens never stores: your name, email or phone; any political preference; which outlets or sides you read. What you follow never changes which outlets appear in a story or an answer.",
-    "consentButton": "Turn on personalization",
-    "consentNote": "You can delete everything at any time.",
     "prefsTitle": "Preferences",
     "outputLanguage": "Answer language",
     "uiLanguage": "Site language",
@@ -375,7 +372,7 @@
     "deleteConfirm": "This deletes your preferences, opened stories and question history, and turns personalization off. Continue?",
     "deleteYes": "Yes, delete everything",
     "deleteNo": "Cancel",
-    "deleted": "Everything was deleted. Personalization is off.",
+    "deleted": "Everything was deleted, including your sign-in.",
     "loadError": "Couldn't load your preferences.",
     "values": {
       "en": "English",
@@ -435,7 +432,9 @@
     "changesArticles": "New reports",
     "changesFactChecks": "New fact-checks",
     "changesSummary": "The verified summary was updated.",
-    "changesNone": "Nothing new since your last visit."
+    "changesNone": "Nothing new since your last visit.",
+    "signInTitle": "Sign in to set your preferences",
+    "signInButton": "Sign in"
   },
   "local": {
     "title": "Local news",

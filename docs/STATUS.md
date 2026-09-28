@@ -26,7 +26,7 @@ Topic tabs are populated from centered centroid prototypes (`lens.nlp.topic_embe
 
 ## Sign-in (ADR-0044)
 
-Google sign-in through the API (OIDC code flow + PKCE, scope `openid` only; only a hash of Google's account id is stored). Needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (Google Cloud Console, OAuth client of type Web application, redirect URI `http://localhost:8000/api/v1/auth/google/callback`); without them the sign-in page says sign-in is unavailable. Header Account menu once signed in. New Hindi strings under `signIn` and `account` need the owner's review.
+Google sign-in through the API (OIDC code flow + PKCE, scope `openid` only; only a hash of Google's account id is stored). Needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (Google Cloud Console, OAuth client of type Web application, redirect URI `http://localhost:8000/api/v1/auth/google/callback`); without them the sign-in page says sign-in is unavailable. Header Account menu once signed in. Personalization (Preferences, For you, histories) needs sign-in; there is no anonymous profile any more. New Hindi strings under `signIn` and `account` need the owner's review.
 
 ## Local tab (ADR-0043)
 
