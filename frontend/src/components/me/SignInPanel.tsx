@@ -82,7 +82,7 @@ export function SignInPanel() {
       {available ? (
         <a
           href={signInUrl(next)}
-          className="inline-flex h-11 w-fit items-center gap-3 rounded-control border border-ink/25 bg-card px-5 font-bold hover:border-ink/60"
+          className="mx-auto inline-flex h-11 w-fit items-center gap-3 rounded-control border border-ink/25 bg-card px-5 font-bold hover:border-ink/60"
         >
           <GoogleMark />
           {t("google")}
