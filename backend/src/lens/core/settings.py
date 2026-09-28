@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     groq_api_key_3: SecretStr | None = None  # third key: Ask's own quota (`account: 3`, ADR-0032)
     sarvam_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None  # fallback provider (config/models.yaml `fallbacks`)
+    google_factcheck_api_key: SecretStr | None = None  # Fact Check Tools API (ClaimReview), docs/04 section 9
     llm_timeout_s: float = 120.0
 
     web_origin: str = "http://localhost:3000"

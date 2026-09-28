@@ -36,6 +36,34 @@ log = get_logger(__name__)
 QUEUE = "lens:pipeline"
 
 
+def factchecks_pass() -> dict[str, Any]:
+    """docs/04 s9: ClaimReview ingest every `ingest.every_hours` (a Redis key with a TTL gates it, so restarts
+    and parallel workers never double-run it), then verify new story claims against fact-checks."""
+    import redis
+
+    from lens.factchecks.ingest import ingest
+    from lens.factchecks.match import match_claims
+    from lens.llm.client import structured
+
+    out: dict[str, Any] = {}
+    cfg = load_yaml("factchecks.yaml")["ingest"]
+    try:
+        r = redis.Redis.from_url(get_settings().redis_url)
+        if get_settings().google_factcheck_api_key and r.set(
+            "lens:factchecks:ingest", "1", nx=True, ex=cfg["every_hours"] * 3600
+        ):
+            with Session(get_engine()) as session, session.begin():
+                out["ingest"] = ingest(session, get_qdrant(), get_embedder())
+    except Exception as e:
+        log.warning("factchecks.ingest_failed", error=f"{type(e).__name__}: {e}"[:300])
+    try:
+        with Session(get_engine()) as session, session.begin():
+            out["match"] = match_claims(session, get_qdrant(), get_embedder(), structured)
+    except Exception as e:
+        log.warning("factchecks.match_failed", error=f"{type(e).__name__}: {e}"[:300])
+    return out
+
+
 def llmops_pass(now: datetime) -> dict[str, Any]:
     """Online evaluators on sampled Ask turns, then failed guard runs into the annotation queue."""
     from langsmith import Client
@@ -74,6 +102,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
         purged = purge_ask_turns(session, now, ask_checkpointer())  # docs/03 retention for Ask turns
+    fc = factchecks_pass()
     ops = llmops_pass(now)  # docs/08 review loop and online evals; best effort, never blocks the pipeline
     # LLM analysis for 4+ source stories, time-boxed (ADR-0022); can be paused to leave quota for Ask (ADR-0030).
     analysed = analyze_pending() if load_yaml("clustering.yaml")["analysis"]["scheduled"] else "paused"
@@ -86,6 +115,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         "stats": stats,
         "ask_turns_purged": purged,
         "analysed": analysed,
+        "factchecks": fc,
         "llmops": ops,
         "seconds": round(time.monotonic() - t0, 1),
     }

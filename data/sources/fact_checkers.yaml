@@ -1,0 +1,40 @@
+# Fact-checkers ingested through the Google Fact Check Tools API (ClaimReview), docs/13 and docs/04 section 9.
+# The list is docs/13's. Sites and publisher names come from the API itself (probed 2026-09-27; evidence_url is a
+# review the API returned for that site, taken from the first ingest); nothing here is filled in from memory (CLAUDE.md rule 7).
+# `url_contains` keeps only fact-check pages when the site also publishes news.
+# We store only ClaimReview metadata (claim, rating, link, date) and always link out (license_mode: link_only).
+fact_checkers:
+  - slug: boom
+    name: BOOM
+    sites: [boomlive.in, hindi.boomlive.in]
+    evidence_url: https://hindi.boomlive.in/fact-check/ayodhya-ram-mandir-dalit-woman-rape-claim-viral-video-fact-check-32263
+  - slug: alt-news
+    name: Alt News
+    sites: [altnews.in]
+    evidence_url: https://www.altnews.in/hindi/bihar-jamui-police-debunk-claims-of-faking-injury-by-main-accused-nandan-yadav-slapped-by-lawyer/
+  - slug: factly
+    name: FACTLY
+    sites: [factly.in]
+    evidence_url: https://factly.in/this-viral-video-of-shah-rukh-khan-reprimanding-saudi-arabia-over-baljinder-singhs-death-sentence-is-ai-manipulated/
+  - slug: pti-fact-check
+    name: PTI Fact Check
+    sites: [ptinews.com, bhasha.ptinews.com]
+    url_contains: /fact-detail/
+    evidence_url: https://bhasha.ptinews.com/fact-detail/4092395
+  - slug: vishvas-news
+    name: Vishvas News
+    sites: [vishvasnews.com]
+    evidence_url: https://www.vishvasnews.com/politics/fact-check-nirmala-sitharaman-subramaniam-bharati-great-nephew-old-video-viral/
+  - slug: quint-webqoof
+    name: The Quint WebQoof
+    sites: [thequint.com]
+    url_contains: /webqoof/
+    evidence_url: https://www.thequint.com/news/webqoof/video-from-russia-shared-as-riyadh-airport-after-houthi-strike-false-claim-fact-check
+  - slug: india-today-fact-check
+    name: India Today Fact Check
+    sites: [indiatoday.in]
+    url_contains: /fact-check/
+    evidence_url: https://www.indiatoday.in/fact-check/story/rajdeep-sardesai-prof-rajkumar-pant-interview-fact-check-viral-iit-bombay-exchange-fake-3003097-2026-09-25
+pending:
+  - name: Newschecker
+    reason: "The API returned 0 reviews for newschecker.in over 90 days (probed 2026-09-27). Needs its own feed (docs/13: direct feeds where terms allow)."

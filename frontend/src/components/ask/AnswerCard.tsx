@@ -8,6 +8,7 @@ import { CoverageBar } from "@/components/coverage/CoverageBar";
 import { biasFill } from "@/components/coverage/bias-style";
 import type { CitedArticle } from "@/components/story/CitationChip";
 import { SHOW_ARTICLE_EVENT } from "@/components/story/events";
+import { FactCheckList } from "@/components/story/FactCheckList";
 import { CitedText } from "@/components/story/SummaryBlock";
 import type { AskAnswer, AskEvidence, CitedSentence } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
@@ -51,8 +52,13 @@ export function AnswerCard({
       setHighlighted(id);
       requestAnimationFrame(() => {
         const el = document.getElementById(askArticleDomId(id));
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        el?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+        const reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        el?.scrollIntoView({
+          behavior: reduce ? "auto" : "smooth",
+          block: "center",
+        });
         el?.focus({ preventScroll: true });
       });
     }
@@ -67,45 +73,98 @@ export function AnswerCard({
           {title}
         </h3>
         <ul className="mt-2 list-disc space-y-2 ps-5 marker:text-ink-muted">
-          <CitedText sentences={sentences} lang={answer.lang} articles={articles} as="li" />
+          <CitedText
+            sentences={sentences}
+            lang={answer.lang}
+            articles={articles}
+            as="li"
+          />
         </ul>
       </section>
     );
-  const biasOf = Object.fromEntries((evidence?.sources ?? []).map((s) => [s.name, s.bias]));
+  const biasOf = Object.fromEntries(
+    (evidence?.sources ?? []).map((s) => [s.name, s.bias]),
+  );
   const sourceCount = new Set(answer.articles.map((a) => a.source_name)).size;
 
   return (
-    <article data-testid="answer-card" aria-labelledby="answer-heading" className="flex flex-col gap-6">
+    <article
+      data-testid="answer-card"
+      aria-labelledby="answer-heading"
+      className="flex flex-col gap-6"
+    >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h2 id="answer-heading" className="text-2xl">
           {t("ask.answer")}
         </h2>
-        <span className="inline-flex items-center gap-1 text-sm font-bold text-ink" data-testid="verified">
+        <span
+          className="inline-flex items-center gap-1 text-sm font-bold text-ink"
+          data-testid="verified"
+        >
           <ShieldCheck aria-hidden className="size-4" strokeWidth={2.25} />
           {t("summary.verified")}
         </span>
+        {answer.lang !== "en" && (
+          // Answers are written and verified in English, then translated and checked (G-OUT-06).
+          <span
+            className="rounded-chip bg-surface px-2 py-0.5 text-xs font-bold text-ink-muted"
+            data-testid="translated"
+          >
+            {t("summary.translated", { language: t("languageNames.en") })}
+          </span>
+        )}
       </div>
       {answer.basis === "stored_summary" && (
-        <p className="rounded-card bg-flag-bg px-4 py-3 text-sm text-flag-ink" data-testid="stored-summary-note">
+        <p
+          className="rounded-card bg-flag-bg px-4 py-3 text-sm text-flag-ink"
+          data-testid="stored-summary-note"
+        >
           {t("ask.storedSummary")}
         </p>
       )}
       <div className="max-w-[68ch] space-y-2 text-lg" data-testid="answer-tldr">
-        <CitedText sentences={answer.tldr} lang={answer.lang} articles={articles} />
+        <CitedText
+          sentences={answer.tldr}
+          lang={answer.lang}
+          articles={articles}
+        />
       </div>
 
-      <section aria-labelledby="answer-coverage" className="rounded-card bg-surface p-4">
+      <section
+        aria-labelledby="answer-coverage"
+        className="rounded-card bg-surface p-4"
+      >
         <h3 id="answer-coverage" className="text-base">
           {t("ask.coverage")}
         </h3>
-        <CoverageBar coverage={answer.coverage} sourceCount={sourceCount} size="md" className="mt-2" />
+        <CoverageBar
+          coverage={answer.coverage}
+          sourceCount={sourceCount}
+          size="md"
+          className="mt-2"
+        />
       </section>
 
       {section("answer-what", t("ask.whatHappened"), answer.what_happened)}
       {section("answer-agree", t("summary.agreements"), answer.agreements)}
-      {section("answer-differ", t("summary.disagreements"), answer.disagreements)}
+      {section(
+        "answer-differ",
+        t("summary.disagreements"),
+        answer.disagreements,
+      )}
       {section("answer-premises", t("ask.premises"), answer.premises_addressed)}
 
+      {answer.fact_checks.length > 0 && (
+        <section aria-labelledby="answer-factchecks" data-testid="fact-checks">
+          <h3 id="answer-factchecks" className="text-lg font-bold">
+            {t("story.factChecks")}
+          </h3>
+          <FactCheckList
+            items={answer.fact_checks}
+            panel="rounded-card bg-card p-4"
+          />
+        </section>
+      )}
       {answer.limitations.length > 0 && (
         <section aria-labelledby="answer-limits">
           <h3 id="answer-limits" className="text-lg">
@@ -136,13 +195,22 @@ export function AnswerCard({
                   key={a.id}
                   id={askArticleDomId(a.id)}
                   tabIndex={-1}
-                  className={cn("flex flex-col gap-1 py-3 outline-none", highlighted === a.id && "bg-surface")}
+                  className={cn(
+                    "flex flex-col gap-1 py-3 outline-none",
+                    highlighted === a.id && "bg-surface",
+                  )}
                 >
                   <span className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">
                     <span className="font-bold text-ink">{a.source_name}</span>
                     <span>{a.source_language}</span>
                     <span className="inline-flex items-center gap-1">
-                      <span aria-hidden className={cn("inline-block size-2.5 rounded-[2px]", biasFill[bias])} />
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "inline-block size-2.5 rounded-[2px]",
+                          biasFill[bias],
+                        )}
+                      />
                       {t(`bias.label.${bias}`)}
                     </span>
                   </span>

@@ -120,11 +120,17 @@ class StorySummary(BaseModel):
 
 
 class FactCheckRef(BaseModel):
+    """A fact-checker's published verdict, never ours (docs/13): their name, their wording, their link."""
+
     claim: str
     fact_checker: str
-    rating: str
+    rating: str = Field(description="The fact-checker's own rating wording")
+    rating_normalized: Literal["true", "false", "misleading", "unproven", "other"]
+    match: Literal["same_claim", "related"] = Field(
+        description="same_claim: this fact-check examines the claim; related: same event, different claim"
+    )
     url: str
-    published_at: datetime
+    published_at: datetime | None
 
 
 class OwnershipGroup(BaseModel):

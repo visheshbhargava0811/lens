@@ -22,6 +22,9 @@ from lens.db.models import (
     AnalysisDepth,
     Article,
     Chunk,
+    Claim,
+    ClaimFactCheckMatch,
+    FactCheck,
     ImagePolicy,
     Source,
     SourceOwnership,
@@ -272,6 +275,39 @@ def topics(session: Session) -> api.Topics:
 # ---------------------------------------------------------------- story
 
 
+def story_fact_checks(session: Session, story_ids: list[uuid.UUID], limit: int = 8) -> list[api.FactCheckRef]:
+    """Fact-checks matched (LLM-verified) to claims in these stories' articles; same_claim first (docs/04 s9)."""
+    rows = session.execute(
+        select(FactCheck, Source.name, ClaimFactCheckMatch.verdict)
+        .join(ClaimFactCheckMatch, ClaimFactCheckMatch.fact_check_id == FactCheck.id)
+        .join(Claim, Claim.id == ClaimFactCheckMatch.claim_id)
+        .join(StoryArticle, StoryArticle.article_id == Claim.article_id)
+        .join(Source, Source.id == FactCheck.source_id)
+        .where(StoryArticle.story_id.in_(story_ids))
+    ).all()
+    best: dict[uuid.UUID, tuple[FactCheck, str, str]] = {}
+    for fc, name, verdict in rows:
+        if fc.id not in best or verdict == "same_claim":
+            best[fc.id] = (fc, name, verdict)
+    ordered = sorted(
+        best.values(),
+        key=lambda r: (r[2] != "same_claim", -(r[0].published_at.timestamp() if r[0].published_at else 0)),
+    )
+    return [fact_check_ref(fc, name, verdict) for fc, name, verdict in ordered[:limit]]
+
+
+def fact_check_ref(fc: FactCheck, fact_checker: str, verdict: str) -> api.FactCheckRef:
+    return api.FactCheckRef(
+        claim=fc.claim_reviewed,
+        fact_checker=fact_checker,
+        rating=fc.rating_original or fc.rating_normalized or "other",
+        rating_normalized=fc.rating_normalized or "other",
+        match=verdict,
+        url=fc.url,
+        published_at=fc.published_at,
+    )
+
+
 def find_story(session: Session, id_or_slug: str) -> Story | None:
     try:
         cond = Story.id == uuid.UUID(id_or_slug)
@@ -338,7 +374,7 @@ def story_detail(session: Session, story: Story) -> api.StoryDetail:
         story=card,
         summary=summary,
         framing_differences=framing,
-        fact_checks=[],  # Phase 5
+        fact_checks=story_fact_checks(session, [story.id]),
         ownership=api.Ownership(
             groups=[api.OwnershipGroup(name=k, sources=v) for k, v in sorted(owners.items()) if k != "unknown"],
             unknown=unknown,

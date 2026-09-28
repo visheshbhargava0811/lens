@@ -1,0 +1,25 @@
+# Fact-check ingest and matching (docs/04 section 9). Thresholds are starting values: tune on
+# data/evals/factcheck_match and record the result (reports/eval/factcheck.json).
+ingest:
+  every_hours: 6              # the pipeline worker ingests at most this often
+  max_age_days: 30            # look-back per run; the first run can go further with --days
+  page_size: 50
+  min_seconds_between_calls: 1.5
+  retries: 5                  # the API returns 503 under bursts
+match:
+  candidates: 5               # top fact-checks per claim (dense, any language)
+  min_similarity: 0.60        # below this a candidate never reaches the LLM verifier
+  keep: [same_claim, related]
+  max_claims_per_run: 40      # LLM verifier calls per pipeline pass (free-tier quota)
+ask:
+  max_claims: 3               # the question's claim plus removed premises: at most this many lookups per Ask
+# Fact-checkers' own wording, lowercased -> true | false | misleading | unproven | other (docs/13).
+# rating_original is always kept; anything not listed is `other`. Quote true/false: YAML reads them as booleans.
+ratings:
+  "false": ["false", fake, "mostly false", "pants on fire", incorrect, "false claim", "fake news", "fabricated", "scam",
+    "झूठ", "फर्जी", "गलत", "फेक", "असत्य", "खोटे", "खोटा", "बनावट"]
+  misleading: [misleading, "half true", "partly false", "missing context", "mixture", "misattributed", "altered",
+    "edited", "out of context", "exaggerated", "manipulated", "ai-generated", "deepfake", "digitally altered",
+    "भ्रामक", "आधा सच", "संदर्भ से बाहर", "एडिटेड", "दिशाभूल करणारे"]
+  "true": ["true", correct, "mostly true", "सच", "सही", "खरे"]
+  unproven: [unproven, unverified, "unsubstantiated", "no evidence", "अपुष्ट"]

@@ -59,3 +59,16 @@ class Translation(BaseModel):
 
     SCHEMA_VERSION: ClassVar[str] = "1.0"
     texts: list[str]
+
+
+class TranslationLineVerdict(BaseModel):
+    n: int = Field(description="The line number judged")
+    reasoning: str = Field(description="Compare meaning, names, numbers, dates and attribution")
+    faithful: bool
+
+
+class TranslationVerdicts(BaseModel):
+    """G-OUT-06 light check (docs/07): an independent judge, reasoning before verdict, one entry per line."""
+
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    verdicts: list[TranslationLineVerdict]

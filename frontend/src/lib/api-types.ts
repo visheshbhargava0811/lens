@@ -584,21 +584,35 @@ export interface components {
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
         };
-        /** FactCheckRef */
+        /**
+         * FactCheckRef
+         * @description A fact-checker's published verdict, never ours (docs/13): their name, their wording, their link.
+         */
         FactCheckRef: {
             /** Claim */
             claim: string;
             /** Fact Checker */
             fact_checker: string;
-            /** Rating */
+            /**
+             * Rating
+             * @description The fact-checker's own rating wording
+             */
             rating: string;
+            /**
+             * Rating Normalized
+             * @enum {string}
+             */
+            rating_normalized: "true" | "false" | "misleading" | "unproven" | "other";
+            /**
+             * Match
+             * @description same_claim: this fact-check examines the claim; related: same event, different claim
+             * @enum {string}
+             */
+            match: "same_claim" | "related";
             /** Url */
             url: string;
-            /**
-             * Published At
-             * Format: date-time
-             */
-            published_at: string;
+            /** Published At */
+            published_at: string | null;
         };
         /** FactualityCounts */
         FactualityCounts: {

@@ -62,6 +62,45 @@ ask:
   max_judge_retries: 0             # G-GEN-03 fail -> prune flagged sentences at once (was 2 re-syntheses: judge-failed
                                    # asks took p50 34.9 s vs 4.6 s, and set p95; reports/ask_adversarial_v5.md)
 
+# G-GEN-06 no false balance: an answer sentence this similar (BGE-M3 cosine) to a claim a fact-checker rated
+# false or misleading is dropped unless it presents the fact-check. Starting value; tune on the ask suite.
+false_balance: { min_similarity: 0.80 }
+
+# Localization node (docs/06 node 13): answer languages besides English. Marathi joins after the benchmark.
+localization:
+  languages: [hi, mr]           # mr added after reports/translation_bench.md (gpt-oss-120b: 39/40 pass both checks)
+
+# G-OUT-06 post-translation check (docs/07): numbers, attribution and named entities must survive. Entities are
+# compared across scripts by consonant skeleton; these words are institutional, not names (English function words
+# are built in), and are often translated rather than transliterated. Aliases are names that translate.
+# Starting values: tuned on data/evals/translation (reports/translation_bench.md).
+translation_check:
+  skip_words: [officials, analysts, police, reports, election, minister, president, chief, prime, government, supreme,
+    high, national, state, union, district, city, village, general, secretary, leader, opposition, home, finance,
+    external, affairs, foreign, central, new, united, women, men, final, semi-final, day]
+  # Heads of institution and event names: a capitalized phrase containing one ("Asian Games", "Election
+  # Commission", "United States") is translated as a whole, so none of its words is checked. Titles are not here:
+  # "Prime Minister Narendra Modi" must still check "Narendra" and "Modi".
+  phrase_words: [court, commission, ministry, party, bank, department, council, assembly, university, board, army,
+    force, navy, games, states, nations, amendment, standards, act, summit, cup, league, bill, scheme, mission,
+    festival, awards, ceremony, conference, forum, bureau, trophy, championship, tournament, corridor, agreement,
+    policy, report, ratings, class]
+  aliases:   # matched as substrings, so a stem covers inflections (अमेरिक: अमेरिका, अमेरिकी)
+    India: ["भारत"]
+    Indian: ["भारत"]
+    PM: ["प्रधानमंत्री", "पंतप्रधान", "पीएम"]
+    US: ["अमेरिक"]
+    U.S.: ["अमेरिक"]
+    USA: ["अमेरिक"]
+    America: ["अमेरिक"]
+    American: ["अमेरिक"]
+    UK: ["ब्रिटेन", "ब्रिटन", "यूके"]
+    Britain: ["ब्रिटेन", "ब्रिटन"]
+    UN: ["संयुक्त राष्ट्र", "यूएन"]
+    EC: ["चुनाव आयोग", "निवडणूक आयोग", "ईसी"]
+    CEC: ["मुख्य चुनाव आयुक्त", "मुख्य निवडणूक आयुक्त", "सीईसी"]
+    NCP: ["राष्ट्रवादी", "एनसीपी"]
+
 # G-OUT-03 defamation caution (docs/07): a sentence using an allegation term must carry an
 # attribution marker, or it is dropped before the judge. Lowercase; Latin terms match whole words.
 attribution:

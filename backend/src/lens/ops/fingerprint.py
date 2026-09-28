@@ -53,15 +53,32 @@ DEPS: dict[str, list[str]] = {
     "ask": [
         *(
             f"{SKILLS}/{s}.md"
-            for s in ("query_understanding", "ask_synthesis", "evidence_rules", "judge_faithfulness", "translation")
+            for s in (
+                "query_understanding",
+                "ask_synthesis",
+                "evidence_rules",
+                "judge_faithfulness",
+                "translation",
+                "translation_check",
+                "factcheck_match",
+            )
         ),
-        *(f"config/models.yaml:tiers.{t}" for t in (*ASK_TIERS, "embedding")),
+        "config/factchecks.yaml:match",
+        "config/factchecks.yaml:ask",
+        *(f"config/models.yaml:tiers.{t}" for t in (*ASK_TIERS, "embedding", "analysis")),
         *(f"config/models.yaml:fallbacks.{t}" for t in ASK_TIERS),
         "config/models.yaml:max_wait_s",
         "config/retrieval.yaml",
         "config/guardrails.yaml",
         "data/evals/adversarial/adversarial_v1.jsonl",
         "data/evals/adversarial/benign_v1.jsonl",
+    ],
+    "factcheck": [
+        f"{SKILLS}/factcheck_match.md",
+        "config/models.yaml:tiers.analysis",
+        "config/models.yaml:fallbacks.analysis",
+        "config/factchecks.yaml:match",
+        "data/evals/factcheck_match/gold_v1.jsonl",
     ],
     "judge": [
         f"{SKILLS}/judge_faithfulness.md",

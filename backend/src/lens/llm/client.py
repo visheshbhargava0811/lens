@@ -178,9 +178,11 @@ def structured[T: BaseModel](
     tags: list[str] | None = None,
     exclude_families: set[str] | None = None,
     meta: dict[str, str] | None = None,
+    chain: list[Tier] | None = None,
 ) -> T:
+    """`chain` replaces the tier's configured primary + fallbacks (benchmarks pin one model this way)."""
     errors: list[str] = []
-    for i, t in enumerate(tier_chain(tier_name)):
+    for i, t in enumerate(chain if chain is not None else tier_chain(tier_name)):
         if exclude_families and t.family in exclude_families:
             errors.append(f"{_name(t)}: skipped (family {t.family} excluded)")
             continue

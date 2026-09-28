@@ -86,7 +86,10 @@
     "lastUpdated": "Last updated",
     "status": "Status",
     "distribution": "Bias distribution",
-    "imageCredit": "Image: {source}"
+    "imageCredit": "Image: {source}",
+    "factCheckIntro": "Published by independent fact-checkers. Lens links to them and does not rate claims itself.",
+    "factCheckRelated": "About a related claim",
+    "newTab": "(opens in a new tab)"
   },
   "flag": {
     "language": "Covered mostly in {language}, little in {other}",
@@ -307,5 +310,8 @@
     "closest": "Closest stories",
     "rateLimited": "You've asked a lot of questions quickly. Try again in {seconds, plural, one {# second} other {# seconds}}.",
     "error": "Couldn't get an answer. Check your connection and try again."
+  },
+  "languageNames": {
+    "en": "English"
   }
 }

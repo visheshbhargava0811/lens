@@ -20,6 +20,8 @@ from lens.core.config_files import load_yaml
 from lens.core.settings import get_settings
 from lens.db.checkpoint import ask_checkpointer
 from lens.db.models import Article, AskTurn, Chunk, GuardEvent, LicenseMode, Source, Story
+from lens.factchecks.match import lookup as factcheck_lookup
+from lens.factchecks.match import max_similarity
 from lens.guardrails.pii import mask, mask_any
 from lens.llm.client import structured
 from lens.nlp.embed import Embedder
@@ -35,6 +37,7 @@ from lens.services.stories import (
     find_story,
     story_cards,
     story_detail,
+    story_fact_checks,
     visible_story,
 )
 from lens.stats.coverage import BIAS_BUCKETS, bucket, rated_share_confidence
@@ -124,7 +127,7 @@ LIMITS = {
         "pruned": "Some sentences were removed because they could not be verified against their sources.",
         "stale": "Latest report we found is from {hours} hours ago.",
         "language": "We couldn't tell which language you wrote in, so this answer is in English.",
-        "translation": "The Hindi translation couldn't be checked, so this answer is in English.",
+        "translation": "The {language} translation couldn't be checked, so this answer is in English.",
         "snippets": "Based on headlines and short feed summaries, not full articles.",
     },
     "hi": {
@@ -134,10 +137,22 @@ LIMITS = {
         "pruned": "कुछ वाक्य हटा दिए गए क्योंकि उन्हें उनके स्रोतों से जाँचा नहीं जा सका।",
         "stale": "हमें मिली सबसे ताज़ा रिपोर्ट {hours} घंटे पुरानी है।",
         "language": "हम पहचान नहीं सके कि आपने किस भाषा में लिखा, इसलिए यह जवाब अंग्रेज़ी में है।",
-        "translation": "हिंदी अनुवाद की जाँच नहीं हो सकी, इसलिए यह जवाब अंग्रेज़ी में है।",
+        "translation": "{language} अनुवाद की जाँच नहीं हो सकी, इसलिए यह जवाब अंग्रेज़ी में है।",
         "snippets": "सुर्ख़ियों और छोटे फ़ीड सारांशों पर आधारित, पूरे लेखों पर नहीं।",
     },
+    # Marathi (Phase 8): awaiting a native-speaker review, like the Hindi copy (STATUS open items).
+    "mr": {
+        "premise": "मिळालेल्या कोणत्याही लेखात {premise} असे नोंदवलेले नाही.",
+        "limited": "मर्यादित कव्हरेज: हे उत्तर {n} माध्यमांवर आधारित आहे.",
+        "global": "प्रश्नाशी थेट जुळणारी एकही बातमी मिळाली नाही; हे उत्तर संबंधित कव्हरेजवर आधारित आहे.",
+        "pruned": "काही वाक्ये काढून टाकली, कारण ती त्यांच्या स्रोतांशी पडताळता आली नाहीत.",
+        "stale": "आम्हाला मिळालेली सर्वात ताजी बातमी {hours} तासांपूर्वीची आहे.",
+        "language": "तुम्ही कोणत्या भाषेत लिहिले ते ओळखता आले नाही, म्हणून हे उत्तर इंग्रजीत आहे.",
+        "translation": "{language} अनुवादाची पडताळणी होऊ शकली नाही, म्हणून हे उत्तर इंग्रजीत आहे.",
+        "snippets": "मथळे आणि छोट्या फीड सारांशांवर आधारित, पूर्ण लेखांवर नाही.",
+    },
 }
+LANGUAGE_NAMES = {"hi": "Hindi", "mr": "Marathi"}
 
 
 # ---------------------------------------------------------------- assembling events
@@ -219,6 +234,14 @@ def cited_articles(session: Session, answer: api.AskAnswer) -> list[api.AskArtic
     return [by_id[i] for i in ids if i in by_id]
 
 
+def merge_fact_checks(state: AskState, story_checks: list[api.FactCheckRef], limit: int = 6) -> list[api.FactCheckRef]:
+    """Fact-checks of the reader's own claim first, then those matched to the stories used; no duplicates."""
+    out: dict[str, api.FactCheckRef] = {}
+    for f in [*(api.FactCheckRef(**x) for x in state.get("fact_checks") or []), *story_checks]:
+        out.setdefault(f.url, f)
+    return sorted(out.values(), key=lambda f: f.match != "same_claim")[:limit]
+
+
 def answer_event(session: Session, state: AskState) -> api.AskAnswer:
     ev, d, qu = state["evidence"], state["draft"], state["qu"]
     assert ev is not None and d is not None and qu is not None
@@ -246,7 +269,8 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
     if any(x.guard_id == "G-IN-04" and not x.passed for x in guards):
         limitations.append(L["language"])
     if any(x.guard_id == "G-OUT-06" and not x.passed for x in guards):
-        limitations.append(L["translation"])
+        wanted = (state.get("ui_lang") or "")[:2] or (qu.language if qu else "")
+        limitations.append(L["translation"].format(language=LANGUAGE_NAMES.get(wanted, "Hindi")))
     limitations.append(L["snippets"])
     return api.AskAnswer(
         basis="live",
@@ -259,7 +283,7 @@ def answer_event(session: Session, state: AskState) -> api.AskAnswer:
         limitations=limitations,
         follow_up_questions=d.follow_up_questions[:3],
         coverage=evidence_coverage(ev),
-        fact_checks=[],
+        fact_checks=merge_fact_checks(state, story_fact_checks(session, [uuid.UUID(i) for i in ev.story_ids])),
         story_ids=ev.story_ids,
         articles=[],
         verified=True,
@@ -288,7 +312,7 @@ def fallback_event(state: AskState) -> api.AskAnswer:
         limitations=limitations,
         follow_up_questions=[],
         coverage=detail.story.coverage,
-        fact_checks=detail.fact_checks,
+        fact_checks=merge_fact_checks(state, detail.fact_checks),
         story_ids=[fb["story_id"]],
         articles=[],
         verified=True,
@@ -464,4 +488,15 @@ def ask_graph(
         checkpointer=ask_checkpointer() if checkpoint else None,
         judge_retries=g["ask"]["max_judge_retries"],
         loaded_terms=g["attribution"]["allegation_terms"],
+        factcheck_lookup=lambda qu: factcheck_lookup(
+            session,
+            client,
+            embedder,
+            structured,
+            [*qu.removed_premises, *([qu.neutral_query] if qu.intent == "fact_check" else [])],
+        ),
+        similarity=lambda texts, claims: max_similarity(embedder, texts, claims),
+        false_balance_threshold=g["false_balance"]["min_similarity"],
+        languages=tuple(g["localization"]["languages"]),
+        translation_check=g["translation_check"],  # skip_words, phrase_words, aliases
     )

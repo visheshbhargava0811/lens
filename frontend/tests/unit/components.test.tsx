@@ -1,11 +1,12 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { AnswerCard } from "@/components/ask/AnswerCard";
 import { CoverageBar } from "@/components/coverage/CoverageBar";
 import { BiasLegend } from "@/components/coverage/BiasLegend";
 import { ArticleRow } from "@/components/story/ArticleRow";
 import { StoryCard } from "@/components/story/StoryCard";
-import type { ArticleRow as Row } from "@/lib/api/types";
+import type { AskAnswer, ArticleRow as Row } from "@/lib/api/types";
 import { buildCoverage } from "@/lib/coverage";
 import { stories } from "@/mocks/fixtures";
 
@@ -13,7 +14,11 @@ import { renderWithIntl } from "./render";
 
 describe("CoverageBar", () => {
   it("has a full screen-reader alternative matching docs/10", () => {
-    const coverage = buildCoverage({ left: 18, center: 12, right: 9 }, 3, "medium");
+    const coverage = buildCoverage(
+      { left: 18, center: 12, right: 9 },
+      3,
+      "medium",
+    );
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={42} />);
     expect(screen.getByRole("img")).toHaveAccessibleName(
       "Coverage by 42 sources: 43 percent rated Left, 29 percent rated Center, " +
@@ -25,13 +30,19 @@ describe("CoverageBar", () => {
     const coverage = buildCoverage({ left: 2, center: 2, right: 2 }, 0, "low");
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={6} />);
     expect(screen.getByText("Confidence: low")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "How this is calculated" })).toHaveAttribute("href", "/methodology#bias");
+    expect(
+      screen.getByRole("link", { name: "How this is calculated" }),
+    ).toHaveAttribute("href", "/methodology#bias");
   });
 
   it("renders segment widths from source counts and hides empty buckets", () => {
     const coverage = buildCoverage({ left: 1, center: 0, right: 3 }, 0, "low");
-    const { container } = renderWithIntl(<CoverageBar coverage={coverage} sourceCount={4} />);
-    const segs = [...container.querySelectorAll("[data-segment]")] as HTMLElement[];
+    const { container } = renderWithIntl(
+      <CoverageBar coverage={coverage} sourceCount={4} />,
+    );
+    const segs = [
+      ...container.querySelectorAll("[data-segment]"),
+    ] as HTMLElement[];
     expect(segs.map((s) => [s.dataset.segment, s.style.width])).toEqual([
       ["left", "25%"],
       ["right", "75%"],
@@ -43,16 +54,23 @@ describe("CoverageBar", () => {
     renderWithIntl(<CoverageBar coverage={coverage} sourceCount={2} />);
     expect(screen.queryByRole("img")).toBeNull();
     expect(
-      screen.getByText("Limited coverage: only 2 sources so far. A coverage split needs at least 4."),
+      screen.getByText(
+        "Limited coverage: only 2 sources so far. A coverage split needs at least 4.",
+      ),
     ).toBeInTheDocument();
   });
 });
 
 describe("BiasLegend", () => {
   it("labels Left, Center, Right and Not rated with counts", () => {
-    const coverage = buildCoverage({ left: 2, center: 1, right: 1 }, 1, "medium");
+    const coverage = buildCoverage(
+      { left: 2, center: 1, right: 1 },
+      1,
+      "medium",
+    );
     renderWithIntl(<BiasLegend coverage={coverage} />);
-    for (const label of ["Left", "Center", "Right", "Not rated"]) expect(screen.getByText(label)).toBeInTheDocument();
+    for (const label of ["Left", "Center", "Right", "Not rated"])
+      expect(screen.getByText(label)).toBeInTheDocument();
   });
 });
 
@@ -78,8 +96,13 @@ describe("ArticleRow", () => {
     expect(screen.getByText("Factuality: Not rated")).toBeInTheDocument();
     expect(screen.getByText("Bias: Not rated")).toBeInTheDocument();
     expect(screen.getByText("Owner: Unknown")).toBeInTheDocument();
-    expect(screen.getByText("Based on headline and summary.")).toBeInTheDocument();
-    expect(screen.getByText("हेडलाइन मूल भाषा में")).toHaveAttribute("lang", "hi");
+    expect(
+      screen.getByText("Based on headline and summary."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("हेडलाइन मूल भाषा में")).toHaveAttribute(
+      "lang",
+      "hi",
+    );
   });
 
   it("opens the source in a new tab safely", () => {
@@ -97,27 +120,110 @@ describe("ArticleRow", () => {
           analysis_depth: "full_text",
           also_carried_by: ["A", "B"],
           bias: "left",
-          source_bias: { rater: "Example Rater", value: "Left-Center", method_url: "https://example.org/m", confidence: "medium" },
+          source_bias: {
+            rater: "Example Rater",
+            value: "Left-Center",
+            method_url: "https://example.org/m",
+            confidence: "medium",
+          },
         }}
       />,
     );
     expect(screen.getByText("Also carried by 2 outlets")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Bias: Left-Center/ })).toHaveAttribute("href", "https://example.org/m");
+    expect(
+      screen.getByRole("link", { name: /Bias: Left-Center/ }),
+    ).toHaveAttribute("href", "https://example.org/m");
     expect(screen.queryByText("Based on headline and summary.")).toBeNull();
   });
 });
 
 describe("StoryCard", () => {
-  it.each(["hero", "standard", "compact"] as const)("%s variant is one link with the headline", (variant) => {
-    renderWithIntl(<StoryCard story={stories[0]} variant={variant} />);
-    const card = screen.getByTestId(`story-card-${variant}`);
-    const link = within(card).getByRole("link", { name: stories[0].headline });
-    expect(link).toHaveAttribute("href", `/story/${stories[0].slug}`);
-  });
+  it.each(["hero", "standard", "compact"] as const)(
+    "%s variant is one link with the headline",
+    (variant) => {
+      renderWithIntl(<StoryCard story={stories[0]} variant={variant} />);
+      const card = screen.getByTestId(`story-card-${variant}`);
+      const link = within(card).getByRole("link", {
+        name: stories[0].headline,
+      });
+      expect(link).toHaveAttribute("href", `/story/${stories[0].slug}`);
+    },
+  );
 
   it("shows a flag chip for blindspot stories", () => {
     const story = stories.find((s) => s.blindspot?.type === "language")!;
     renderWithIntl(<StoryCard story={story} />);
-    expect(screen.getByTestId("flag-chip")).toHaveTextContent("Covered mostly in Hindi, little in English");
+    expect(screen.getByTestId("flag-chip")).toHaveTextContent(
+      "Covered mostly in Hindi, little in English",
+    );
+  });
+});
+
+describe("AnswerCard (Phase 8)", () => {
+  const base = {
+    basis: "live" as const,
+    lang: "en",
+    tldr: [{ text: "Phase 1 began.", citations: [] }],
+    what_happened: [],
+    agreements: [],
+    disagreements: [],
+    premises_addressed: [],
+    limitations: [],
+    follow_up_questions: [],
+    coverage: buildCoverage({ left: 2, center: 1, right: 1 }, 0, "low"),
+    story_ids: [],
+    articles: [],
+    verified: true as const,
+    fact_checks: [
+      {
+        claim: "A viral video shows the bridge collapse.",
+        fact_checker: "BOOM",
+        rating: "False",
+        rating_normalized: "false" as const,
+        match: "same_claim" as const,
+        url: "https://boom.example/1",
+        published_at: null,
+      },
+      {
+        claim: "An old photo shows the rescue.",
+        fact_checker: "Vishvas News",
+        rating: "Misleading",
+        rating_normalized: "misleading" as const,
+        match: "related" as const,
+        url: "https://vishvas.example/2",
+        published_at: null,
+      },
+    ],
+  } as unknown as AskAnswer;
+
+  it("labels translated answers and not English ones", () => {
+    const { unmount } = renderWithIntl(
+      <AnswerCard
+        answer={{ ...base, lang: "hi" }}
+        evidence={null}
+        onFollowUp={() => {}}
+      />,
+    );
+    expect(screen.getByTestId("translated")).toHaveTextContent(
+      "Translated from English",
+    );
+    unmount();
+    renderWithIntl(
+      <AnswerCard answer={base} evidence={null} onFollowUp={() => {}} />,
+    );
+    expect(screen.queryByTestId("translated")).toBeNull();
+  });
+
+  it("shows fact-checks attributed to the fact-checker, marking related claims", () => {
+    renderWithIntl(
+      <AnswerCard answer={base} evidence={null} onFollowUp={() => {}} />,
+    );
+    const list = within(screen.getByTestId("fact-checks"));
+    expect(list.getByText("Checked by BOOM")).toBeInTheDocument();
+    expect(list.getByText("Rating: False")).toBeInTheDocument(); // the fact-checker's own wording
+    expect(list.getAllByText("About a related claim")).toHaveLength(1);
+    expect(
+      list.getAllByRole("link", { name: /Read the fact-check/ })[0],
+    ).toHaveAttribute("target", "_blank");
   });
 });

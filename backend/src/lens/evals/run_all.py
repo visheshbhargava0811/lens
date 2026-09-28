@@ -134,6 +134,13 @@ def judge() -> dict[str, Any]:
     return {"judge_kappa": c["kappa"], "judge_agreement": c["agreement"], "by_language": c["by_language"]}
 
 
+def factcheck() -> dict[str, Any]:
+    from lens.evals.factcheck import run as fc_run
+    from lens.llm.client import structured
+
+    return fc_run(structured)
+
+
 SUITES: dict[str, Callable[[], dict[str, Any]]] = {
     "langid": langid,
     "stored_outputs": stored_outputs,
@@ -141,6 +148,7 @@ SUITES: dict[str, Callable[[], dict[str, Any]]] = {
     "clustering": clustering,
     "retrieval": retrieval,
     "ask": ask,
+    "factcheck": factcheck,
     "judge": judge,
 }
 assert set(SUITES) == set(DEPS)

@@ -12,6 +12,7 @@ gates:
   clustering_bcubed_f1:      { suite: clustering, min_delta_vs_baseline: -0.02 }
   langid_heldout_accuracy:   { suite: langid, min_delta_vs_baseline: -0.02 }
   topics_f1:                 { suite: topics, min_delta_vs_baseline: -0.02 }
+  factcheck_same_claim_precision: { suite: factcheck, min: 0.90 }   # precision first (docs/12 Phase 8); recall reported
   faithfulness_judge:        { suite: golden_answers, min: 0.95, pending: "needs the owner-labeled golden_answers dataset (docs/08)" }
   stance_masked_consistency: { suite: stance, min: 0.95, pending: "no stance model; coverage uses outlet ratings (ADR-0020)" }
 

@@ -320,6 +320,7 @@ class Claim(Base):
     checkable: Mapped[bool] = mapped_column(Boolean)
     schema_version: Mapped[str] = mapped_column(Text)
     prompt_version: Mapped[str | None] = mapped_column(Text)
+    factcheck_checked_at: Mapped[datetime | None] = mapped_column(TSTZ)
 
 
 class Framing(Base):
@@ -367,6 +368,9 @@ class ClaimFactCheckMatch(Base):
     similarity: Mapped[float] = mapped_column(REAL)
     verdict: Mapped[str] = mapped_column(Text)
     verified_by_llm: Mapped[bool] = mapped_column(Boolean)
+    rationale: Mapped[str | None] = mapped_column(Text)
+    schema_version: Mapped[str | None] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text)
 
 
 class StorySummary(Base):

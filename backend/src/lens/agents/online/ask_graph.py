@@ -28,17 +28,26 @@ from lens.guardrails.generation import (
     check_attribution,
     check_citations,
     check_faithfulness,
+    check_false_balance,
     check_premises,
     check_scope,
     check_sensitive,
     check_translation,
+    check_translation_judged,
 )
 from lens.guardrails.input import check_language, check_premises_recorded, check_user_injection
 from lens.guardrails.input import check_scope as check_intent
 from lens.guardrails.pii import check_pii, mask
 from lens.llm.client import LLMError
 from lens.schemas.analysis import CitedSentence, FaithfulnessVerdict
-from lens.schemas.ask import SECTIONS, AskDraft, QueryUnderstanding, Translation, cited_sections
+from lens.schemas.ask import (
+    SECTIONS,
+    AskDraft,
+    QueryUnderstanding,
+    Translation,
+    TranslationVerdicts,
+    cited_sections,
+)
 
 MAX_VERIFIER_RETRIES = 2  # docs/06: bounded loops only
 AbstainReason = Literal[
@@ -78,12 +87,25 @@ class AskState(TypedDict, total=False):
     lang: str  # language the answer is shown in
     stale: bool
     freshness_done: bool
+    fact_checks: list[dict[str, Any]]  # FactCheckRef dumps (plain dicts: the checkpointer allowlist)
     freshness: dict[str, Any] | None
 
 
 def question_block(qu: QueryUnderstanding) -> str:
     premises = "\n".join(f"- {clean(p)}" for p in qu.removed_premises) or "(none)"
     return f"<question>\n{clean(qu.neutral_query)}\n</question>\n<removed_premises>\n{premises}\n</removed_premises>"
+
+
+def fact_check_block(fact_checks: list[dict[str, Any]]) -> str:
+    """Published fact-checks of claims in the question, as context: the model must not restate a debunked
+    claim as one side (G-GEN-06). They are shown to the reader separately, attributed and linked."""
+    if not fact_checks:
+        return ""
+    rows = "\n".join(
+        f'- {clean(f["fact_checker"])} rated it "{clean(f["rating"])}" ({f["match"]}): {clean(f["claim"])}'
+        for f in fact_checks
+    )
+    return f"<fact_checks>\n{rows}\n</fact_checks>\n\n"
 
 
 def judge_lines(d: AskDraft) -> str:
@@ -106,6 +128,11 @@ def build(
     checkpointer: Any = None,
     judge_retries: int = MAX_VERIFIER_RETRIES,
     loaded_terms: list[str] | None = None,
+    factcheck_lookup: Callable[[QueryUnderstanding], list[dict[str, Any]]] | None = None,
+    similarity: Callable[[list[str], list[str]], list[float]] | None = None,
+    false_balance_threshold: float = 0.8,
+    languages: tuple[str, ...] = ("hi",),
+    translation_check: dict[str, Any] | None = None,
 ) -> Any:
     loaded_terms = loaded_terms or []
 
@@ -193,7 +220,16 @@ def build(
             return "abstain"
         if qu.intent == "unsupported":
             return "refuse"
-        return "retrieve"
+        return "factcheck" if factcheck_lookup is not None else "retrieve"
+
+    def factcheck(state: AskState) -> dict[str, Any]:
+        """docs/06 node 7: the question's claim and removed premises against fact-checks (verified matches)."""
+        qu = state["qu"]
+        assert qu is not None and factcheck_lookup is not None
+        try:
+            return {"fact_checks": factcheck_lookup(qu)}
+        except Exception as e:  # best effort: an answer never waits on fact-check lookup
+            return {"fact_checks": [], "errors": err(state, "factcheck", e)}
 
     def refuse(state: AskState) -> dict[str, Any]:
         return {"abstain_reason": "out_of_scope", "outcome": "abstain"}
@@ -255,7 +291,7 @@ def build(
         assert qu is not None and ev is not None
         attempts = state.get("attempts", 0) + 1
         fix = f"\n\n{RETRY_NOTE}\n{state['feedback']}" if state.get("feedback") else ""
-        user = f"{question_block(qu)}\n\n{render(ev.articles)}{fix}"
+        user = f"{question_block(qu)}\n\n{fact_check_block(state.get('fact_checks') or [])}{render(ev.articles)}{fix}"
         try:
             d, rec = call(state, "ask_synthesis", "ask_synthesis", AskDraft, system_prompt("ask_synthesis"), user)
         except LLMError as e:
@@ -277,6 +313,17 @@ def build(
         attr = check_attribution(cited_sections(d), **(attribution or {"terms": [], "markers": []}))
         guards += [scope, attr]
         drop = set(scope.meta.get("drop", [])) | set(attr.meta.get("drop", []))
+        # G-GEN-06: no false balance. A debunked claim is never restated as a side; the fact-check is shown.
+        debunked = [
+            f["claim"]
+            for f in state.get("fact_checks") or []
+            if f["match"] == "same_claim" and f["rating_normalized"] in ("false", "misleading")
+        ]
+        if debunked and similarity is not None:
+            texts = [x.text for sec in cited_sections(d).values() for x in sec]
+            fb = check_false_balance(texts, similarity(texts, debunked), false_balance_threshold)
+            guards.append(fb)
+            drop |= set(fb.meta.get("drop", []))
         pruned = [*state.get("pruned", []), *(x for k in SECTIONS for x in getattr(d, k) if x.text in drop)]
         kept = d.model_copy(
             update={
@@ -389,8 +436,11 @@ def build(
     def target_language(state: AskState) -> str:
         qu = state.get("qu")
         confident = not any(g.guard_id == "G-IN-04" and not g.passed for g in state.get("guards", []))
-        if (state.get("ui_lang") or "").startswith("hi") or (qu is not None and qu.language == "hi" and confident):
-            return "hi"
+        ui = (state.get("ui_lang") or "")[:2]
+        if ui in languages:
+            return ui
+        if qu is not None and qu.language in languages and confident:
+            return qu.language
         return "en"
 
     def after_answer(state: AskState) -> str:
@@ -411,14 +461,39 @@ def build(
                 "translation",
                 Translation,
                 (skl.text, f"translation@{skl.version}"),
-                f"<texts>\n{lines}\n</texts>",
+                f"<target>{target_language(state)}</target>\n<texts>\n{lines}\n</texts>",
             )
         except LLMError as e:
             return {"lang": "en", "errors": err(state, "localize", e)}
         got = [t.split(". ", 1)[1] if t[:1].isdigit() and ". " in t[:5] else t for t in out.texts]
-        res = check_translation(texts, got)
+        lang = target_language(state)
+        res = check_translation(texts, got, lang, **(translation_check or {}))
         guards = [*state.get("guards", []), res]
         if not res.passed:
+            return {"lang": "en", "guards": guards, **rec}
+        # G-OUT-06 light check: an independent judge (a different family from the translator) catches meaning
+        # shifts the deterministic checks cannot. Anything not clearly faithful keeps the English answer.
+        pairs = "\n".join(
+            f"{i + 1}. EN: {clean(a)}\n   {lang.upper()}: {clean(b)}"
+            for i, (a, b) in enumerate(zip(texts, got, strict=True))
+        )
+        chk = skill("translation_check")
+        try:
+            v, rec = call(
+                cast(AskState, {**state, **rec}),  # tokens sum over both calls
+                "translation_check",
+                "ask_judge",
+                TranslationVerdicts,
+                (chk.text, f"translation_check@{chk.version}"),
+                f"<pairs>\n{pairs}\n</pairs>",
+                exclude={rec["models"]["translation"].get("family", "")},
+            )
+        except LLMError as e:
+            return {"lang": "en", "guards": guards, "errors": err(state, "localize", e), **rec}
+        ok = {x.n - 1 for x in v.verdicts if x.faithful}
+        judged = check_translation_judged([i for i in range(len(texts)) if i not in ok], len(texts))
+        guards.append(judged)
+        if not judged.passed:
             return {"lang": "en", "guards": guards, **rec}
         tr = dict(zip(texts, got, strict=True))
 
@@ -440,7 +515,7 @@ def build(
                 "follow_up_questions": [tr[q] for q in d.follow_up_questions],
             }
         )
-        return {"draft": d, "lang": "hi", "guards": guards, **rec}
+        return {"draft": d, "lang": lang, "guards": guards, **rec}
 
     def fallback(state: AskState) -> dict[str, Any]:
         """docs/06 fallback_precomputed: the stored, already-verified story summary, else abstain."""
@@ -457,6 +532,7 @@ def build(
     for name, fn in (
         ("understand", understand),
         ("refuse", refuse),
+        ("factcheck", factcheck),
         ("retrieve", retrieve),
         ("freshness", refresh),
         ("synthesize", synthesize),
@@ -469,7 +545,8 @@ def build(
     ):
         g.add_node(name, fn)
     g.add_edge(START, "understand")
-    g.add_conditional_edges("understand", after_understand, ["retrieve", "refuse", "abstain"])
+    g.add_conditional_edges("understand", after_understand, ["factcheck", "retrieve", "refuse", "abstain"])
+    g.add_edge("factcheck", "retrieve")
     g.add_conditional_edges("retrieve", after_retrieve, ["synthesize", "retrieve", "abstain", "fallback", "freshness"])
     g.add_edge("freshness", "retrieve")
     g.add_conditional_edges("synthesize", after_synthesize, ["verify", "synthesize", "fallback"])

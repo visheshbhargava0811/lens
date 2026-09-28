@@ -587,13 +587,30 @@ def test_refresh_skips_when_the_pipeline_holds_the_lock(migrated_engine: Any, mo
 HI = Translation(texts=["मतदाता सूची संशोधन का चरण 1 शुरू हुआ।", "चरण 2 आगे बढ़ा।", "क?", "ख?", "ग?", "घ?"])
 
 
-def _localized(translation: Translation, db: Any, ui_lang: str | None = "hi") -> tuple[list[Any], Any, FakeLLM]:
+def _judged(n: int, bad: tuple[int, ...] = ()) -> Any:
+    from lens.schemas.ask import TranslationLineVerdict, TranslationVerdicts
+
+    return TranslationVerdicts(
+        verdicts=[TranslationLineVerdict(n=i + 1, reasoning="r", faithful=i not in bad) for i in range(n)]
+    )
+
+
+def _localized(
+    translation: Translation, db: Any, ui_lang: str | None = "hi", judge: Any = None, **kw: Any
+) -> tuple[list[Any], Any, FakeLLM]:
+    from lens.schemas.ask import TranslationVerdicts
     from lens.services.ask import ask_events
 
     llm = FakeLLM(
-        {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS], Translation: [translation]}
+        {
+            QueryUnderstanding: [_qu()],
+            AskDraft: [_draft()],
+            FaithfulnessVerdict: [PASS],
+            Translation: [translation],
+            TranslationVerdicts: [judge or _judged(len(translation.texts))],
+        }
     )
-    graph = build(llm, FakeRetriever(_ev()), lambda ids: None)
+    graph = build(llm, FakeRetriever(_ev()), lambda ids: None, **kw)
     events = list(ask_events(db, "q", graph, ui_lang=ui_lang))
     return events, events[-1][1], llm
 
@@ -611,6 +628,25 @@ def test_translation_that_drops_a_number_falls_back_to_english(db: Any) -> None:
     _, ans, _ = _localized(bad, db)
     assert ans.lang == "en" and ans.tldr[0].text == "The voter list revision entered phase 1."
     assert "The Hindi translation couldn't be checked, so this answer is in English." in ans.limitations
+
+
+def test_translation_the_judge_rejects_falls_back_to_english(db: Any) -> None:
+    """G-OUT-06 light check: a meaning shift the deterministic checks cannot see keeps the verified English."""
+    _, ans, llm = _localized(HI, db, judge=_judged(len(HI.texts), bad=(1,)))
+    assert ans.lang == "en" and ans.tldr[0].text == "The voter list revision entered phase 1."
+    from lens.schemas.ask import TranslationVerdicts
+
+    assert "<pairs>" in llm.prompts[TranslationVerdicts][0]
+
+
+def test_marathi_readers_get_a_checked_translation_when_enabled(db: Any) -> None:
+    mr = Translation(texts=["मतदार यादी सुधारणेचा टप्पा 1 सुरू झाला.", "टप्पा 2 पुढे गेला.", "क?", "ख?", "ग?", "घ?"])
+    _, ans, llm = _localized(mr, db, ui_lang="mr", languages=("hi", "mr"))
+    assert ans.lang == "mr" and ans.tldr[0].text.startswith("मतदार यादी")
+    assert "<target>mr</target>" in llm.prompts[Translation][0]
+    assert "मथळे आणि छोट्या फीड सारांशांवर आधारित, पूर्ण लेखांवर नाही." in ans.limitations
+    _, ans, _ = _localized(mr, db, ui_lang="mr")  # a language that is not enabled stays English
+    assert ans.lang == "en"
 
 
 def test_english_readers_skip_translation(db: Any) -> None:
@@ -676,3 +712,51 @@ def test_ask_endpoint_abstains_cleanly_when_embedder_is_down(client: Any, db: An
     monkeypatch.setattr(router, "get_embedder", broken)
     r = client.post("/api/v1/ask", json={"query": "q"})
     assert "event: error" in r.text  # other failures still end the stream with an error event
+
+
+FALSE_CHECK = {
+    "claim": "Phase 2 was cancelled",
+    "fact_checker": "BOOM",
+    "rating": "False",
+    "rating_normalized": "false",
+    "match": "same_claim",
+    "url": "https://boom.example/fc",
+    "published_at": None,
+}
+
+
+def test_fact_checks_reach_the_prompt_and_debunked_claims_are_not_restated() -> None:
+    """G-GEN-06: a sentence restating a claim rated false is dropped; the fact-check is shown instead."""
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+
+    def sim(texts: list[str], claims: list[str]) -> list[float]:
+        assert claims == ["Phase 2 was cancelled"]
+        return [0.95 if t == "Phase 2 followed." else 0.1 for t in texts]
+
+    out, llm, _ = _run(script, factcheck_lookup=lambda qu: [FALSE_CHECK], similarity=sim)
+    assert "<fact_checks>" in llm.prompts[AskDraft][0] and 'BOOM rated it "False"' in llm.prompts[AskDraft][0]
+    assert out["fact_checks"] == [FALSE_CHECK]
+    d = out["draft"]
+    assert d is not None and d.what_happened == [] and d.tldr  # restated claim dropped, answer kept
+    g06 = [g for g in out["guards"] if g.guard_id == "G-GEN-06"]
+    assert g06 and not g06[0].passed
+
+
+def test_attributed_mentions_and_related_checks_are_kept() -> None:
+    from lens.guardrails.generation import check_false_balance
+
+    ok = check_false_balance(["BOOM fact-checked the claim that phase 2 was cancelled."], [0.95], 0.8)
+    assert ok.passed
+    related = {**FALSE_CHECK, "match": "related"}
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    out, _, _ = _run(script, factcheck_lookup=lambda qu: [related], similarity=lambda t, c: [0.99] * len(t))
+    assert not [g for g in out["guards"] if g.guard_id == "G-GEN-06"]  # only same_claim false checks bind
+
+
+def test_fact_check_lookup_failure_never_blocks_the_answer() -> None:
+    def boom(qu: Any) -> list[dict[str, Any]]:
+        raise RuntimeError("qdrant down")
+
+    script: dict[type, list[Any]] = {QueryUnderstanding: [_qu()], AskDraft: [_draft()], FaithfulnessVerdict: [PASS]}
+    out, _, _ = _run(script, factcheck_lookup=boom)
+    assert out["outcome"] == "answer" and out["fact_checks"] == [] and any("factcheck" in e for e in out["errors"])

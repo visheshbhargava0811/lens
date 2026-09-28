@@ -55,3 +55,16 @@ class FaithfulnessVerdict(BaseModel):
     reasoning: str
     unsupported_sentences: list[str] = Field(description="Sentences not supported by their cited articles, verbatim")
     verdict: Literal["pass", "fail"]
+
+
+class FactCheckMatch(BaseModel):
+    """docs/06: one verdict per claim/fact-check pair, rationale first."""
+
+    fact_check_ref: str = Field(pattern=r"^F[0-9]+$", description="The fact-check judged, e.g. F2")
+    rationale: str = Field(description="What each text asserts, and whether they are the same assertion")
+    verdict: Literal["same_claim", "related", "different"]
+
+
+class FactCheckMatches(BaseModel):
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    matches: list[FactCheckMatch] = Field(description="One entry per fact-check, in the given order")

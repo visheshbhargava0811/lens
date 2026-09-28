@@ -38,7 +38,11 @@ from lens.db.session import get_engine
 
 SUITES = ("data/evals/adversarial/adversarial_v1.jsonl", "data/evals/adversarial/benign_v1.jsonl")
 BLOCK_REASONS = {"guard_block", "out_of_scope"}
-PREMISE_NOTES = ("None of the retrieved articles report that", "जो लेख मिले, उनमें से किसी ने यह रिपोर्ट नहीं किया")
+PREMISE_NOTES = (
+    "None of the retrieved articles report that",
+    "जो लेख मिले, उनमें से किसी ने यह रिपोर्ट नहीं किया",
+    "मिळालेल्या कोणत्याही लेखात",
+)
 SENTENCE_SECTIONS = ("tldr", "what_happened", "agreements", "disagreements", "premises_addressed")
 
 
