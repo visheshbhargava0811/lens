@@ -879,6 +879,8 @@ export const FEED_PAGE_SIZE = 8;
 
 /** Stories that trigger error responses, for error-state tests. */
 export const ERROR_TOPIC = "fixture-error";
+/** The one state with local stories in the mocks (Local tab). */
+export const LOCAL_STATE = "delhi";
 export const ERROR_STORY_SLUG = "fixture-error";
 
 export const topics: { slug: string; name: { en: string; hi: string } }[] = [

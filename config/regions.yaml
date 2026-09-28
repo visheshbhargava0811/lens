@@ -1,0 +1,26 @@
+# Story region for the Local tab (F-15). Deterministic: outlets file local news under state or city
+# sections of their URL paths (bhaskar.com/local/mp/gwalior/..., thehindu.com/news/national/kerala/...).
+# The state slugs are memory.yaml values.followed_regions. Aliases below were read off the real paths
+# (2026-09-28, 98k article URLs); ambiguous city names (aurangabad: Maharashtra and Bihar) are left out.
+min_share: 0.5   # a story gets a state only when at least this share of ALL its articles point to it
+aliases:
+  madhya-pradesh: [mp, bhopal, indore, gwalior, jabalpur, ujjain]
+  uttar-pradesh: [up, lucknow, kanpur, gorakhpur, varanasi, prayagraj, allahabad, agra, meerut, noida, ghaziabad]
+  himachal-pradesh: [himachal, shimla]
+  uttarakhand: [dehradun, haridwar, rishikesh]
+  delhi: [delhi-ncr, ncr, new-delhi]
+  haryana: [gurgaon, gurugram, faridabad]
+  punjab: [ludhiana, amritsar, jalandhar]
+  rajasthan: [jaipur, jodhpur, udaipur]
+  bihar: [patna]
+  maharashtra: [mumbai, pune, nagpur, thane, nashik, kolhapur, paschim-maharashtra, uttar-maharashtra, marathwada, vidarbha, kokan]
+  tamil-nadu: [chennai, coimbatore, madurai, tiruchirapalli]
+  karnataka: [bengaluru, bangalore, mangalore, mangaluru, mysuru]
+  andhra-pradesh: [visakhapatnam, vijayawada]
+  telangana: [hyderabad]
+  west-bengal: [kolkata]
+  kerala: [thiruvananthapuram, kochi]
+  gujarat: [ahmedabad, surat, vadodara]
+  odisha: [bhubaneswar]
+  chhattisgarh: [raipur]
+  jharkhand: [ranchi]

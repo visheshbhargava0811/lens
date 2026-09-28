@@ -10,7 +10,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=()",
+    value: "camera=(), microphone=(), geolocation=(self), payment=()", // geolocation: Local tab, resolved on the device
   },
   ...(process.env.NODE_ENV === "production"
     ? [

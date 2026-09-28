@@ -25,6 +25,7 @@ from lens.db.checkpoint import ask_checkpointer
 from lens.db.locks import pipeline_lock
 from lens.db.session import get_engine
 from lens.nlp.embed import get_embedder
+from lens.nlp.region import tag_all
 from lens.pipeline.analyze import analyze_pending
 from lens.pipeline.cluster import cluster_pending, update_lifecycle
 from lens.pipeline.index import index_pending
@@ -116,6 +117,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
     with Session(get_engine()) as session, session.begin():
         # ponytail: recomputes every story (~12 s for 15k); restrict to touched stories if it grows slow.
         stats = compute_all(session, now)
+        regions = tag_all(session)  # Local tab (F-15), from URL sections
         purged = purge_ask_turns(session, now, ask_checkpointer())  # docs/03 retention for Ask turns
     fc = factchecks_pass()
     mem = memory_pass(now)
@@ -129,6 +131,7 @@ def run_once(now: datetime | None = None) -> dict[str, Any]:
         "assigned": cl.assigned,
         "lifecycle": life,
         "stats": stats,
+        "regions_changed": regions,
         "ask_turns_purged": purged,
         "analysed": analysed,
         "factchecks": fc,

@@ -404,5 +404,22 @@
     "changesFactChecks": "New fact-checks",
     "changesSummary": "The verified summary was updated.",
     "changesNone": "Nothing new since your last visit."
+  },
+  "local": {
+    "title": "Local news",
+    "intro": "Stories from your state, compared across outlets like every other story on Lens.",
+    "pick": "State",
+    "pickPlaceholder": "Choose your state",
+    "useLocation": "Use my location",
+    "locating": "Finding your state…",
+    "privacy": "Your location is checked on this device and never sent to us. Only the state you see here is used, and it is remembered in this browser only.",
+    "denied": "Location access is off. Choose your state from the list instead.",
+    "unsupported": "This browser can't share a location. Choose your state from the list.",
+    "outside": "Your location doesn't look like it's in India. Choose a state from the list.",
+    "failed": "We couldn't find your location. Choose your state from the list.",
+    "empty": "No stories covered by two or more outlets in this state yet. Try another state or check back later.",
+    "error": "Local stories couldn't be loaded. Try again.",
+    "more": "Load more",
+    "attribution": "State boundaries:"
   }
 }

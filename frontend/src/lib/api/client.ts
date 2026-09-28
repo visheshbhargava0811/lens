@@ -45,6 +45,7 @@ async function get<T>(
   query?: Query,
   init?: RequestInit,
 ): Promise<T> {
+  await (globalThis as { __lensMocksReady?: Promise<unknown> }).__lensMocksReady; // browser fixtures only (MockProvider)
   const res = await fetch(url(path, query), { cache: "no-store", ...init });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -64,6 +65,7 @@ export function getHealth() {
 export type FeedParams = {
   tab?: "home" | "blindspot" | "local";
   topic?: string;
+  state?: string;
   lang?: string;
   cursor?: string;
 };

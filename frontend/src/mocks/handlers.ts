@@ -17,6 +17,7 @@ import {
   details,
   ERROR_STORY_SLUG,
   ERROR_TOPIC,
+  LOCAL_STATE,
   FEED_PAGE_SIZE,
   slugToId,
   sourceDetail,
@@ -261,9 +262,13 @@ export const handlers = [
     const topic = q.get("topic");
     if (topic === ERROR_TOPIC) return serverError();
     const filtered =
-      !topic || topic === "top"
-        ? stories
-        : stories.filter((s) => s.topic === topic);
+      q.get("tab") === "local"
+        ? q.get("state") === LOCAL_STATE
+          ? stories.slice(0, 3)
+          : []
+        : !topic || topic === "top"
+          ? stories
+          : stories.filter((s) => s.topic === topic);
     const start = Number(q.get("cursor") ?? 0) || 0;
     const items = filtered.slice(start, start + FEED_PAGE_SIZE);
     const next =

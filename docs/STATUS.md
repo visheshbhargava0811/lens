@@ -24,6 +24,10 @@ _Last updated: 2026-09-28_
 
 Topic tabs are populated from centered centroid prototypes (`lens.nlp.topic_embed`), ~30% of feed stories tagged at held-out precision 0.86 (`reports/topics_v1.md`). Gold labels are Claude-drafted and owner-accepted (2026-09-27). Science is weak (school environment events). Rebuild prototypes with `make topic-prototypes`, re-tag with `make classify-topics`.
 
+## Local tab (ADR-0043)
+
+`/local` asks for browser location, resolves the state on the device (DataMeet boundaries), and lists stories whose articles sit in that state's URL sections (`lens.nlp.region`, re-tagged every pipeline pass; backfill: `cd backend && uv run python -m lens.nlp.region`). A state picker is the fallback. New Hindi strings under `local` in `frontend/messages/hi.json` need the owner's review.
+
 ## Security (ADR-0042)
 
 Before deploying: set `APP_ENV=prod` and the settings validator lists anything unsafe. Run uvicorn without `--reload`, with `--proxy-headers --forwarded-allow-ips=<proxy>`. CI runs gitleaks on all history. Data services listen on 127.0.0.1 only.
