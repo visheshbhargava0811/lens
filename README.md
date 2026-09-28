@@ -112,6 +112,8 @@ make frontend-dev                 # web on http://localhost:3000
 
 Just the UI, on fictional fixtures: `make frontend-mock`.
 
+**Demo without hosting:** `make demo-start` a few days early, `make demo-status` to check freshness, `make demo-serve` on the day, and `make demo-stop` afterwards (data is kept). See [`docs/DEMO.md`](docs/DEMO.md).
+
 **Keys** (all free tiers): `GROQ_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_FACTCHECK_API_KEY`, `LANGSMITH_API_KEY`.
 
 For Google sign-in, set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from a Google Cloud OAuth client of type "Web application". Its redirect URI must be `http://localhost:8000/api/v1/auth/google/callback`.

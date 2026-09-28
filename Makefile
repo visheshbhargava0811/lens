@@ -8,7 +8,8 @@ UVML := cd backend && env -u VIRTUAL_ENV uv run --extra ml
 NPM := cd frontend && npm
 
 .PHONY: index cluster stats eval-summary-ab review pipeline-worker pipeline-up pipeline-logs analyze judge-label-export judge-label-import eval-analysis cluster-label-export cluster-label-import eval-clustering eval-retrieval eval-adversarial topic-prototypes classify-topics eval-topics up down migrate seed discover-feeds seed-gen ingest-once ingest-up ingest-logs ingest-health reprocess backend-dev worker frontend-dev frontend-mock test test-backend test-frontend \
-        test-e2e lint eval eval-gate eval-baseline release rollback releases eval-sync eval-promote gen-client trace-smoke install
+        test-e2e lint eval eval-gate eval-baseline release rollback releases eval-sync eval-promote gen-client trace-smoke install \
+        demo-start demo-status demo-serve demo-stop
 
 install:
 	cd backend && env -u VIRTUAL_ENV uv sync
@@ -183,3 +184,37 @@ gen-client:
 # Sends one trace to LangSmith. Needs LANGSMITH_TRACING=true and LANGSMITH_API_KEY in .env.
 trace-smoke:
 	$(UV) pytest -m live tests/test_tracing.py -rs
+
+# ---- Interview demo (docs/DEMO.md): run locally for a few days, no hosting ----
+# demo-start: database, search index, cache, then the news fetcher and the pipeline (every 15 min).
+demo-start:
+	$(COMPOSE) up -d --wait
+	$(MAKE) migrate
+	$(MAKE) ingest-up
+	$(MAKE) pipeline-up
+	@echo ""
+	@echo "Lens is collecting news. Check progress any time with: make demo-status"
+	@echo "Keep Docker open and the Mac awake and plugged in; start 3-4 days before the demo."
+
+# demo-status: is everything running, and how fresh is the data?
+demo-status:
+	@docker ps --filter name=lens- --format '{{.Names}}\t{{.Status}}'
+	@echo ""
+	@docker exec lens-postgres-1 psql -U lens -d lens -At -F ' ' -c "\
+	  select 'Newest article fetched:  ' || coalesce(to_char(max(fetched_at) at time zone 'Asia/Kolkata', 'DD Mon HH24:MI') || ' IST', 'none') from articles; \
+	  select 'Articles, last 24 h:     ' || count(*) from articles where fetched_at > now() - interval '24 hours'; \
+	  select 'Stories updated, 24 h:   ' || count(*) from stories where last_updated_at > now() - interval '24 hours' and source_count >= 2; \
+	  select 'AI summaries, 24 h:      ' || count(*) from story_summaries where state = 'published' and created_at > now() - interval '24 hours'; \
+	  select 'AI summaries, all time:  ' || count(*) from story_summaries where state = 'published';"
+
+# demo-serve: the API and the website together (Ctrl+C stops both). Open http://localhost:3000
+demo-serve:
+	@trap 'kill 0' EXIT; \
+	  (cd backend && env -u VIRTUAL_ENV uv run uvicorn lens.api.app:app --port 8000) & \
+	  (cd frontend && npm run dev) & \
+	  wait
+
+# demo-stop: stops everything; all data stays (never add -v, that deletes it).
+demo-stop:
+	$(COMPOSE) --profile ingest down
+	@echo "Stopped. Data is kept. Start again with: make demo-start"

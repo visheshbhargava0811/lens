@@ -11,7 +11,7 @@ story_centroid_update: running_mean
 lifecycle: { stable_after_hours: 24, archive_after_days: 7 }
 reanalysis_trigger: { new_sources: 3, hours: 6 }
 analysis:                        # LLM story analysis (ADR-0022)
-  scheduled: false               # paused 2026-09-23 so Ask gets the free-tier quota (ADR-0030); `make analyze` still works
+  scheduled: true                # resumed 2026-09-29: Ask has its own Groq key (account 3, ADR-0032), so analysis no longer eats its quota
   min_sources: 4                 # only stories with a coverage bar
   max_articles: 12               # evidence cap per story (one article per outlet, balanced)
   max_stories_per_run: 10        # per pipeline pass; Groq free tier is 8k tokens/min per model

@@ -362,3 +362,8 @@ Short ADR entries. Newest last. Format: context, decision, consequences.
 - **Story**: `POST /admin/stories/{id}/kill` and `/restore` flip `stories.kill_switch`. A killed story is hidden from every public page and feed, never analysed, and its articles are never Ask evidence (`kill.taken_down_articles` filters retrieval; before this, Ask could still cite a hidden story's articles).
 - **Topic and global**: `POST /admin/kill-switch {off, off_topics}` in `ops_flags` (key `generation`). A topic switch makes Ask serve the stored, already-verified story summary (the existing fallback path; docs/07 "serve precomputed only") and makes analysis skip those stories. The global switch stops all live generation: Ask answers "Lens can't answer right now" without calling any model, analysis pauses, and story pages keep serving their stored verified summaries. Unknown topics are refused. Every change is logged at warning level (`ops.kill_switch`, `ops.story_kill`).
 - **Also**: `GET /admin/guard-events` (docs/09), newest first.
+
+## ADR-0046: Local demo instead of hosting; scheduled analysis resumed (2026-09-29, owner)
+
+- The owner showcases Lens from the Mac for interviews instead of deploying: `make demo-start` / `demo-status` / `demo-serve` / `demo-stop`, checklist in `docs/DEMO.md`. Data persists in Docker volumes between runs. Hosting (Oracle Always Free, Phase 10) stays planned but is not needed for the demo.
+- Scheduled story analysis resumed (`clustering.yaml: analysis.scheduled: true`, paused by ADR-0030). Ask has had its own Groq key since ADR-0032, so analysis no longer uses Ask's quota. Not an eval-fingerprinted key; the gate still passes.
